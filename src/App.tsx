@@ -421,9 +421,20 @@ export default function App() {
       }
     } catch (err: any) {
       console.error("Failed to connect Google Drive:", err);
-      if (err?.code === 'auth/popup-closed-by-user') {
+      const isIframe = typeof window !== 'undefined' && window.self !== window.top;
+      
+      if (err?.code === 'auth/popup-closed-by-user' || err?.message?.includes('popup-closed-by-user')) {
         setSyncStatus('not-connected');
-        showToast(t('authPopupClosed'), 'info');
+        if (isIframe) {
+          showToast(
+            settings.language === 'my'
+              ? 'ဘရောင်ဇာလုံခြုံရေးကြောင့် ညာဘက်အပေါ်ရှိ "ဝင်းဒိုးသစ်ဖြင့်ဖွင့်ရန်" ခလုတ်ကိုနှိပ်၍ ဝင်ရောက်ပေးပါ။'
+              : 'Browser security inside preview iframe: Please open the app in a new tab to sign in successfully!',
+            'error'
+          );
+        } else {
+          showToast(t('authPopupClosed'), 'info');
+        }
       } else {
         setSyncStatus('error');
         showToast(err.message || t('authGeneralError'), 'error');

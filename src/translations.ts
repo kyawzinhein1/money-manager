@@ -151,7 +151,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     autoSync: "Automatic Cloud Saving",
     autoSyncDesc: "Automatically sync data with Google Drive whenever transactions, categories, budgets or profiles are updated.",
     authPopupClosed: "The sign-in window was closed before completion. Please try again.",
-    authGeneralError: "Google Drive connection failed. Please try again."
+    authGeneralError: "Google Drive connection failed. Please try again.",
+    iframeAlertTitle: "Browser Restriction Detected",
+    iframeAlertDesc: "Because the app is running inside a preview window (iframe), Google Sign-In popups are restricted by modern browsers. Please open the app in a new tab using the button below to connect successfully.",
+    openInNewTab: "Open App in New Tab"
   },
   my: {
     appName: "Money Manager",
@@ -303,7 +306,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     autoSync: "အလိုအလျောက် Cloud တွင် သိမ်းဆည်းခြင်း",
     autoSyncDesc: "ငွေပေးငွေယူများ၊ အုပ်စုများ၊ ဘတ်ဂျက်များ သို့မဟုတ် ပရိုဖိုင်များ ပြောင်းလဲသည့်အခါတိုင်း Google Drive သို့ အလိုအလျောက် သိမ်းဆည်းပါမည်။",
     authPopupClosed: "အကောင့်ဝင်ရန် ဖွင့်ထားသော window ကို အပြီးမသတ်မီ ပိတ်လိုက်ပါသည်။ ကျေးဇူးပြု၍ ပြန်လည်ကြိုးစားပါ။",
-    authGeneralError: "Google Drive ချိတ်ဆက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ ပြန်လည်ကြိုးစားပါ။"
+    authGeneralError: "Google Drive ချိတ်ဆက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ ပြန်လည်ကြိုးစားပါ။",
+    iframeAlertTitle: "ဘရောင်ဇာလုံခြုံရေး ကန့်သတ်ချက်",
+    iframeAlertDesc: "ဤအက်ပ်သည် preview window (iframe) အတွင်း၌ လုပ်ဆောင်နေသောကြောင့် Google Sign-In popup များအား ဘရောင်ဇာများမှ ပိတ်ပင်ထားတတ်ပါသည်။ ချိတ်ဆက်ရန်အတွက် အောက်ပါခလုတ်ဖြင့် အက်ပ်ကို တခြားဝင်းဒိုးအသစ်တစ်ခုတွင် ဖွင့်ပြီးမှ ဝင်ရောက်ပေးပါ။",
+    openInNewTab: "အက်ပ်အား ဝင်းဒိုးသစ်ဖြင့် ဖွင့်ရန်"
   }
 };
 

@@ -876,6 +876,28 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
               {t('cloudBackupDesc')}
             </p>
 
+            {typeof window !== 'undefined' && window.self !== window.top && (
+              <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <h4 className="text-xs font-extrabold text-amber-800 dark:text-amber-400">
+                    {t('iframeAlertTitle')}
+                  </h4>
+                </div>
+                <p className="text-[11px] text-amber-700 dark:text-amber-300/90 leading-relaxed">
+                  {t('iframeAlertDesc')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => window.open(window.location.href, '_blank')}
+                  className="w-full py-2 bg-amber-500/20 hover:bg-amber-500/25 active:scale-98 text-amber-800 dark:text-amber-300 rounded-xl text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-amber-500/20 shadow-xs"
+                >
+                  <span>{t('openInNewTab')}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             {!googleUser ? (
               <div className="pt-2">
                 <button
