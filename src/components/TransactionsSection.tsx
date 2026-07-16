@@ -150,7 +150,7 @@ const getCategoryStyle = (categoryName: string) => {
   }
 };
 
-export const TransactionsSection: React.FC<TransactionsSectionProps> = ({
+export const TransactionsSection: React.FC<TransactionsSectionProps> = React.memo(({
   transactions,
   currencySymbol,
   language,
@@ -403,7 +403,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl z-40 p-2 space-y-0.5"
+                    className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
                       {language === 'my' ? 'ဖိုင်အမျိုးအစားရွေးပါ' : 'Select Export Format'}
@@ -507,29 +507,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = ({
               ))}
             </div>
 
-            {/* Custom Category dropdown with Filter Icon */}
-            <div className="relative flex items-center bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl px-4.5 h-11 border border-transparent hover:border-black/5 dark:hover:border-white/5 transition-colors">
-              <Filter className="w-4 h-4 text-[#8e8e93] mr-2.5 shrink-0" />
-              <select
-                id="filter-category-select"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-transparent border-0 text-xs font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none cursor-pointer pr-5.5 appearance-none h-full"
-              >
-                <option value="All">{t('allCategories')}</option>
-                {EXPENSE_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {tc(cat)}
-                  </option>
-                ))}
-                {INCOME_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {tc(cat)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93] absolute right-4 pointer-events-none" />
-            </div>
+
 
             {/* Reset / Clear Filters Indicator button */}
             {hasActiveFilters && (
@@ -779,7 +757,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = ({
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="relative w-full max-w-md p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl rounded-3xl border border-black/5 dark:border-white/10 shadow-2xl space-y-5"
+              className="relative w-full max-w-md p-6 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-5"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-[#1c1c1e] dark:text-white flex items-center gap-2">
@@ -983,4 +961,4 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = ({
       </AnimatePresence>
     </div>
   );
-};
+});

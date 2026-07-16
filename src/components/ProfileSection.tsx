@@ -20,7 +20,7 @@ const PRESET_AVATARS = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
 ];
 
-export const ProfileSection: React.FC<ProfileSectionProps> = ({
+export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
   profile,
   onSaveProfile,
   language,
@@ -476,4 +476,4 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
       </div>
     </div>
   );
-};
+});

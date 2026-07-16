@@ -20,6 +20,16 @@ interface SettingsSectionProps {
   onClearAllData: () => void;
   profile: UserProfile;
   onEditProfileClick: () => void;
+  // Google Drive cloud sync integration props
+  googleUser: any;
+  syncStatus: 'synced' | 'syncing' | 'error' | 'not-connected' | 'idle';
+  lastSyncedTime: string | null;
+  autoSyncEnabled: boolean;
+  onToggleAutoSync: () => void;
+  onConnectGoogleDrive: () => void;
+  onDisconnectGoogleDrive: () => void;
+  onTriggerDriveUpload: () => void;
+  onTriggerDriveDownload: () => void;
 }
 
 const PRESET_CURRENCIES: Currency[] = [
@@ -51,7 +61,7 @@ const getCategoryColor = (name: string) => {
 const EXPENSE_SUGGESTIONS = ['Rent', 'Groceries', 'Utilities', 'Travel', 'Dining', 'Wellness', 'Shopping', 'Gym', 'Education', 'Entertainment'];
 const INCOME_SUGGESTIONS = ['Salary', 'Freelance', 'Dividends', 'Bonus', 'Investments', 'Consulting', 'Grants', 'Gifts'];
 
-export const SettingsSection: React.FC<SettingsSectionProps> = ({
+export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   settings,
   customCurrency,
   onUpdateLanguage,
@@ -67,6 +77,15 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   onClearAllData,
   profile,
   onEditProfileClick,
+  googleUser,
+  syncStatus,
+  lastSyncedTime,
+  autoSyncEnabled,
+  onToggleAutoSync,
+  onConnectGoogleDrive,
+  onDisconnectGoogleDrive,
+  onTriggerDriveUpload,
+  onTriggerDriveDownload,
 }) => {
   const t = (key: string) => TRANSLATIONS[settings.language][key] || key;
 
@@ -573,82 +592,76 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
                 <ChevronDown className={`w-4 h-4 text-[#8e8e93] transition-transform duration-200 ${showLanguageMenu ? 'rotate-180' : ''}`} />
               </button>
 
-              <AnimatePresence>
-                {showLanguageMenu && (
-                  <>
-                    {/* Invisible click backdrop to close */}
-                    <div
-                      className="fixed inset-0 z-30 bg-transparent"
-                      onClick={() => setShowLanguageMenu(false)}
-                    />
+              {showLanguageMenu && (
+                <>
+                  {/* Invisible click backdrop to close */}
+                  <div
+                    className="fixed inset-0 z-30 bg-transparent"
+                    onClick={() => setShowLanguageMenu(false)}
+                  />
 
-                    {/* Dropdown Card */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl z-40 p-2 space-y-0.5"
+                  {/* Dropdown Card */}
+                  <div
+                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
+                  >
+                    <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
+                      {settings.language === 'my' ? 'ဘာသာစကားရွေးချယ်ရန်' : 'Choose Language'}
+                    </div>
+
+                    {/* English Option */}
+                    <button
+                      id="lang-opt-en"
+                      type="button"
+                      onClick={() => {
+                        onUpdateLanguage('en');
+                        setShowLanguageMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
+                        settings.language === 'en' ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                      }`}
                     >
-                      <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
-                        {settings.language === 'my' ? 'ဘာသာစကားရွေးချယ်ရန်' : 'Choose Language'}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          settings.language === 'en' ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
+                        }`}>
+                          EN
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold leading-tight">English</p>
+                          <p className="text-[10px] text-[#8e8e93] leading-none mt-1">United States / Global</p>
+                        </div>
                       </div>
+                      {settings.language === 'en' && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
+                    </button>
 
-                      {/* English Option */}
-                      <button
-                        id="lang-opt-en"
-                        type="button"
-                        onClick={() => {
-                          onUpdateLanguage('en');
-                          setShowLanguageMenu(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
-                          settings.language === 'en' ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                            settings.language === 'en' ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
-                          }`}>
-                            EN
-                          </div>
-                          <div>
-                            <p className="text-xs font-extrabold leading-tight">English</p>
-                            <p className="text-[10px] text-[#8e8e93] leading-none mt-1">United States / Global</p>
-                          </div>
+                    {/* Myanmar Option */}
+                    <button
+                      id="lang-opt-my"
+                      type="button"
+                      onClick={() => {
+                        onUpdateLanguage('my');
+                        setShowLanguageMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
+                        settings.language === 'my' ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          settings.language === 'my' ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
+                        }`}>
+                          MY
                         </div>
-                        {settings.language === 'en' && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
-                      </button>
-
-                      {/* Myanmar Option */}
-                      <button
-                        id="lang-opt-my"
-                        type="button"
-                        onClick={() => {
-                          onUpdateLanguage('my');
-                          setShowLanguageMenu(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
-                          settings.language === 'my' ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                            settings.language === 'my' ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
-                          }`}>
-                            MY
-                          </div>
-                          <div>
-                            <p className="text-xs font-extrabold leading-tight">မြန်မာ (Myanmar)</p>
-                            <p className="text-[10px] text-[#8e8e93] leading-none mt-1">Burmese / Localized</p>
-                          </div>
+                        <div>
+                          <p className="text-xs font-extrabold leading-tight">မြန်မာ (Myanmar)</p>
+                          <p className="text-[10px] text-[#8e8e93] leading-none mt-1">Burmese / Localized</p>
                         </div>
-                        {settings.language === 'my' && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+                      </div>
+                      {settings.language === 'my' && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Theme Toggle */}
@@ -735,61 +748,51 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
                 <ChevronDown className={`w-4 h-4 text-[#8e8e93] transition-transform duration-200 ${showCurrencyMenu ? 'rotate-180' : ''}`} />
               </button>
 
-              <AnimatePresence>
-                {showCurrencyMenu && (
-                  <>
-                    {/* Invisible click backdrop to close */}
-                    <div
-                      className="fixed inset-0 z-30 bg-transparent"
-                      onClick={() => setShowCurrencyMenu(false)}
-                    />
-
-                    {/* Dropdown Card */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl z-40 p-2 space-y-0.5"
-                    >
-                      <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
-                        {settings.language === 'my' ? 'ငွေကြေးအမျိုးအစားရွေးချယ်ရန်' : 'Choose Currency'}
-                      </div>
-
-                      {PRESET_CURRENCIES.map((curr) => {
-                        const isSelected = customCurrency.code === curr.code;
-                        return (
-                          <button
-                            key={curr.code}
-                            id={`preset-curr-${curr.code}`}
-                            type="button"
-                            onClick={() => {
-                              selectPreset(curr);
-                              setShowCurrencyMenu(false);
-                            }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
-                              isSelected ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
-                                isSelected ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
-                              }`}>
-                                {curr.symbol}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-extrabold leading-tight">{curr.code}</p>
-                                <p className="text-[10px] text-[#8e8e93] leading-none mt-1 truncate">{curr.name}</p>
-                              </div>
+              {showCurrencyMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30 bg-transparent"
+                    onClick={() => setShowCurrencyMenu(false)}
+                  />
+                  <div
+                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5 max-h-60 overflow-y-auto scrollbar-thin"
+                  >
+                    <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
+                      {settings.language === 'my' ? 'ငွေကြေးအမျိုးအစားရွေးချယ်ရန်' : 'Choose Currency'}
+                    </div>
+                    {PRESET_CURRENCIES.map((curr) => {
+                      const isSelected = customCurrency.code === curr.code;
+                      return (
+                        <button
+                          key={curr.code}
+                          id={`preset-curr-${curr.code}`}
+                          type="button"
+                          onClick={() => {
+                            selectPreset(curr);
+                            setShowCurrencyMenu(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all text-left cursor-pointer border-0 bg-transparent ${
+                            isSelected ? 'text-[#007aff]' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
+                              isSelected ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
+                            }`}>
+                              {curr.symbol}
                             </div>
-                            {isSelected && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+                            <div className="min-w-0">
+                              <p className="text-xs font-extrabold leading-tight">{curr.code}</p>
+                              <p className="text-[10px] text-[#8e8e93] leading-none mt-1 truncate">{curr.name}</p>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-[#007aff] shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -847,6 +850,126 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
             </div>
           </div>
 
+          {/* Google Drive Backup & Sync */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#007aff]/5 dark:bg-[#007aff]/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+                <Database className="w-4 h-4 text-[#007aff]" />
+                {t('cloudBackup')}
+              </h3>
+              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                syncStatus === 'synced'
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                  : syncStatus === 'syncing'
+                  ? 'bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20 animate-pulse'
+                  : syncStatus === 'error'
+                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                  : 'bg-black/5 dark:bg-white/5 text-[#8e8e93]'
+              }`}>
+                {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'error' ? 'Sync Error' : 'Local Only'}
+              </span>
+            </div>
+
+            <p className="text-xs text-[#8e8e93] leading-relaxed">
+              {t('cloudBackupDesc')}
+            </p>
+
+            {!googleUser ? (
+              <div className="pt-2">
+                <button
+                  id="google-drive-signin-btn"
+                  type="button"
+                  onClick={onConnectGoogleDrive}
+                  className="w-full h-12 flex items-center justify-center gap-3 bg-white hover:bg-[#f2f2f7] text-[#1c1c1e] dark:bg-[#1c1c1e] dark:hover:bg-[#2c2c2e] dark:text-white rounded-2xl border border-black/10 dark:border-white/10 shadow-xs text-xs font-bold transition-all cursor-pointer select-none"
+                >
+                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-4 h-4 shrink-0">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                  </svg>
+                  <span>{t('signInGoogle')}</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-2">
+                <div className="p-3.5 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={googleUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                      alt={googleUser.displayName}
+                      referrerPolicy="no-referrer"
+                      className="w-8 h-8 rounded-full border border-black/5 dark:border-white/10 shrink-0 object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider leading-none">{t('connectedAs')}</p>
+                      <p className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight mt-1">{googleUser.displayName || googleUser.email}</p>
+                      <p className="text-[10px] text-[#8e8e93] truncate leading-none mt-1 font-medium">{googleUser.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    id="google-drive-signout-btn"
+                    type="button"
+                    onClick={onDisconnectGoogleDrive}
+                    className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-bold border-0 cursor-pointer"
+                  >
+                    {t('signOutGoogle')}
+                  </button>
+                </div>
+
+                <div className="flex items-start justify-between gap-4 p-3.5 bg-black/[0.01] dark:bg-white/[0.01] rounded-2xl border border-black/[0.03] dark:border-white/[0.03]">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-extrabold text-[#1c1c1e] dark:text-white">{t('autoSync')}</p>
+                    <p className="text-[10px] text-[#8e8e93] leading-relaxed max-w-[200px]">{t('autoSyncDesc')}</p>
+                  </div>
+                  <button
+                    id="google-drive-autosync-toggle"
+                    type="button"
+                    onClick={onToggleAutoSync}
+                    className={`w-11 h-6 rounded-full p-0.5 transition-all duration-200 border-0 cursor-pointer flex items-center ${
+                      autoSyncEnabled ? 'bg-[#34c759]' : 'bg-[#e5e5ea] dark:bg-[#3a3a3c]'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-all duration-200 ${
+                      autoSyncEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3.5">
+                  <button
+                    id="google-drive-sync-now-btn"
+                    type="button"
+                    onClick={onTriggerDriveUpload}
+                    disabled={syncStatus === 'syncing'}
+                    className="h-11 flex items-center justify-center gap-1.5 bg-[#007aff]/10 hover:bg-[#007aff]/15 text-[#007aff] rounded-2xl text-xs font-bold transition-all border-0 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                    <span>{t('syncNow')}</span>
+                  </button>
+                  <button
+                    id="google-drive-restore-btn"
+                    type="button"
+                    onClick={onTriggerDriveDownload}
+                    disabled={syncStatus === 'syncing'}
+                    className="h-11 flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold transition-all border-0 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileDown className="w-3.5 h-3.5" />
+                    <span>{t('restoreBackup')}</span>
+                  </button>
+                </div>
+
+                {lastSyncedTime && (
+                  <p className="text-[10px] text-[#8e8e93] text-center mt-1">
+                    {t('lastSynced')}: <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{lastSyncedTime}</span>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Data Management */}
           <div className="p-5 ios-glass rounded-[2rem] space-y-4">
             <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
@@ -879,4 +1002,4 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
       </div>
     </div>
   );
-};
+});

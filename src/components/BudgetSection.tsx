@@ -84,7 +84,7 @@ const getCategoryColorClasses = (category: string) => {
   return { bg: 'bg-[#8e8e93]/10', text: 'text-[#8e8e93]', border: 'border-[#8e8e93]/20', fill: 'bg-[#8e8e93]' };
 };
 
-export const BudgetSection: React.FC<BudgetSectionProps> = ({
+export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   budgets,
   transactions,
   currencySymbol,
@@ -152,20 +152,32 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
   };
 
   // Category breakdown of the spent amount
-  const categorySpentMap: Record<string, number> = {};
-  transactions
-    .filter(tx => tx.type === 'expense')
-    .forEach(tx => {
-      categorySpentMap[tx.category] = (categorySpentMap[tx.category] || 0) + tx.amount;
-    });
+  const { categorySpentMap, categorySpentList } = React.useMemo(() => {
+    const spentMap: Record<string, number> = {};
+    transactions
+      .filter(tx => tx.type === 'expense')
+      .forEach(tx => {
+        spentMap[tx.category] = (spentMap[tx.category] || 0) + tx.amount;
+      });
 
-  const categorySpentList = Object.entries(categorySpentMap)
-    .map(([category, spent]) => ({ category, spent }))
-    .sort((a, b) => b.spent - a.spent);
+    const spentList = Object.entries(spentMap)
+      .map(([category, spent]) => ({ category, spent }))
+      .sort((a, b) => b.spent - a.spent);
 
-  const percent = activeBudget && activeBudget.limit > 0 ? (totalSpent / activeBudget.limit) * 100 : 0;
-  const isExceeded = activeBudget ? totalSpent > activeBudget.limit : false;
-  const remaining = activeBudget ? activeBudget.limit - totalSpent : 0;
+    return { categorySpentMap: spentMap, categorySpentList: spentList };
+  }, [transactions]);
+
+  const percent = React.useMemo(() => {
+    return activeBudget && activeBudget.limit > 0 ? (totalSpent / activeBudget.limit) * 100 : 0;
+  }, [activeBudget, totalSpent]);
+
+  const isExceeded = React.useMemo(() => {
+    return activeBudget ? totalSpent > activeBudget.limit : false;
+  }, [activeBudget, totalSpent]);
+
+  const remaining = React.useMemo(() => {
+    return activeBudget ? activeBudget.limit - totalSpent : 0;
+  }, [activeBudget, totalSpent]);
 
   // --- INTRODUCE BURN RATE & TIME CALCULATIONS ---
   const getDaysInMonth = (year: number, month: number) => {
@@ -663,5 +675,5 @@ export const BudgetSection: React.FC<BudgetSectionProps> = ({
       </div>
     </div>
   );
-};
+});
 

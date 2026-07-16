@@ -196,7 +196,7 @@ const DESCRIPTION_SUGGESTIONS: Record<string, string[]> = {
   'လက်ဆောင်ရရှိမှု': ['မွေးနေ့လက်ဆောင်', 'နှစ်ပတ်လည်လက်ဆောင်', 'ကံစမ်းမဲပေါက်ခြင်း', 'ငွေသားလက်ဆောင်']
 };
 
-export const AddTransactionSection: React.FC<AddTransactionSectionProps> = ({
+export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React.memo(({
   language,
   currencySymbol,
   currencyCode,
@@ -574,4 +574,4 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = ({
 
     </div>
   );
-};
+});

@@ -117,7 +117,7 @@ const getCategoryColorClasses = (category: string, index: number) => {
 const CustomChartTooltip = ({ active, payload, label, formatAmount }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-md border border-[#e5e5ea]/80 dark:border-white/10 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.4)] text-[11px] space-y-1.5 min-w-[130px] no-print">
+      <div className="p-3 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.45)] text-[11px] space-y-1.5 min-w-[130px] no-print">
         {label && (
           <p className="font-extrabold text-[#1c1c1e] dark:text-white mb-1.5 tracking-tight border-b border-black/5 dark:border-white/5 pb-1">
             {label}
@@ -142,7 +142,7 @@ const CustomChartTooltip = ({ active, payload, label, formatAmount }: any) => {
   return null;
 };
 
-export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
+export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   transactions,
   currencySymbol,
   language,
@@ -678,5 +678,5 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
       </div>
     </div>
   );
-};
+});
 

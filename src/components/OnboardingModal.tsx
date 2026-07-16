@@ -33,7 +33,7 @@ const PRESET_CURRENCIES: Currency[] = [
   { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' }
 ];
 
-export function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
+export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
   const [step, setStep] = useState<number>(0);
   const [name, setName] = useState<string>('');
   const [language, setLanguage] = useState<Language>('en');
@@ -150,7 +150,10 @@ export function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/75 dark:bg-black/90 backdrop-blur-md overflow-y-auto no-print">
+      <div 
+        className="fixed inset-0 flex items-center justify-center p-4 bg-black/75 dark:bg-black/90 backdrop-blur-md overflow-y-auto no-print"
+        style={{ zIndex: 9999 }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -448,4 +451,4 @@ export function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
       </div>
     </AnimatePresence>
   );
-}
+});

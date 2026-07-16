@@ -40,6 +40,18 @@ import { ProfileSection } from './components/ProfileSection';
 import { OnboardingModal } from './components/OnboardingModal';
 import { AddTransactionSection } from './components/AddTransactionSection';
 
+// Google Drive Cloud Sync Utilities
+import {
+  initAuth,
+  googleSignIn,
+  googleSignOut,
+  findDriveFile,
+  downloadFromDrive,
+  uploadToDrive,
+  SyncData
+} from './utils/googleDriveSync';
+import { User as FirebaseUser } from 'firebase/auth';
+
 const getCategoryStyle = (categoryName: string) => {
   const norm = categoryName.trim().toLowerCase();
   switch (norm) {
@@ -233,6 +245,311 @@ export default function App() {
   // iOS PWA Install prompt state
   const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
 
+  // Google Drive Sync States
+  const [googleUser, setGoogleUser] = useState<FirebaseUser | null>(null);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [driveFileId, setDriveFileId] = useState<string | null>(() => {
+    return localStorage.getItem('mm_drive_file_id');
+  });
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'not-connected' | 'idle'>(() => {
+    return localStorage.getItem('mm_google_token') ? 'idle' : 'not-connected';
+  });
+  const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(() => {
+    return localStorage.getItem('mm_last_synced_time');
+  });
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('mm_auto_sync_enabled');
+    return saved !== 'false'; // Enabled by default if logged in
+  });
+
+  // Attempt to silent re-auth if token is cached
+  useEffect(() => {
+    initAuth(
+      (user, token) => {
+        setGoogleUser(user);
+        setGoogleToken(token);
+        setSyncStatus('synced');
+      },
+      () => {
+        const token = localStorage.getItem('mm_google_token');
+        if (token) {
+          setGoogleToken(token);
+          setSyncStatus('idle');
+          findDriveFile(token).then(fileId => {
+            if (fileId) {
+              setDriveFileId(fileId);
+              setSyncStatus('synced');
+            }
+          }).catch(() => {
+            localStorage.removeItem('mm_google_token');
+            setGoogleToken(null);
+            setSyncStatus('not-connected');
+          });
+        }
+      }
+    );
+  }, []);
+
+  // Auto Cloud Sync whenever state changes
+  useEffect(() => {
+    if (googleToken && autoSyncEnabled) {
+      const delayDebounceFn = setTimeout(() => {
+        const syncData: SyncData = {
+          transactions,
+          budgets,
+          incomeCategories,
+          expenseCategories,
+          customCurrency,
+          settings,
+          profile,
+          lastUpdated: new Date().toISOString()
+        };
+        setSyncStatus('syncing');
+        uploadToDrive(googleToken, syncData, driveFileId)
+          .then(fileId => {
+            if (fileId && fileId !== driveFileId) {
+              setDriveFileId(fileId);
+              localStorage.setItem('mm_drive_file_id', fileId);
+            }
+            setSyncStatus('synced');
+            const timeStr = new Date().toLocaleTimeString();
+            setLastSyncedTime(timeStr);
+            localStorage.setItem('mm_last_synced_time', timeStr);
+          })
+          .catch(err => {
+            console.error("Auto sync failed:", err);
+            setSyncStatus('error');
+          });
+      }, 2000); // Debounce by 2 seconds to avoid multiple saves while typing/editing rapidly
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [transactions, budgets, incomeCategories, expenseCategories, customCurrency, settings, profile, googleToken, autoSyncEnabled, driveFileId]);
+
+  // Connect Google Drive (Google Sign-In)
+  const handleConnectGoogleDrive = async () => {
+    setSyncStatus('syncing');
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        setGoogleUser(result.user);
+        setGoogleToken(result.accessToken);
+        localStorage.setItem('mm_google_token', result.accessToken);
+        
+        // Find existing backup file in Google Drive
+        const fileId = await findDriveFile(result.accessToken);
+        if (fileId) {
+          setDriveFileId(fileId);
+          localStorage.setItem('mm_drive_file_id', fileId);
+          
+          // Download data from Drive to offer restore/merge
+          const driveData = await downloadFromDrive(result.accessToken, fileId);
+          if (driveData) {
+            setConfirmDialog({
+              isOpen: true,
+              title: settings.language === 'my' ? 'Cloud Backup ရှာဖွေတွေ့ရှိသည်' : 'Cloud Backup Found',
+              message: settings.language === 'my' 
+                ? `သင်၏ Google Drive တွင် နောက်ဆုံးပြင်ဆင်ခဲ့သော (${new Date(driveData.lastUpdated).toLocaleString()}) မှတ်တမ်းဖိုင်ကို ရှာတွေ့ပါသည်။ ၎င်းကို ပြန်လည်ရယူမလား သို့မဟုတ် လက်ရှိဖုန်းထဲရှိမှတ်တမ်းများဖြင့် ထပ်မံသိမ်းဆည်းမလား?`
+                : `We found an existing cloud backup on your Google Drive from ${new Date(driveData.lastUpdated).toLocaleString()}. Would you like to Restore from Cloud (overwrite current local data) or Save Local data to Cloud (overwrite cloud backup)?`,
+              confirmText: settings.language === 'my' ? 'Cloud မှ ဒေတာရယူမည်' : 'Restore from Cloud',
+              cancelText: settings.language === 'my' ? 'လက်ရှိဖုန်းမှဒေတာ သိမ်းဆည်းမည်' : 'Save Local to Cloud',
+              isDestructive: false,
+              onConfirm: () => {
+                if (driveData.transactions) setTransactions(driveData.transactions);
+                if (driveData.budgets) setBudgets(driveData.budgets);
+                if (driveData.incomeCategories) setIncomeCategories(driveData.incomeCategories);
+                if (driveData.expenseCategories) setExpenseCategories(driveData.expenseCategories);
+                if (driveData.customCurrency) setCustomCurrency(driveData.customCurrency);
+                if (driveData.settings) setSettings(driveData.settings);
+                if (driveData.profile) setProfile(driveData.profile);
+                
+                setSyncStatus('synced');
+                const timeStr = new Date().toLocaleTimeString();
+                setLastSyncedTime(timeStr);
+                localStorage.setItem('mm_last_synced_time', timeStr);
+                showToast(settings.language === 'my' ? 'ဒေတာများကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။' : 'Cloud backup successfully restored!', 'success');
+                setConfirmDialog(null);
+              },
+              onCancel: () => {
+                const syncData: SyncData = {
+                  transactions,
+                  budgets,
+                  incomeCategories,
+                  expenseCategories,
+                  customCurrency,
+                  settings,
+                  profile,
+                  lastUpdated: new Date().toISOString()
+                };
+                uploadToDrive(result.accessToken, syncData, fileId)
+                  .then(() => {
+                    setSyncStatus('synced');
+                    const timeStr = new Date().toLocaleTimeString();
+                    setLastSyncedTime(timeStr);
+                    localStorage.setItem('mm_last_synced_time', timeStr);
+                    showToast(settings.language === 'my' ? 'လက်ရှိဒေတာကို Cloud တွင် သိမ်းဆည်းပြီးပါပြီ။' : 'Local data saved to Google Drive!', 'success');
+                  })
+                  .catch(err => {
+                    console.error(err);
+                    setSyncStatus('error');
+                    showToast('Failed to save to Cloud', 'error');
+                  });
+                setConfirmDialog(null);
+              }
+            });
+          }
+        } else {
+          // No backup found, perform initial save
+          const syncData: SyncData = {
+            transactions,
+            budgets,
+            incomeCategories,
+            expenseCategories,
+            customCurrency,
+            settings,
+            profile,
+            lastUpdated: new Date().toISOString()
+          };
+          const newFileId = await uploadToDrive(result.accessToken, syncData, null);
+          setDriveFileId(newFileId);
+          localStorage.setItem('mm_drive_file_id', newFileId);
+          setSyncStatus('synced');
+          const timeStr = new Date().toLocaleTimeString();
+          setLastSyncedTime(timeStr);
+          localStorage.setItem('mm_last_synced_time', timeStr);
+          showToast(settings.language === 'my' ? 'Google Drive တွင် အောင်မြင်စွာ စတင်သိမ်းဆည်းလိုက်ပါပြီ။' : 'Cloud sync successfully initialized on Google Drive!', 'success');
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to connect Google Drive:", err);
+      if (err?.code === 'auth/popup-closed-by-user') {
+        setSyncStatus('not-connected');
+        showToast(t('authPopupClosed'), 'info');
+      } else {
+        setSyncStatus('error');
+        showToast(err.message || t('authGeneralError'), 'error');
+      }
+    }
+  };
+
+  // Disconnect Google Drive
+  const handleDisconnectGoogleDrive = async () => {
+    try {
+      await googleSignOut();
+      setGoogleUser(null);
+      setGoogleToken(null);
+      localStorage.removeItem('mm_google_token');
+      setSyncStatus('not-connected');
+      showToast(settings.language === 'my' ? 'Google Drive ချိတ်ဆက်မှုကို ဖြတ်တောက်လိုက်ပါပြီ။' : 'Disconnected from Google Drive.', 'info');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Manual Trigger Upload
+  const handleTriggerDriveUpload = async () => {
+    if (!googleToken) {
+      await handleConnectGoogleDrive();
+      return;
+    }
+    setSyncStatus('syncing');
+    try {
+      const syncData: SyncData = {
+        transactions,
+        budgets,
+        incomeCategories,
+        expenseCategories,
+        customCurrency,
+        settings,
+        profile,
+        lastUpdated: new Date().toISOString()
+      };
+      const fileId = await uploadToDrive(googleToken, syncData, driveFileId);
+      if (fileId && fileId !== driveFileId) {
+        setDriveFileId(fileId);
+        localStorage.setItem('mm_drive_file_id', fileId);
+      }
+      setSyncStatus('synced');
+      const timeStr = new Date().toLocaleTimeString();
+      setLastSyncedTime(timeStr);
+      localStorage.setItem('mm_last_synced_time', timeStr);
+      showToast(settings.language === 'my' ? 'ဒေတာများကို Google Drive ထဲသို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။' : 'Data successfully backed up to Google Drive!', 'success');
+    } catch (err) {
+      console.error(err);
+      setSyncStatus('error');
+      showToast('Backup failed.', 'error');
+    }
+  };
+
+  // Manual Trigger Download (Restore)
+  const handleTriggerDriveDownload = async () => {
+    if (!googleToken) {
+      await handleConnectGoogleDrive();
+      return;
+    }
+    setSyncStatus('syncing');
+    try {
+      const fileId = driveFileId || await findDriveFile(googleToken);
+      if (!fileId) {
+        setSyncStatus('idle');
+        showToast(settings.language === 'my' ? 'Google Drive ပေါ်တွင် မည်သည့်မှတ်တမ်းမှ ရှာမတွေ့ပါ။' : 'No backup found on Google Drive.', 'error');
+        return;
+      }
+      const driveData = await downloadFromDrive(googleToken, fileId);
+      if (!driveData) {
+        setSyncStatus('error');
+        showToast('Failed to download backup.', 'error');
+        return;
+      }
+
+      setConfirmDialog({
+        isOpen: true,
+        title: settings.language === 'my' ? 'မှတ်တမ်း ပြန်လည်ရယူရန် သေချာပါသလား?' : 'Restore Backup?',
+        message: settings.language === 'my'
+          ? `ဤလုပ်ဆောင်ချက်သည် သင့်ဖုန်းထဲရှိ လက်ရှိငွေစာရင်းမှတ်တမ်းအားလုံးကို Google Drive ရှိမှတ်တမ်းများ (${new Date(driveData.lastUpdated).toLocaleString()}) ဖြင့် အစားထိုးပါလိမ့်မည်။ ဆက်လုပ်ရန် သေချာပါသလား?`
+          : `Are you sure you want to restore the backup from ${new Date(driveData.lastUpdated).toLocaleString()}? This will overwrite all of your current local transaction entries, categories, budgets, and profile preferences permanently.`,
+        confirmText: settings.language === 'my' ? 'သေချာပါသည်၊ အစားထိုးမည်' : 'Yes, Restore and Overwrite',
+        cancelText: settings.language === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel',
+        isDestructive: true,
+        onConfirm: () => {
+          if (driveData.transactions) setTransactions(driveData.transactions);
+          if (driveData.budgets) setBudgets(driveData.budgets);
+          if (driveData.incomeCategories) setIncomeCategories(driveData.incomeCategories);
+          if (driveData.expenseCategories) setExpenseCategories(driveData.expenseCategories);
+          if (driveData.customCurrency) setCustomCurrency(driveData.customCurrency);
+          if (driveData.settings) setSettings(driveData.settings);
+          if (driveData.profile) setProfile(driveData.profile);
+          
+          setSyncStatus('synced');
+          const timeStr = new Date().toLocaleTimeString();
+          setLastSyncedTime(timeStr);
+          localStorage.setItem('mm_last_synced_time', timeStr);
+          showToast(settings.language === 'my' ? 'မှတ်တမ်းများကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။' : 'Backup restored successfully!', 'success');
+          setConfirmDialog(null);
+        },
+        onCancel: () => {
+          setSyncStatus('synced');
+          setConfirmDialog(null);
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      setSyncStatus('error');
+      showToast('Restore failed.', 'error');
+    }
+  };
+
+  const handleToggleAutoSync = () => {
+    const newVal = !autoSyncEnabled;
+    setAutoSyncEnabled(newVal);
+    localStorage.setItem('mm_auto_sync_enabled', newVal ? 'true' : 'false');
+    showToast(
+      newVal
+        ? (settings.language === 'my' ? 'အလိုအလျောက် သိမ်းဆည်းမှုကို ဖွင့်လိုက်ပါပြီ။' : 'Automatic saving enabled.')
+        : (settings.language === 'my' ? 'အလိုအလျောက် သိမ်းဆည်းမှုကို ပိတ်လိုက်ပါပြီ။' : 'Automatic saving disabled.'),
+      'info'
+    );
+  };
+
   // Custom Confirmation Dialog State
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -241,6 +558,7 @@ export default function App() {
     confirmText: string;
     cancelText: string;
     onConfirm: () => void;
+    onCancel?: () => void;
     isDestructive?: boolean;
   } | null>(null);
 
@@ -325,7 +643,10 @@ export default function App() {
     localStorage.setItem('mm_expense_categories', JSON.stringify(expenseCategories));
   }, [expenseCategories]);
 
-  const handleAddCategory = (type: 'income' | 'expense', category: string) => {
+  const t = React.useCallback((key: string) => TRANSLATIONS[settings.language][key] || key, [settings.language]);
+  const tc = React.useCallback((cat: string) => CATEGORY_TRANSLATIONS[settings.language][cat] || cat, [settings.language]);
+
+  const handleAddCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
     if (type === 'income') {
       if (!incomeCategories.includes(category)) {
         setIncomeCategories(prev => [...prev, category]);
@@ -341,9 +662,9 @@ export default function App() {
         showToast(`Category already exists.`, 'error');
       }
     }
-  };
+  }, [incomeCategories, expenseCategories]);
 
-  const handleDeleteCategory = (type: 'income' | 'expense', category: string) => {
+  const handleDeleteCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
     setConfirmDialog({
       isOpen: true,
       title: settings.language === 'my' ? "အမျိုးအစားဖျက်မည်" : "Delete Category",
@@ -368,7 +689,7 @@ export default function App() {
         setConfirmDialog(null);
       }
     });
-  };
+  }, [settings.language, incomeCategories, expenseCategories, tc]);
 
   useEffect(() => {
     localStorage.setItem('mm_currency', JSON.stringify(customCurrency));
@@ -402,10 +723,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const t = (key: string) => TRANSLATIONS[settings.language][key] || key;
-  const tc = (cat: string) => CATEGORY_TRANSLATIONS[settings.language][cat] || cat;
-
-  const handleLoadDemoData = () => {
+  const handleLoadDemoData = React.useCallback(() => {
     setConfirmDialog({
       isOpen: true,
       title: settings.language === 'my' ? "နမူနာဒေတာများ ထည့်သွင်းမည်" : "Load Demo Dataset",
@@ -420,9 +738,9 @@ export default function App() {
         setConfirmDialog(null);
       }
     });
-  };
+  }, [settings.language, t]);
 
-  const handleClearAllData = () => {
+  const handleClearAllData = React.useCallback(() => {
     setConfirmDialog({
       isOpen: true,
       title: settings.language === 'my' ? "ဒေတာအားလုံး ဖျက်မည်" : "Clear All Data",
@@ -437,7 +755,7 @@ export default function App() {
         setConfirmDialog(null);
       }
     });
-  };
+  }, [settings.language, t]);
 
   const formatAmount = React.useCallback((amount: number) => {
     const formatted = amount.toLocaleString('en-US', {
@@ -528,7 +846,7 @@ export default function App() {
   }, [dashboardFilteredTransactions]);
 
   // Handle Updates
-  const handleAddTransaction = (newTx: Omit<Transaction, 'id'>) => {
+  const handleAddTransaction = React.useCallback((newTx: Omit<Transaction, 'id'>) => {
     const tx: Transaction = {
       ...newTx,
       id: `tx-${Date.now()}`,
@@ -548,14 +866,14 @@ export default function App() {
         }
       }
     }
-  };
+  }, [budgets, transactions, t]);
 
-  const handleEditTransaction = (updatedTx: Transaction) => {
+  const handleEditTransaction = React.useCallback((updatedTx: Transaction) => {
     setTransactions((prev) => prev.map((tx) => (tx.id === updatedTx.id ? updatedTx : tx)));
     showToast(t('updateRecordSuccess'), 'success');
-  };
+  }, [t]);
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteTransaction = React.useCallback((id: string) => {
     const transactionToDelete = transactions.find(t => t.id === id);
     if (!transactionToDelete) return;
 
@@ -574,14 +892,14 @@ export default function App() {
         setConfirmDialog(null);
       }
     });
-  };
+  }, [transactions, settings.language, tc, formatAmount, t]);
 
-  const handleSaveBudget = (category: string, limit: number) => {
+  const handleSaveBudget = React.useCallback((category: string, limit: number) => {
     setBudgets([{ category: 'Total', limit }]);
     showToast(t('budgetSavedSuccess'), 'success');
-  };
+  }, [t]);
 
-  const handleDeleteBudget = (category: string) => {
+  const handleDeleteBudget = React.useCallback((category: string) => {
     setConfirmDialog({
       isOpen: true,
       title: settings.language === 'my' ? "ဘတ်ဂျက်ပယ်ဖျက်မည်" : "Delete Budget Limit",
@@ -597,24 +915,54 @@ export default function App() {
         setConfirmDialog(null);
       }
     });
-  };
+  }, [settings.language]);
 
   // Preference switches
-  const handleUpdateLanguage = (lang: Language) => {
+  const handleUpdateLanguage = React.useCallback((lang: Language) => {
     setSettings((prev) => ({ ...prev, language: lang }));
-  };
+  }, []);
 
-  const handleUpdateTheme = (theme: 'light' | 'dark') => {
+  const handleUpdateTheme = React.useCallback((theme: 'light' | 'dark') => {
     setSettings((prev) => ({ ...prev, theme }));
-  };
+  }, []);
 
-  const handleUpdateCurrency = (code: string, symbol: string, name: string) => {
+  const handleUpdateCurrency = React.useCallback((code: string, symbol: string, name: string) => {
     setCustomCurrency({ code, symbol, name });
     setSettings((prev) => ({ ...prev, currency: code }));
-  };
+  }, []);
+
+  const handleAddTransactionTrigger = React.useCallback(() => {
+    setEditingTxInAddPage(null);
+    setActiveTab('add-transaction');
+  }, []);
+
+  const handleEditTransactionTrigger = React.useCallback((tx: Transaction) => {
+    setEditingTxInAddPage(tx);
+    setActiveTab('add-transaction');
+  }, []);
+
+  const handleCancelAddTransaction = React.useCallback(() => {
+    setActiveTab(lastMainTab);
+  }, [lastMainTab]);
+
+  const handleEditProfileClick = React.useCallback(() => {
+    setActiveTab('profile');
+    setIsProfileEditing(true);
+  }, []);
+
+  const handleSaveProfile = React.useCallback((updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+    showToast(t('updateProfileSuccess') || 'Profile updated successfully!', 'success');
+    setIsProfileEditing(false);
+  }, [t]);
+
+  const handleCloseProfile = React.useCallback(() => {
+    setActiveTab('dashboard');
+    setIsProfileEditing(false);
+  }, []);
 
   // Client-Side CSV Export Generation
-  const handleExportCSV = () => {
+  const handleExportCSV = React.useCallback(() => {
     const headers = [t('date'), t('type'), t('category'), t('description'), `${t('amount')} (${customCurrency.code})`].join(',');
     const rows = dashboardFilteredTransactions.map((tx) => {
       return [
@@ -637,10 +985,10 @@ export default function App() {
     link.click();
     document.body.removeChild(link);
     showToast("CSV report downloaded successfully!");
-  };
+  }, [t, customCurrency.code, dashboardFilteredTransactions, selectedYear, selectedMonth]);
 
   // PDF Report layout generator triggering Native print-to-PDF flow
-  const handleExportPDF = () => {
+  const handleExportPDF = React.useCallback(() => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       showToast("Please allow popups to generate the report", 'error');
@@ -890,7 +1238,7 @@ export default function App() {
     setTimeout(() => {
       printWindow.print();
     }, 600);
-  };
+  }, [settings.language, dashboardFilteredTransactions, selectedMonth, selectedYear, customCurrency, t, formatAmount, budgets]);
 
   // List of active categories for warning calculations
   const categoriesExceeded = React.useMemo(() => {
@@ -940,7 +1288,7 @@ export default function App() {
       )}
 
       {/* Top Header */}
-      <header className="relative z-40 backdrop-blur-md bg-white/70 dark:bg-black/60 border-b border-black/5 dark:border-white/5 sticky top-0 no-print transition-all">
+      <header className="relative z-40 backdrop-blur-2xl bg-white/35 dark:bg-black/45 border-b border-white/40 dark:border-white/10 sticky top-0 no-print transition-all shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#007aff] rounded-2xl flex items-center justify-center text-white shadow-xs">
@@ -1078,7 +1426,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
+                            className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
                           >
                             {monthOptions.map((opt) => (
                               <button
@@ -1129,7 +1477,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
+                            className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
                           >
                             {availableYears.map((yr) => (
                               <button
@@ -1611,6 +1959,15 @@ export default function App() {
                       setActiveTab('profile');
                       setIsProfileEditing(true);
                     }}
+                    googleUser={googleUser}
+                    syncStatus={syncStatus}
+                    lastSyncedTime={lastSyncedTime}
+                    autoSyncEnabled={autoSyncEnabled}
+                    onToggleAutoSync={handleToggleAutoSync}
+                    onConnectGoogleDrive={handleConnectGoogleDrive}
+                    onDisconnectGoogleDrive={handleDisconnectGoogleDrive}
+                    onTriggerDriveUpload={handleTriggerDriveUpload}
+                    onTriggerDriveDownload={handleTriggerDriveDownload}
                   />
                 )}
 
@@ -1637,7 +1994,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile Devices */}
-      <nav className="fixed bottom-4 left-4 right-4 backdrop-blur-xl bg-white/70 dark:bg-black/60 border border-white/20 dark:border-white/10 p-2.5 flex items-center justify-around lg:hidden no-print z-40 transition-all rounded-[24px] shadow-[0_12px_36px_rgba(0,0,0,0.15)]">
+      <nav className="fixed bottom-4 left-4 right-4 backdrop-blur-2xl bg-white/35 dark:bg-[#0d0d11]/45 border border-white/50 dark:border-white/10 p-2.5 flex items-center justify-around lg:hidden no-print z-40 transition-all rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
         {[
           { id: 'dashboard', label: t('dashboard'), icon: Wallet },
           { id: 'transactions', label: t('transactions'), icon: History },
@@ -1746,7 +2103,7 @@ export default function App() {
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="relative w-full max-w-sm p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl rounded-3xl border border-black/5 dark:border-white/10 shadow-2xl space-y-4 text-center z-10"
+              className="relative w-full max-w-sm p-6 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-4 text-center z-10"
             >
               <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${
                 confirmDialog.isDestructive 
@@ -1772,7 +2129,13 @@ export default function App() {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setConfirmDialog(null)}
+                  onClick={() => {
+                    if (confirmDialog.onCancel) {
+                      confirmDialog.onCancel();
+                    } else {
+                      setConfirmDialog(null);
+                    }
+                  }}
                   className="h-11 rounded-2xl flex items-center justify-center text-xs font-bold text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-[#e5e5ea] dark:hover:bg-[#3a3a3c] transition-all cursor-pointer border-0"
                 >
                   {confirmDialog.cancelText}

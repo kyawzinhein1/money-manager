@@ -137,7 +137,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     validationAmountPositive: "Amount must be greater than zero",
     validationDateRequired: "Please select a date",
     validationBudgetRequired: "Please enter a budget limit",
-    validationBudgetPositive: "Budget limit must be greater than zero"
+    validationBudgetPositive: "Budget limit must be greater than zero",
+    cloudBackup: "Google Drive Backup & Sync",
+    cloudBackupDesc: "Securely backup your transactions, budgets, settings, and profile details to your personal Google Drive account. Sign in with your Google Account to synchronize across devices automatically.",
+    signInGoogle: "Sign in with Google",
+    signOutGoogle: "Sign out",
+    syncNow: "Sync Data Now",
+    restoreBackup: "Restore from Backup",
+    lastSynced: "Last Synced",
+    notConnected: "Not connected",
+    syncingText: "Syncing your workspace data with Google Drive...",
+    connectedAs: "Connected as",
+    autoSync: "Automatic Cloud Saving",
+    autoSyncDesc: "Automatically sync data with Google Drive whenever transactions, categories, budgets or profiles are updated.",
+    authPopupClosed: "The sign-in window was closed before completion. Please try again.",
+    authGeneralError: "Google Drive connection failed. Please try again."
   },
   my: {
     appName: "Money Manager",
@@ -275,7 +289,21 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     validationAmountPositive: "ပမာဏသည် သုညထက် ကြီးရပါမည်",
     validationDateRequired: "ကျေးဇူးပြု၍ ရက်စွဲတစ်ခု ရွေးချယ်ပေးပါ",
     validationBudgetRequired: "ကျေးဇူးပြု၍ ဘတ်ဂျက်ကန့်သတ်ချက် ထည့်သွင်းပေးပါ",
-    validationBudgetPositive: "ဘတ်ဂျက်ကန့်သတ်ချက်သည် သုညထက် ကြီးရပါမည်"
+    validationBudgetPositive: "ဘတ်ဂျက်ကန့်သတ်ချက်သည် သုညထက် ကြီးရပါမည်",
+    cloudBackup: "Google Drive Cloud Backup & Sync",
+    cloudBackupDesc: "သင်၏ ငွေပေးငွေယူများ၊ ဘတ်ဂျက်များ၊ ဆက်တင်များနှင့် ပရိုဖိုင်အချက်အလက်များကို သင်၏ကိုယ်ပိုင် Google Drive အကောင့်ထဲသို့ လုံခြုံစွာ သိမ်းဆည်းထားပါ။ စက်ပစ္စည်းအမျိုးမျိုးတွင် အလိုအလျောက် တိုက်ဆိုင်စစ်ဆေးရန် သင်၏ Google အကောင့်ဖြင့် ဝင်ရောက်ပါ။",
+    signInGoogle: "Google ဖြင့် ဝင်ရောက်ရန်",
+    signOutGoogle: "ထွက်ရန်",
+    syncNow: "ဒေတာ ယခု သိမ်းဆည်းမည်",
+    restoreBackup: "ဒေတာ ပြန်လည်ရယူမည်",
+    lastSynced: "နောက်ဆုံး သိမ်းဆည်းခဲ့သည့် အချိန်",
+    notConnected: "ချိတ်ဆက်မထားပါ",
+    syncingText: "ဒေတာများကို Google Drive သို့ သိမ်းဆည်းနေပါသည်...",
+    connectedAs: "ချိတ်ဆက်ထားသည့် အကောင့်",
+    autoSync: "အလိုအလျောက် Cloud တွင် သိမ်းဆည်းခြင်း",
+    autoSyncDesc: "ငွေပေးငွေယူများ၊ အုပ်စုများ၊ ဘတ်ဂျက်များ သို့မဟုတ် ပရိုဖိုင်များ ပြောင်းလဲသည့်အခါတိုင်း Google Drive သို့ အလိုအလျောက် သိမ်းဆည်းပါမည်။",
+    authPopupClosed: "အကောင့်ဝင်ရန် ဖွင့်ထားသော window ကို အပြီးမသတ်မီ ပိတ်လိုက်ပါသည်။ ကျေးဇူးပြု၍ ပြန်လည်ကြိုးစားပါ။",
+    authGeneralError: "Google Drive ချိတ်ဆက်မှု မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ ပြန်လည်ကြိုးစားပါ။"
   }
 };
 
