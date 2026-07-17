@@ -1,18 +1,23 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/drive.file');
+provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
-// In-memory token cache
-let cachedAccessToken: string | null = null;
+export type GoogleUser = User;
+
+// Flag to indicate if we are in the middle of a sign-in flow.
 let isSigningIn = false;
+// Cache the access token in memory.
+let cachedAccessToken: string | null = null;
 
+// Initialize auth state listener. Call this on app load.
 export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
@@ -21,7 +26,8 @@ export const initAuth = (
     if (user) {
       if (cachedAccessToken) {
         if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else {
+      } else if (!isSigningIn) {
+        cachedAccessToken = null;
         if (onAuthFailure) onAuthFailure();
       }
     } else {
@@ -31,14 +37,16 @@ export const initAuth = (
   });
 };
 
+// Must be called from a button click or user interaction
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
   try {
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
-      throw new Error('Failed to get access token from Google Auth');
+      throw new Error('Failed to get access token from Firebase Auth');
     }
+
     cachedAccessToken = credential.accessToken;
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
@@ -50,7 +58,7 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
 };
 
 export const googleSignOut = async () => {
-  await signOut(auth);
+  await auth.signOut();
   cachedAccessToken = null;
 };
 

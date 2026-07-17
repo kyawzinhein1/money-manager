@@ -48,9 +48,9 @@ import {
   findDriveFile,
   downloadFromDrive,
   uploadToDrive,
-  SyncData
+  SyncData,
+  GoogleUser
 } from './utils/googleDriveSync';
-import { User as FirebaseUser } from 'firebase/auth';
 
 const getCategoryStyle = (categoryName: string) => {
   const norm = categoryName.trim().toLowerCase();
@@ -246,13 +246,13 @@ export default function App() {
   const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
 
   // Google Drive Sync States
-  const [googleUser, setGoogleUser] = useState<FirebaseUser | null>(null);
+  const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
   const [googleToken, setGoogleToken] = useState<string | null>(null);
   const [driveFileId, setDriveFileId] = useState<string | null>(() => {
     return localStorage.getItem('mm_drive_file_id');
   });
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'not-connected' | 'idle'>(() => {
-    return localStorage.getItem('mm_google_token') ? 'idle' : 'not-connected';
+    return 'not-connected';
   });
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(() => {
     return localStorage.getItem('mm_last_synced_time');
@@ -271,21 +271,9 @@ export default function App() {
         setSyncStatus('synced');
       },
       () => {
-        const token = localStorage.getItem('mm_google_token');
-        if (token) {
-          setGoogleToken(token);
-          setSyncStatus('idle');
-          findDriveFile(token).then(fileId => {
-            if (fileId) {
-              setDriveFileId(fileId);
-              setSyncStatus('synced');
-            }
-          }).catch(() => {
-            localStorage.removeItem('mm_google_token');
-            setGoogleToken(null);
-            setSyncStatus('not-connected');
-          });
-        }
+        setGoogleUser(null);
+        setGoogleToken(null);
+        setSyncStatus('not-connected');
       }
     );
   }, []);
@@ -333,7 +321,6 @@ export default function App() {
       if (result) {
         setGoogleUser(result.user);
         setGoogleToken(result.accessToken);
-        localStorage.setItem('mm_google_token', result.accessToken);
         
         // Find existing backup file in Google Drive
         const fileId = await findDriveFile(result.accessToken);
@@ -448,7 +435,6 @@ export default function App() {
       await googleSignOut();
       setGoogleUser(null);
       setGoogleToken(null);
-      localStorage.removeItem('mm_google_token');
       setSyncStatus('not-connected');
       showToast(settings.language === 'my' ? 'Google Drive ချိတ်ဆက်မှုကို ဖြတ်တောက်လိုက်ပါပြီ။' : 'Disconnected from Google Drive.', 'info');
     } catch (err) {
