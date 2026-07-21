@@ -1675,6 +1675,8 @@ export default function App() {
                       setIsProfileEditing(true);
                     }}
                     onRestoreBackup={handleRestoreBackup}
+                    transactions={transactions}
+                    budgets={budgets}
                   />
                 )}
 
