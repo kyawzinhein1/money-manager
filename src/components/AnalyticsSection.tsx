@@ -16,6 +16,7 @@ import {
   Area,
   LineChart,
   Line,
+  ReferenceLine,
 } from 'recharts';
 import { 
   TrendingUp, 
@@ -38,16 +39,24 @@ import {
   HeartPulse,
   GraduationCap,
   HelpCircle,
-  Clock
+  Clock,
+  CheckCircle2,
+  Check
 } from 'lucide-react';
-import { Transaction, Language } from '../types';
+import { Transaction, Language, Budget } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
+import { generateForecastReport } from '../utils/forecasting';
 
 interface AnalyticsSectionProps {
   transactions: Transaction[];
   currencySymbol: string;
   language: Language;
   formatAmount: (amount: number) => string;
+  budgets: Budget[];
+  selectedMonth: string;
+  selectedYear: string;
+  readAlertIds: string[];
+  toggleReadAlert: (id: string) => void;
 }
 
 const COLORS = [
@@ -117,7 +126,7 @@ const getCategoryColorClasses = (category: string, index: number) => {
 const CustomChartTooltip = ({ active, payload, label, formatAmount }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.45)] text-[11px] space-y-1.5 min-w-[130px] no-print">
+      <div className="p-3 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.45)] text-[11px] space-y-1.5 min-w-[130px] no-print">
         {label && (
           <p className="font-extrabold text-[#1c1c1e] dark:text-white mb-1.5 tracking-tight border-b border-black/5 dark:border-white/5 pb-1">
             {label}
@@ -147,9 +156,24 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   currencySymbol,
   language,
   formatAmount,
+  budgets,
+  selectedMonth,
+  selectedYear,
+  readAlertIds,
+  toggleReadAlert,
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
+
+  const forecast = useMemo(() => {
+    return generateForecastReport(
+      transactions,
+      budgets,
+      selectedMonth,
+      selectedYear,
+      formatAmount
+    );
+  }, [transactions, budgets, selectedMonth, selectedYear, formatAmount]);
 
   // Use the globally filtered transactions directly
   const filteredData = transactions;
@@ -644,6 +668,209 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                   {t('noTransactions')}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Smart Predictive Engine & Budget Alert Projections (Full Width Bento Panel) */}
+        <div className="p-6 ios-glass rounded-[2rem] space-y-6 lg:col-span-2 shadow-sm border border-black/5 dark:border-white/5" id="forecasting-analytics-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#f2f2f7] dark:border-[#2c2c2e] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-[#1c1c1e] dark:text-white leading-none">
+                  {language === 'en' ? 'Smart Predictive Engine' : 'ဉာဏ်ရည်တု ခန့်မှန်းတွက်ချက်မှု'}
+                </h3>
+                <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block mt-1">
+                  {language === 'en' ? 'FORECAST MODELS & ACTIVE BUDGET ALERTS' : 'ခန့်မှန်းချက်များနှင့် ဘတ်ဂျက်သတိပေးချက်များ'}
+                </span>
+              </div>
+            </div>
+
+            {/* Accuracy Badge */}
+            <div className="self-start sm:self-center flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-[#007aff]/10 text-[#007aff] uppercase tracking-wider">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{language === 'en' ? `Accuracy: ${forecast.forecastAccuracy}` : `တိကျမှု: ${forecast.forecastAccuracy}`}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            {/* Left side: Metrics & active alert logs (5 cols) */}
+            <div className="xl:col-span-5 flex flex-col justify-between gap-6">
+              <div className="grid grid-cols-2 gap-3.5">
+                {/* Projected spent */}
+                <div className="p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                  <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                    {language === 'en' ? 'Projected Spend' : 'ခန့်မှန်းခြေ စုစုပေါင်း'}
+                  </span>
+                  <span className={`block text-lg font-black font-mono ${forecast.projectedSpent > (budgets[0]?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                    {formatAmount(forecast.projectedSpent)}
+                  </span>
+                </div>
+
+                {/* Status indicator */}
+                <div className="p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                  <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                    {language === 'en' ? 'Monthly Pacing' : 'အရှိန်အခြေအနေ'}
+                  </span>
+                  <span className={`block text-lg font-black font-sans ${forecast.projectedSpent > (budgets[0]?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                    {forecast.projectedSpent > (budgets[0]?.limit || 0) 
+                      ? (language === 'en' ? 'Danger Zone' : 'ဘတ်ဂျက်ကျော်လွန်') 
+                      : (language === 'en' ? 'Safe Zone' : 'ပုံမှန်အခြေအနေ')
+                    }
+                  </span>
+                </div>
+              </div>
+
+              {/* Forecast Alert Logs */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] text-[#8e8e93] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 text-[#007aff]" />
+                    {language === 'en' ? 'Active Budget Signals' : 'ဘတ်ဂျက် ညွှန်ပြချက်များ'}
+                  </h4>
+                  {forecast.alerts.length > 0 && (
+                    <span className="text-[9px] bg-[#007aff]/10 text-[#007aff] font-extrabold px-2 py-0.5 rounded-full">
+                      {forecast.alerts.filter(alert => !readAlertIds.includes(alert.id)).length} {language === 'en' ? 'Unread' : 'မဖတ်ရသေး'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2.5 max-h-[190px] overflow-y-auto pr-1">
+                  {forecast.alerts.length === 0 ? (
+                    <div className="p-6 text-center border border-dashed border-black/10 dark:border-white/10 rounded-2xl text-xs text-[#8e8e93] space-y-2 w-full">
+                      <p className="font-semibold">{language === 'en' ? 'All signals look completely clean and nominal.' : 'အသုံးစရိတ်အားလုံး စနစ်တကျရှိပါသည်။'}</p>
+                    </div>
+                  ) : (
+                    forecast.alerts.map((alert) => {
+                      const isCritical = alert.type === 'critical';
+                      const isWarning = alert.type === 'warning';
+                      const isSuccess = alert.type === 'success';
+                      const isRead = readAlertIds.includes(alert.id);
+
+                      let alertBg = 'bg-[#007aff]/5 dark:bg-[#007aff]/10 border-[#007aff]/10';
+                      let alertText = 'text-[#007aff]';
+                      if (isCritical) {
+                        alertBg = 'bg-[#ff3b30]/5 dark:bg-[#ff3b30]/10 border-[#ff3b30]/10';
+                        alertText = 'text-[#ff3b30]';
+                      } else if (isWarning) {
+                        alertBg = 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/10';
+                        alertText = 'text-amber-500';
+                      } else if (isSuccess) {
+                        alertBg = 'bg-[#34c759]/5 dark:bg-[#34c759]/10 border-[#34c759]/10';
+                        alertText = 'text-[#34c759]';
+                      }
+
+                      return (
+                        <div
+                          key={alert.id}
+                          className={`group p-3 rounded-xl border flex gap-2.5 leading-normal transition-all duration-200 ${
+                            isRead
+                              ? 'bg-black/[0.01] dark:bg-white/[0.01] border-black/[0.04] dark:border-white/[0.04] opacity-50'
+                              : `${alertBg} shadow-xs`
+                          }`}
+                        >
+                          <div className={`p-1 rounded-lg self-start shrink-0 ${alertBg} ${alertText}`}>
+                            {isCritical ? (
+                              <TrendingUp className="w-3 h-3" />
+                            ) : isWarning ? (
+                              <TrendingDown className="w-3 h-3" />
+                            ) : (
+                              <Info className="w-3 h-3" />
+                            )}
+                          </div>
+                          <div className="space-y-0.5 flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h5 className={`font-extrabold text-[#1c1c1e] dark:text-white text-[11px] leading-snug ${isRead ? 'line-through text-[#8e8e93]' : ''}`}>
+                                {language === 'my' ? alert.titleMy : alert.titleEn}
+                              </h5>
+                              
+                              <button
+                                onClick={() => toggleReadAlert(alert.id)}
+                                className="shrink-0 w-6 h-6 -mt-1 -mr-1 rounded-full flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-all cursor-pointer border-0 bg-transparent"
+                                title={isRead ? (language === 'en' ? "Mark as Unread" : "မဖတ်ရသေးဟုမှတ်ရန်") : (language === 'en' ? "Mark as Read" : "ဖတ်ပြီးမှတ်သားရန်")}
+                              >
+                                {isRead ? (
+                                  <span className="text-[10px] font-extrabold leading-none opacity-50 hover:opacity-100">↺</span>
+                                ) : (
+                                  <div className="relative w-3.5 h-3.5 flex items-center justify-center">
+                                    <span className="absolute w-1.5 h-1.5 rounded-full bg-[#007aff] group-hover:scale-0 transition-all duration-150" />
+                                    <Check className="w-3 h-3 text-[#007aff] scale-0 group-hover:scale-100 transition-all duration-150 absolute" />
+                                  </div>
+                                )}
+                              </button>
+                            </div>
+                            <p className="text-[#8e8e93] text-[10px] font-medium leading-relaxed">
+                              {language === 'my' ? alert.descMy : alert.descEn}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right side: Splendid Actual vs Projected Trajectory Path Chart (7 cols) */}
+            <div className="xl:col-span-7 flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
+                <span className="uppercase tracking-wider">{language === 'en' ? 'Projected Spending Accumulation vs Budget Limit' : 'ပုံမှန်သုံးစွဲမှုနှင့် ခန့်မှန်းအသုံးစရိတ် နှိုင်းယှဉ်ချက်'}</span>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-[#007aff]" /> {language === 'en' ? 'Actual' : 'လက်ရှိသုံးပြီး'}</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-[#af52de] border border-dashed" /> {language === 'en' ? 'Projected' : 'ခန့်မှန်းချက်'}</span>
+                </div>
+              </div>
+
+              <div className="h-64 w-full bg-black/[0.01] dark:bg-white/[0.01] border border-black/[0.02] dark:border-white/[0.02] rounded-3xl p-3 overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={forecast.dailyPacingPoints} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#007aff" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#007aff" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#af52de" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#af52de" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.06} />
+                    <XAxis dataKey="day" stroke="#8e8e93" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#8e8e93" fontSize={10} tickLine={false} />
+                    <Tooltip 
+                      content={({ active, payload }: any) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="p-3 bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-2xl shadow-md text-xs space-y-1.5 min-w-[130px]">
+                              <p className="font-extrabold text-[#1c1c1e] dark:text-white border-b border-black/5 dark:border-white/5 pb-1 mb-1">Day {data.day}</p>
+                              {data.actual !== null && (
+                                <p className="text-[#007aff] font-bold flex justify-between gap-3">
+                                  <span>Actual:</span>
+                                  <span className="font-mono">{formatAmount(data.actual)}</span>
+                                </p>
+                              )}
+                              <p className="text-[#af52de] font-bold flex justify-between gap-3">
+                                <span>Projected:</span>
+                                <span className="font-mono">{formatAmount(data.projected)}</span>
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    {(budgets[0]?.limit || 0) > 0 && (
+                      <ReferenceLine y={budgets[0].limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: language === 'en' ? 'Limit Ceiling' : 'ဘတ်ဂျက်အမြင့်ဆုံး', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft', fontWeight: 'bold' }} />
+                    )}
+                    <Area type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorActual)" connectNulls />
+                    <Area type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" fillOpacity={1} fill="url(#colorProjected)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>

@@ -24,12 +24,17 @@ import {
   User,
   Share,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Bell,
+  Info,
+  TrendingDown,
+  AlertCircle
 } from 'lucide-react';
 
 import { Transaction, Budget, Language, Currency, Settings, UserProfile } from './types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from './translations';
 import { DEFAULT_TRANSACTIONS, DEFAULT_BUDGETS } from './defaultData';
+import { generateForecastReport } from './utils/forecasting';
 
 // Component Imports
 import { TransactionsSection } from './components/TransactionsSection';
@@ -217,15 +222,51 @@ export default function App() {
 
   // Current Active Tab
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>('dashboard');
+  const [previousTab, setPreviousTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>('dashboard');
   const [editingTxInAddPage, setEditingTxInAddPage] = useState<Transaction | null>(null);
   const [lastMainTab, setLastMainTab] = useState<'dashboard' | 'transactions'>('dashboard');
   const [isProfileEditing, setIsProfileEditing] = useState<boolean>(false);
   const [showMonthMenu, setShowMonthMenu] = useState<boolean>(false);
   const [showYearMenu, setShowYearMenu] = useState<boolean>(false);
+  const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
+
+  // Read/unread notification state
+  const [readAlertIds, setReadAlertIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('read_alert_ids');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const toggleReadAlert = React.useCallback((id: string) => {
+    setReadAlertIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id];
+      localStorage.setItem('read_alert_ids', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const markAllAlertsAsRead = React.useCallback((activeAlertIds: string[]) => {
+    setReadAlertIds((prev) => {
+      const uniqueNew = activeAlertIds.filter((id) => !prev.includes(id));
+      const next = [...prev, ...uniqueNew];
+      localStorage.setItem('read_alert_ids', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const markAllAlertsAsUnread = React.useCallback((activeAlertIds: string[]) => {
+    setReadAlertIds((prev) => {
+      const next = prev.filter((id) => !activeAlertIds.includes(id));
+      localStorage.setItem('read_alert_ids', JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'dashboard' || activeTab === 'transactions') {
       setLastMainTab(activeTab);
+    }
+    if (activeTab !== 'profile') {
+      setPreviousTab(activeTab);
     }
   }, [activeTab]);
 
@@ -452,6 +493,16 @@ export default function App() {
     }
     return `${customCurrency.symbol}${formatted}`;
   }, [customCurrency]);
+
+  const forecastReport = React.useMemo(() => {
+    return generateForecastReport(
+      transactions,
+      budgets,
+      selectedMonth,
+      selectedYear,
+      formatAmount
+    );
+  }, [transactions, budgets, selectedMonth, selectedYear, formatAmount]);
 
   const formatDateDMY = React.useCallback((dateString: string): string => {
     if (!dateString) return '';
@@ -1041,6 +1092,173 @@ export default function App() {
               {settings.theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
 
+            {/* Real-time Budget Alerts Bell Icon with dropdown popover */}
+            <div className="relative">
+              <button
+                id="quick-alerts-toggle"
+                onClick={() => setShowAlertsMenu(!showAlertsMenu)}
+                className={`p-2 rounded-full transition-all cursor-pointer relative ${
+                  showAlertsMenu 
+                    ? 'text-[#007aff] bg-[#007aff]/10' 
+                    : 'text-[#8e8e93] hover:text-[#007aff] hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+                title="Budget Alerts & Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {forecastReport.alerts.filter(alert => !readAlertIds.includes(alert.id)).length > 0 && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ff3b30] rounded-full border border-white dark:border-black animate-pulse" />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showAlertsMenu && (
+                  <>
+                    {/* Invisible backdrop click catcher */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowAlertsMenu(false)}
+                    />
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
+                      className="absolute right-0 mt-2.5 w-80 sm:w-96 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-black/10 dark:border-white/10 rounded-[2rem] shadow-2xl p-5 z-50 overflow-hidden no-print"
+                    >
+                      <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3 mb-3">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-[#007aff]" />
+                          <h4 className="text-xs font-black uppercase tracking-wider text-[#1c1c1e] dark:text-white">
+                            {settings.language === 'my' ? 'ဘတ်ဂျက် သတိပေးချက်များ' : 'Budget Alerts Center'}
+                          </h4>
+                        </div>
+                        {forecastReport.alerts.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const activeIds = forecastReport.alerts.map(a => a.id);
+                                const hasUnread = activeIds.some(id => !readAlertIds.includes(id));
+                                if (hasUnread) {
+                                  markAllAlertsAsRead(activeIds);
+                                } else {
+                                  markAllAlertsAsUnread(activeIds);
+                                }
+                              }}
+                              className="text-[10px] text-[#007aff] hover:underline font-extrabold bg-transparent border-none cursor-pointer"
+                            >
+                              {forecastReport.alerts.some(a => !readAlertIds.includes(a.id))
+                                ? (settings.language === 'my' ? 'အားလုံးဖတ်ပြီး' : 'Mark all read')
+                                : (settings.language === 'my' ? 'မဖတ်ရသေးဟုမှတ်' : 'Mark all unread')
+                              }
+                            </button>
+                            <span className="text-[10px] bg-[#007aff]/10 text-[#007aff] font-bold px-2 py-0.5 rounded-full">
+                              {forecastReport.alerts.filter(alert => !readAlertIds.includes(alert.id)).length}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-3.5 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+                        {forecastReport.alerts.length === 0 ? (
+                          <div className="text-center py-10 text-xs text-[#8e8e93] space-y-2">
+                            <CheckCircle2 className="w-8 h-8 text-[#34c759] mx-auto opacity-80" />
+                            <p className="font-medium">
+                              {settings.language === 'my' 
+                                ? 'သတိပေးချက် မရှိပါ။ သင့်ဘတ်ဂျက်မှာ စိတ်ချရသောအခြေအနေရှိသည်။' 
+                                : 'All safe! No active budget alarms.'}
+                            </p>
+                          </div>
+                        ) : (
+                          forecastReport.alerts.map((alert) => {
+                            const isCritical = alert.type === 'critical';
+                            const isWarning = alert.type === 'warning';
+                            const isSuccess = alert.type === 'success';
+                            const isRead = readAlertIds.includes(alert.id);
+
+                            let alertBg = 'bg-[#007aff]/5 dark:bg-[#007aff]/10 border-[#007aff]/10';
+                            let alertText = 'text-[#007aff]';
+                            if (isCritical) {
+                              alertBg = 'bg-[#ff3b30]/5 dark:bg-[#ff3b30]/10 border-[#ff3b30]/10';
+                              alertText = 'text-[#ff3b30]';
+                            } else if (isWarning) {
+                              alertBg = 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/10';
+                              alertText = 'text-amber-500';
+                            } else if (isSuccess) {
+                              alertBg = 'bg-[#34c759]/5 dark:bg-[#34c759]/10 border-[#34c759]/10';
+                              alertText = 'text-[#34c759]';
+                            }
+
+                            return (
+                              <div
+                                key={alert.id}
+                                className={`group p-3 rounded-2xl border flex gap-3 leading-normal transition-all duration-200 ${
+                                  isRead
+                                    ? 'bg-black/[0.01] dark:bg-white/[0.01] border-black/[0.04] dark:border-white/[0.04] opacity-50'
+                                    : `${alertBg} shadow-xs`
+                                }`}
+                              >
+                                <div className={`p-1.5 rounded-xl self-start shrink-0 ${alertBg} ${alertText}`}>
+                                  {isCritical ? (
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                  ) : isWarning ? (
+                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                  ) : isSuccess ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Info className="w-3.5 h-3.5" />
+                                  )}
+                                </div>
+                                <div className="space-y-0.5 flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <h5 className={`font-extrabold text-[#1c1c1e] dark:text-white text-[11px] leading-snug ${isRead ? 'line-through text-[#8e8e93]' : ''}`}>
+                                      {settings.language === 'my' ? alert.titleMy : alert.titleEn}
+                                    </h5>
+                                    
+                                    <button
+                                      onClick={() => toggleReadAlert(alert.id)}
+                                      className="shrink-0 w-7 h-7 -mt-1 -mr-1 rounded-full flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-all cursor-pointer border-0 bg-transparent"
+                                      title={isRead ? (settings.language === 'en' ? "Mark as Unread" : "မဖတ်ရသေးဟုမှတ်ရန်") : (settings.language === 'en' ? "Mark as Read" : "ဖတ်ပြီးမှတ်သားရန်")}
+                                    >
+                                      {isRead ? (
+                                        <span className="text-[10px] font-extrabold leading-none opacity-50 hover:opacity-100">↺</span>
+                                      ) : (
+                                        <div className="relative w-4 h-4 flex items-center justify-center">
+                                          <span className="absolute w-2 h-2 rounded-full bg-[#007aff] group-hover:scale-0 transition-all duration-150" />
+                                          <Check className="w-3.5 h-3.5 text-[#007aff] scale-0 group-hover:scale-100 transition-all duration-150 absolute" />
+                                        </div>
+                                      )}
+                                    </button>
+                                  </div>
+                                  <p className="text-black/70 dark:text-white/70 font-medium text-[10px] leading-relaxed">
+                                    {settings.language === 'my' ? alert.descMy : alert.descEn}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* View Forecast Shortcut button */}
+                      <div className="border-t border-black/5 dark:border-white/5 pt-3 mt-3">
+                        <button
+                          onClick={() => {
+                            setActiveTab('budgets');
+                            setShowAlertsMenu(false);
+                          }}
+                          className="w-full h-9 bg-[#007aff] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-[#007aff]/90 transition-colors cursor-pointer border-none"
+                        >
+                          <TrendingUp className="w-3.5 h-3.5" />
+                          <span>{settings.language === 'my' ? 'စမတ်ခန့်မှန်းချက်များကို ကြည့်ရန်' : 'View Smart Projections'}</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Quick Profile Switch */}
             <button
               id="navbar-profile-btn"
@@ -1141,7 +1359,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
+                            className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
                           >
                             {monthOptions.map((opt) => (
                               <button
@@ -1192,7 +1410,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
+                            className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
                           >
                             {availableYears.map((yr) => (
                               <button
@@ -1650,6 +1868,11 @@ export default function App() {
                     currencySymbol={customCurrency.symbol}
                     language={settings.language}
                     formatAmount={formatAmount}
+                    budgets={budgets}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    readAlertIds={readAlertIds}
+                    toggleReadAlert={toggleReadAlert}
                   />
                 )}
 
@@ -1691,7 +1914,7 @@ export default function App() {
                     }}
                     language={settings.language}
                     onClose={() => {
-                      setActiveTab('dashboard');
+                      setActiveTab(previousTab);
                       setIsProfileEditing(false);
                     }}
                     initialEdit={isProfileEditing}
@@ -1812,7 +2035,7 @@ export default function App() {
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="relative w-full max-w-sm p-6 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-4 text-center z-10"
+              className="relative w-full max-w-sm p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-4 text-center z-10"
             >
               <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${
                 confirmDialog.isDestructive 

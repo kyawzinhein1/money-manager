@@ -667,7 +667,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 
                   {/* Dropdown Card */}
                   <div
-                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
+                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
                       {settings.language === 'my' ? 'ဘာသာစကားရွေးချယ်ရန်' : 'Choose Language'}
@@ -820,7 +820,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
                     onClick={() => setShowCurrencyMenu(false)}
                   />
                   <div
-                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5 max-h-60 overflow-y-auto scrollbar-thin"
+                    className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5 max-h-60 overflow-y-auto scrollbar-thin"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
                       {settings.language === 'my' ? 'ငွေကြေးအမျိုးအစားရွေးချယ်ရန်' : 'Choose Currency'}

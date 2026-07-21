@@ -27,6 +27,20 @@ import {
 } from 'lucide-react';
 import { Budget, Transaction, Language } from '../types';
 import { TRANSLATIONS } from '../translations';
+import { generateForecastReport } from '../utils/forecasting';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ReferenceLine,
+  Line,
+  LineChart
+} from 'recharts';
 
 interface BudgetSectionProps {
   budgets: Budget[];
@@ -101,6 +115,17 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   const [budgetLimit, setBudgetLimit] = useState<string>(activeBudget ? activeBudget.limit.toString() : '');
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [bentoTab, setBentoTab] = useState<'burn' | 'projection'>('burn');
+
+  const forecast = React.useMemo(() => {
+    return generateForecastReport(
+      transactions,
+      budgets,
+      selectedMonth,
+      selectedYear,
+      formatAmount
+    );
+  }, [transactions, budgets, selectedMonth, selectedYear, formatAmount]);
 
   // Total expenses in the active range (only expense type)
   const totalSpent = transactions
@@ -559,57 +584,205 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
               </div>
             </div>
 
-            {/* Smart Daily Allowance & Burn Rate Analysis (5 cols) */}
+            {/* Smart Daily Allowance, Burn Rate & Projections (5 cols) */}
             <div className="lg:col-span-5 flex flex-col gap-6">
-              {/* Burn Rate Details Card */}
+              {/* Burn Rate & Smart Projections Details Card */}
               <div className="ios-glass rounded-[2.5rem] p-6 shadow-sm space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-                  <Landmark className="w-3.5 h-3.5 text-[#007aff]" />
-                  {language === 'en' ? 'Smart Analytics' : 'စမတ် သုံးသပ်ချက်'}
-                </h4>
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
+                    {language === 'en' ? 'Smart Analytics & Forecast' : 'စမတ် သုံးသပ်ချက်နှင့် ခန့်မှန်းချက်'}
+                  </h4>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Daily target allowance */}
-                  <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                    <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                      {language === 'en' ? 'Daily Allowance' : 'နေ့စဉ်သုံးငွေ'}
-                    </span>
-                    <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono">
-                      {formatAmount(dailyAllowanceRemaining)}
-                    </span>
-                  </div>
-
-                  {/* Burn rate speed */}
-                  <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                    <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                      {language === 'en' ? 'Average Spent' : 'နေ့စဉ်ပျမ်းမျှ'}
-                    </span>
-                    <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono flex items-center gap-1">
-                      {formatAmount(currentDailyAvgSpent)}
-                      {currentDailyAvgSpent > dailyLimitAllowed ? (
-                        <TrendingUp className="w-3.5 h-3.5 text-[#ff3b30]" />
-                      ) : (
-                        <TrendingDown className="w-3.5 h-3.5 text-[#34c759]" />
-                      )}
-                    </span>
+                  {/* Segment controller */}
+                  <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setBentoTab('burn')}
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                        bentoTab === 'burn'
+                          ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-white shadow-xs'
+                          : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                      }`}
+                    >
+                      {language === 'en' ? 'Daily' : 'နေ့စဉ်စံနှုန်း'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBentoTab('projection')}
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
+                        bentoTab === 'projection'
+                          ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-white shadow-xs'
+                          : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                      }`}
+                    >
+                      {language === 'en' ? 'Forecast' : 'ခန့်မှန်းချက်'}
+                    </button>
                   </div>
                 </div>
 
-                {/* AI / Coach Insight Bubble */}
-                {advice && (
-                  <div className={`p-4 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed transition-all ${
-                    advice.type === 'error'
-                      ? 'bg-[#ff3b30]/5 border-[#ff3b30]/10 text-[#ff3b30]'
-                      : advice.type === 'warning'
-                      ? 'bg-amber-500/5 border-amber-500/10 text-amber-500'
-                      : 'bg-[#34c759]/5 border-[#34c759]/10 text-[#34c759]'
-                  }`}>
-                    <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p className="font-medium text-black/80 dark:text-white/80">
-                      {language === 'en' ? advice.en : advice.my}
-                    </p>
-                  </div>
-                )}
+                <AnimatePresence mode="wait">
+                  {bentoTab === 'burn' ? (
+                    <motion.div
+                      key="burn-tab"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Daily target allowance */}
+                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                            {language === 'en' ? 'Daily Allowance' : 'နေ့စဉ်သုံးငွေ'}
+                          </span>
+                          <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono">
+                            {formatAmount(dailyAllowanceRemaining)}
+                          </span>
+                        </div>
+
+                        {/* Burn rate speed */}
+                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                            {language === 'en' ? 'Average Spent' : 'နေ့စဉ်ပျမ်းမျှ'}
+                          </span>
+                          <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono flex items-center gap-1">
+                            {formatAmount(currentDailyAvgSpent)}
+                            {currentDailyAvgSpent > dailyLimitAllowed ? (
+                              <TrendingUp className="w-3.5 h-3.5 text-[#ff3b30]" />
+                            ) : (
+                              <TrendingDown className="w-3.5 h-3.5 text-[#34c759]" />
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* AI / Coach Insight Bubble */}
+                      {advice && (
+                        <div className={`p-4 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed transition-all ${
+                          advice.type === 'error'
+                            ? 'bg-[#ff3b30]/5 border-[#ff3b30]/10 text-[#ff3b30]'
+                            : advice.type === 'warning'
+                            ? 'bg-amber-500/5 border-amber-500/10 text-amber-500'
+                            : 'bg-[#34c759]/5 border-[#34c759]/10 text-[#34c759]'
+                        }`}>
+                          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                          <p className="font-medium text-black/80 dark:text-white/80">
+                            {language === 'en' ? advice.en : advice.my}
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="projection-tab"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Projected Spent EOM */}
+                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                            {language === 'en' ? 'Projected EOM Spend' : 'လကုန်ခန့်မှန်းခြေ'}
+                          </span>
+                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                            {formatAmount(forecast.projectedSpent)}
+                          </span>
+                        </div>
+
+                        {/* Projection Outcome status */}
+                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
+                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                            {language === 'en' ? 'Pacing Outcome' : 'ခန့်မှန်းရလဒ်'}
+                          </span>
+                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                            {forecast.projectedSpent > activeBudget.limit 
+                              ? (language === 'en' ? 'Overspent' : 'ဘတ်ဂျက်ကျော်နိုင်') 
+                              : (language === 'en' ? 'On Track' : 'ပုံမှန်အဆင့်ရှိ')
+                            }
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Mini Trajectory Path Chart */}
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
+                          <span>{language === 'en' ? 'ACTUAL VS PROJECTED TRAJECTORY PATH' : 'လက်ရှိ နှင့် ခန့်မှန်းခြေ သုံးစွဲမှုလမ်းကြောင်း'}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-wider ${
+                            forecast.forecastAccuracy === 'high' 
+                              ? 'bg-[#34c759]/10 text-[#34c759]' 
+                              : forecast.forecastAccuracy === 'medium'
+                              ? 'bg-amber-500/10 text-amber-500'
+                              : 'bg-blue-500/10 text-blue-500'
+                          }`}>
+                            {language === 'en' ? `Accuracy: ${forecast.forecastAccuracy}` : `တိကျမှု: ${forecast.forecastAccuracy}`}
+                          </span>
+                        </div>
+
+                        <div className="h-32 w-full pt-1.5 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-black/[0.02] dark:border-white/[0.02] overflow-hidden">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={forecast.dailyPacingPoints} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.06} />
+                              <XAxis dataKey="day" stroke="#8e8e93" fontSize={9} tickLine={false} />
+                              <YAxis stroke="#8e8e93" fontSize={9} tickLine={false} />
+                              <Tooltip 
+                                content={({ active, payload }: any) => {
+                                  if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (
+                                      <div className="p-2 bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-xl shadow-sm text-[9px] space-y-0.5 leading-none">
+                                        <p className="font-extrabold text-[#1c1c1e] dark:text-white">Day {data.day}</p>
+                                        {data.actual !== null && (
+                                          <p className="text-[#007aff] font-bold">Act: {formatAmount(data.actual)}</p>
+                                        )}
+                                        <p className="text-[#af52de] font-bold">Proj: {formatAmount(data.projected)}</p>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                              {activeBudget.limit > 0 && (
+                                <ReferenceLine y={activeBudget.limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'Ceiling', fill: '#ff3b30', fontSize: 8, position: 'insideTopLeft' }} />
+                              )}
+                              <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls style={{ outline: 'none' }} />
+                              <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} style={{ outline: 'none' }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      {/* Detail pacing message */}
+                      <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] text-[11px] leading-relaxed">
+                        {forecast.projectedSpent > activeBudget.limit ? (
+                          <p className="text-red-500 font-bold flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>
+                              {language === 'en' 
+                                ? `You are pacing to breach your budget on Day ${forecast.estimatedBreachDay}. Try saving ${formatAmount(forecast.projectedSpent - activeBudget.limit)} to stay safe.`
+                                : `လက်ရှိအရှိန်အတိုင်းဆိုပါက ရက်စွဲ (${forecast.estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်နိုင်ပါသည်။ ပုံမှန်အခြေအနေရောက်ရန် ${formatAmount(forecast.projectedSpent - activeBudget.limit)} လျှော့ချပါ။`
+                              }
+                            </span>
+                          </p>
+                        ) : (
+                          <p className="text-[#34c759] font-bold flex items-center gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>
+                              {language === 'en'
+                                ? `You are pacing excellently! You are projected to finish the month with ${formatAmount(activeBudget.limit - forecast.projectedSpent)} remaining.`
+                                : `စည်းကမ်းအလွန်ကောင်းမွန်ပါသည်။ လကုန်ပါက ဘတ်ဂျက်မှ ${formatAmount(activeBudget.limit - forecast.projectedSpent)} ပိုလျှံစုဆောင်းနိုင်မည်ဖြစ်သည်။`
+                              }
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Mini category distributions */}

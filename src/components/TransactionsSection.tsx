@@ -403,7 +403,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 rounded-2xl bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
+                    className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-40 p-2 space-y-0.5"
                   >
                     <div className="px-3 py-1.5 text-[10px] font-extrabold text-[#8e8e93] uppercase tracking-wider">
                       {language === 'my' ? 'ဖိုင်အမျိုးအစားရွေးပါ' : 'Select Export Format'}
@@ -757,7 +757,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="relative w-full max-w-md p-6 bg-white/75 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-5"
+              className="relative w-full max-w-md p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-5"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-[#1c1c1e] dark:text-white flex items-center gap-2">
