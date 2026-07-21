@@ -20,12 +20,6 @@ interface SettingsSectionProps {
   onClearAllData: () => void;
   profile: UserProfile;
   onEditProfileClick: () => void;
-  googleUser: any;
-  isSyncing: boolean;
-  lastSyncedTime: string | null;
-  onConnectGmail: () => void;
-  onDisconnectGmail: () => void;
-  onTriggerGmailBackup: () => void;
   onRestoreBackup: (data: any) => void;
 }
 
@@ -74,12 +68,6 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   onClearAllData,
   profile,
   onEditProfileClick,
-  googleUser,
-  isSyncing,
-  lastSyncedTime,
-  onConnectGmail,
-  onDisconnectGmail,
-  onTriggerGmailBackup,
   onRestoreBackup,
 }) => {
   const t = (key: string) => TRANSLATIONS[settings.language][key] || key;
@@ -888,106 +876,12 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
               <button
                 id="export-pdf-btn"
                 onClick={onExportPDF}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-[#007aff] hover:bg-[#0071eb] text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-[#007aff] hover:bg-[#0071eb] text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs border-0"
               >
                 <FileDown className="w-4 h-4" />
                 {t('exportPDF')}
               </button>
             </div>
-          </div>
-
-          {/* Gmail Secure Cloud Backup section */}
-          <div className="p-5 ios-glass rounded-[2rem] space-y-4">
-            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[#007aff]" />
-              {settings.language === 'my' ? 'Gmail အလိုအလျောက် Cloud Backup' : 'Gmail Secure Cloud Backup'}
-            </h3>
-            <p className="text-xs text-[#8e8e93] leading-relaxed">
-              {settings.language === 'my' 
-                ? 'သင်၏ ငွေပေးငွေယူများ၊ ဘတ်ဂျက်များနှင့် ဆက်တင်များကို ကိုယ်ပိုင် Gmail သို့ လုံခြုံစွာ အီးမေးလ်ပေးပို့ သိမ်းဆည်းထားပါ။'
-                : 'Safeguard your transactions, budgets, settings, and profile details to your personal Gmail account as a secure JSON attachment.'}
-            </p>
-
-            {googleUser ? (
-              <div className="space-y-4 pt-1">
-                {/* Connected User Profile Info */}
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#007aff]/5 border border-[#007aff]/15">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img 
-                      src={googleUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} 
-                      alt="Google User"
-                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-white"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
-                        {googleUser.displayName || 'Google Account'}
-                      </p>
-                      <p className="text-[10px] text-[#8e8e93] truncate mt-0.5">
-                        {googleUser.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#34c759] animate-pulse" />
-                    <span className="text-[10px] font-extrabold text-[#34c759] uppercase tracking-wider">
-                      {settings.language === 'my' ? 'ချိတ်ဆက်ပြီး' : 'Linked'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Backup Status and Actions */}
-                <div className="flex flex-col gap-2.5">
-                  <button
-                    id="gmail-backup-now-btn"
-                    onClick={onTriggerGmailBackup}
-                    disabled={isSyncing}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-[#007aff] hover:bg-[#0071eb] disabled:bg-[#007aff]/50 text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs border-0"
-                  >
-                    {isSyncing ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        {settings.language === 'my' ? 'သိမ်းဆည်းနေပါသည်...' : 'Sending Backup to Inbox...'}
-                      </>
-                    ) : (
-                      <>
-                        <UploadCloud className="w-4 h-4" />
-                        {settings.language === 'my' ? 'Gmail သို့ Backup ပေးပို့မည်' : 'Send Backup to Gmail Inbox'}
-                      </>
-                    )}
-                  </button>
-
-                  <div className="flex items-center justify-between px-1 text-[10px] text-[#8e8e93] font-medium">
-                    <span>
-                      {lastSyncedTime 
-                        ? `${settings.language === 'my' ? 'နောက်ဆုံး သိမ်းဆည်းချိန်' : 'Last backed up'}: ${lastSyncedTime}` 
-                        : (settings.language === 'my' ? 'ဖိုင်မသိမ်းဆည်းရသေးပါ' : 'No recent backup sent')}
-                    </span>
-                    <button
-                      id="gmail-disconnect-btn"
-                      onClick={onDisconnectGmail}
-                      className="text-[#ff3b30] hover:underline flex items-center gap-1 bg-transparent border-0 cursor-pointer text-[10px] font-bold"
-                    >
-                      <LogOut className="w-3 h-3" />
-                      {settings.language === 'my' ? 'ဖြတ်မည်' : 'Disconnect'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                id="gmail-connect-btn"
-                onClick={onConnectGmail}
-                className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-2xl text-xs font-extrabold transition-all cursor-pointer border-0"
-              >
-                <img 
-                  src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" 
-                  alt="Google Icon" 
-                  className="w-4 h-4 shrink-0"
-                />
-                {settings.language === 'my' ? 'Google အကောင့်နှင့် ချိတ်ဆက်မည်' : 'Connect Google Account'}
-              </button>
-            )}
           </div>
 
           {/* Local / Offline File Restore Card */}

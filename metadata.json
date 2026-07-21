@@ -1,5 +1,5 @@
 {
-  "name": "Money Manager",
+  "name": "Personal Money Manager",
   "description": "A comprehensive web money management application with income/expense tracking, day-by-day and monthly analysis, custom budgeting, currency and language switching, and CSV/PDF export options.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

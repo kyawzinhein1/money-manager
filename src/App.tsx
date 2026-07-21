@@ -39,7 +39,6 @@ import { SettingsSection } from './components/SettingsSection';
 import { ProfileSection } from './components/ProfileSection';
 import { OnboardingModal } from './components/OnboardingModal';
 import { AddTransactionSection } from './components/AddTransactionSection';
-import { initAuth, googleSignIn, googleSignOut, sendBackupEmail, getAccessToken, setAccessToken, BackupData } from './utils/gmailBackup';
 
 
 
@@ -232,28 +231,6 @@ export default function App() {
 
   // Interactive Quick Toast Notification State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
-
-  // Gmail Sync & Auth States
-  const [googleUser, setGoogleUser] = useState<any>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(() => {
-    return localStorage.getItem('mm_last_synced_time');
-  });
-
-  // Listen to Auth State on mount
-  useEffect(() => {
-    const unsubscribe = initAuth(
-      (user, token) => {
-        setGoogleUser(user);
-      },
-      () => {
-        console.warn('Auth disconnected or failed');
-      }
-    );
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
 
   // iOS PWA Install prompt state
   const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
@@ -624,105 +601,6 @@ export default function App() {
       }
     });
   }, [settings.language]);
-
-  const handleConnectGmail = React.useCallback(async () => {
-    try {
-      const result = await googleSignIn();
-      if (result) {
-        setGoogleUser(result.user);
-        showToast(
-          settings.language === 'my' 
-            ? 'Google အကောင့် ချိတ်ဆက်ပြီးပါပြီ။' 
-            : 'Google Account connected successfully!', 
-          'success'
-        );
-      }
-    } catch (err: any) {
-      console.error(err);
-      showToast(
-        settings.language === 'my'
-          ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ- ' + (err.message || '')
-          : 'Failed to connect: ' + (err.message || ''),
-        'error'
-      );
-    }
-  }, [settings.language]);
-
-  const handleDisconnectGmail = React.useCallback(async () => {
-    try {
-      await googleSignOut();
-      setGoogleUser(null);
-      showToast(
-        settings.language === 'my'
-          ? 'Google အကောင့် ဖြတ်တောက်ပြီးပါပြီ။'
-          : 'Google Account disconnected!',
-        'info'
-      );
-    } catch (err: any) {
-      console.error(err);
-      showToast('Error signing out', 'error');
-    }
-  }, [settings.language]);
-
-  const handleTriggerGmailBackup = React.useCallback(async () => {
-    const token = getAccessToken();
-    const recipientEmail = googleUser?.email;
-
-    if (!token || !recipientEmail) {
-      showToast(
-        settings.language === 'my'
-          ? 'ကျေးဇူးပြု၍ Google အကောင့် အရင်ချိတ်ဆက်ပါ။'
-          : 'Please connect your Google account first.',
-        'error'
-      );
-      return;
-    }
-
-    setIsSyncing(true);
-    try {
-      const backupData: BackupData = {
-        transactions,
-        budgets,
-        incomeCategories,
-        expenseCategories,
-        customCurrency,
-        settings,
-        profile,
-        lastUpdated: new Date().toISOString()
-      };
-
-      await sendBackupEmail(token, recipientEmail, backupData);
-
-      const now = new Date();
-      const formattedTime = now.toLocaleString(settings.language === 'my' ? 'my-MM' : 'en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-
-      setLastSyncedTime(formattedTime);
-      localStorage.setItem('mm_last_synced_time', formattedTime);
-      
-      showToast(
-        settings.language === 'my'
-          ? 'Backup ဖိုင်ကို သင်၏ Gmail Inbox သို့ ပို့ပေးပြီးပါပြီ။'
-          : 'Backup JSON successfully sent to your Gmail Inbox!',
-        'success'
-      );
-    } catch (err: any) {
-      console.error('Gmail backup error:', err);
-      showToast(
-        settings.language === 'my'
-          ? 'Backup ပို့ရန် အမှားအယွင်းရှိနေပါသည်- ' + (err.message || '')
-          : 'Failed to send backup: ' + (err.message || ''),
-        'error'
-      );
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [googleUser, transactions, budgets, incomeCategories, expenseCategories, customCurrency, settings, profile]);
 
   const handleRestoreBackup = React.useCallback((importedData: any) => {
     setConfirmDialog({
@@ -1796,12 +1674,6 @@ export default function App() {
                       setActiveTab('profile');
                       setIsProfileEditing(true);
                     }}
-                    googleUser={googleUser}
-                    isSyncing={isSyncing}
-                    lastSyncedTime={lastSyncedTime}
-                    onConnectGmail={handleConnectGmail}
-                    onDisconnectGmail={handleDisconnectGmail}
-                    onTriggerGmailBackup={handleTriggerGmailBackup}
                     onRestoreBackup={handleRestoreBackup}
                   />
                 )}
