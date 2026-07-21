@@ -683,6 +683,41 @@ export default function App() {
     });
   }, [settings.language]);
 
+  const handleUpdateRawKey = React.useCallback((key: string, value: any) => {
+    switch (key) {
+      case 'mm_transactions':
+        setTransactions(value);
+        break;
+      case 'mm_budgets':
+        setBudgets(value);
+        break;
+      case 'mm_income_categories':
+        setIncomeCategories(value);
+        break;
+      case 'mm_expense_categories':
+        setExpenseCategories(value);
+        break;
+      case 'mm_currency':
+        setCustomCurrency(value);
+        break;
+      case 'mm_settings':
+        setSettings(value);
+        break;
+      case 'mm_profile':
+        setProfile(value);
+        break;
+      case 'read_alert_ids':
+        setReadAlertIds(value);
+        break;
+    }
+    showToast(
+      settings.language === 'my'
+        ? 'စက်တွင်း ဒေတာဘေ့စ် သော့ချက်ကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ။'
+        : 'Local database key successfully updated!',
+      'success'
+    );
+  }, [settings.language]);
+
   // Preference switches
   const handleUpdateLanguage = React.useCallback((lang: Language) => {
     setSettings((prev) => ({ ...prev, language: lang }));
@@ -1900,6 +1935,8 @@ export default function App() {
                     onRestoreBackup={handleRestoreBackup}
                     transactions={transactions}
                     budgets={budgets}
+                    readAlertIds={readAlertIds}
+                    onUpdateRawKey={handleUpdateRawKey}
                   />
                 )}
 
