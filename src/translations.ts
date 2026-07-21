@@ -154,7 +154,18 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     authGeneralError: "Google Drive connection failed. Please try again.",
     iframeAlertTitle: "Browser Restriction Detected",
     iframeAlertDesc: "Because the app is running inside a preview window (iframe), Google Sign-In popups are restricted by modern browsers. Please open the app in a new tab using the button below to connect successfully.",
-    openInNewTab: "Open App in New Tab"
+    openInNewTab: "Open App in New Tab",
+    gmailBackup: "Gmail Email Backup & Restore",
+    gmailBackupDesc: "Securely send your financial records (transactions, budgets, settings, and profile) directly to your Gmail inbox as a secure JSON backup file.",
+    sendBackupEmail: "Send Backup via Email",
+    importBackupJSON: "Import JSON Backup File",
+    importBackupJSONDesc: "Restore your transactions, budgets, categories, settings, and profile details from a saved JSON backup file.",
+    backupEmailSuccess: "Backup file sent successfully to your Gmail inbox!",
+    backupEmailError: "Failed to send backup email. Please try again.",
+    importSuccess: "All data successfully restored from the backup file!",
+    importError: "Invalid backup file format. Please upload a valid Money Manager JSON backup file.",
+    emailAddress: "Email Address",
+    enterEmailPlaceholder: "Enter destination email (e.g. yours)"
   },
   my: {
     appName: "Money Manager",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Globe, DollarSign, Moon, Sun, FileDown, Check, Coins, AlertCircle, Sparkles, FolderKanban, Plus, Trash2, ArrowLeft, Database, RefreshCw, ChevronDown, Search, Tag, ArrowUpRight, ArrowDownLeft, SlidersHorizontal } from 'lucide-react';
+import { Globe, DollarSign, Moon, Sun, FileDown, Check, Coins, AlertCircle, Sparkles, FolderKanban, Plus, Trash2, ArrowLeft, Database, RefreshCw, ChevronDown, Search, Tag, ArrowUpRight, ArrowDownLeft, SlidersHorizontal, Mail, ShieldCheck, UploadCloud, LogOut, CloudOff } from 'lucide-react';
 import { Language, Currency, Settings, UserProfile } from '../types';
 import { TRANSLATIONS } from '../translations';
 
@@ -20,16 +20,13 @@ interface SettingsSectionProps {
   onClearAllData: () => void;
   profile: UserProfile;
   onEditProfileClick: () => void;
-  // Google Drive cloud sync integration props
   googleUser: any;
-  syncStatus: 'synced' | 'syncing' | 'error' | 'not-connected' | 'idle';
+  isSyncing: boolean;
   lastSyncedTime: string | null;
-  autoSyncEnabled: boolean;
-  onToggleAutoSync: () => void;
-  onConnectGoogleDrive: () => void;
-  onDisconnectGoogleDrive: () => void;
-  onTriggerDriveUpload: () => void;
-  onTriggerDriveDownload: () => void;
+  onConnectGmail: () => void;
+  onDisconnectGmail: () => void;
+  onTriggerGmailBackup: () => void;
+  onRestoreBackup: (data: any) => void;
 }
 
 const PRESET_CURRENCIES: Currency[] = [
@@ -78,16 +75,18 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   profile,
   onEditProfileClick,
   googleUser,
-  syncStatus,
+  isSyncing,
   lastSyncedTime,
-  autoSyncEnabled,
-  onToggleAutoSync,
-  onConnectGoogleDrive,
-  onDisconnectGoogleDrive,
-  onTriggerDriveUpload,
-  onTriggerDriveDownload,
+  onConnectGmail,
+  onDisconnectGmail,
+  onTriggerGmailBackup,
+  onRestoreBackup,
 }) => {
   const t = (key: string) => TRANSLATIONS[settings.language][key] || key;
+
+  // Drag & drop file import states
+  const [isDragging, setIsDragging] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
 
   // Form states for custom currency
   const [currencyCode, setCurrencyCode] = useState(customCurrency.code);
@@ -97,6 +96,53 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 
   // Language dropdown menu state
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processBackupFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processBackupFile(file);
+    }
+  };
+
+  const processBackupFile = (file: File) => {
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      setImportError(settings.language === 'my' ? 'ဖိုင်အမျိုးအစားသည် JSON ဖြစ်ရပါမည်။' : 'File must be a JSON file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (!json.transactions || !Array.isArray(json.transactions)) {
+          throw new Error('Invalid backup structure: transactions are missing');
+        }
+        setImportError(null);
+        onRestoreBackup(json);
+      } catch (err) {
+        setImportError(settings.language === 'my' ? 'မမှန်ကန်သော ပုံစံဖြစ်နေပါသည် (ပျက်စီးနေသော ဖိုင်ဖြစ်နိုင်သည်)' : 'Invalid backup file structure or corrupted data.');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // Currency dropdown menu state
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
@@ -850,147 +896,153 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             </div>
           </div>
 
-          {/* Google Drive Backup & Sync */}
-          <div className="p-5 ios-glass rounded-[2rem] space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[#007aff]/5 dark:bg-[#007aff]/10 rounded-full blur-2xl pointer-events-none" />
-
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-                <Database className="w-4 h-4 text-[#007aff]" />
-                {t('cloudBackup')}
-              </h3>
-              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
-                syncStatus === 'synced'
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                  : syncStatus === 'syncing'
-                  ? 'bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20 animate-pulse'
-                  : syncStatus === 'error'
-                  ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                  : 'bg-black/5 dark:bg-white/5 text-[#8e8e93]'
-              }`}>
-                {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'error' ? 'Sync Error' : 'Local Only'}
-              </span>
-            </div>
-
+          {/* Gmail Secure Cloud Backup section */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-4">
+            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#007aff]" />
+              {settings.language === 'my' ? 'Gmail အလိုအလျောက် Cloud Backup' : 'Gmail Secure Cloud Backup'}
+            </h3>
             <p className="text-xs text-[#8e8e93] leading-relaxed">
-              {t('cloudBackupDesc')}
+              {settings.language === 'my' 
+                ? 'သင်၏ ငွေပေးငွေယူများ၊ ဘတ်ဂျက်များနှင့် ဆက်တင်များကို ကိုယ်ပိုင် Gmail သို့ လုံခြုံစွာ အီးမေးလ်ပေးပို့ သိမ်းဆည်းထားပါ။'
+                : 'Safeguard your transactions, budgets, settings, and profile details to your personal Gmail account as a secure JSON attachment.'}
             </p>
 
-            {typeof window !== 'undefined' && window.self !== window.top && (
-              <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 space-y-2.5">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <h4 className="text-xs font-extrabold text-amber-800 dark:text-amber-400">
-                    {t('iframeAlertTitle')}
-                  </h4>
-                </div>
-                <p className="text-[11px] text-amber-700 dark:text-amber-300/90 leading-relaxed">
-                  {t('iframeAlertDesc')}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => window.open(window.location.href, '_blank')}
-                  className="w-full py-2 bg-amber-500/20 hover:bg-amber-500/25 active:scale-98 text-amber-800 dark:text-amber-300 rounded-xl text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-amber-500/20 shadow-xs"
-                >
-                  <span>{t('openInNewTab')}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-
-            {!googleUser ? (
-              <div className="pt-2">
-                <button
-                  id="google-drive-signin-btn"
-                  type="button"
-                  onClick={onConnectGoogleDrive}
-                  className="w-full h-12 flex items-center justify-center gap-3 bg-white hover:bg-[#f2f2f7] text-[#1c1c1e] dark:bg-[#1c1c1e] dark:hover:bg-[#2c2c2e] dark:text-white rounded-2xl border border-black/10 dark:border-white/10 shadow-xs text-xs font-bold transition-all cursor-pointer select-none"
-                >
-                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-4 h-4 shrink-0">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                  </svg>
-                  <span>{t('signInGoogle')}</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4 pt-2">
-                <div className="p-3.5 bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 rounded-2xl flex items-center justify-between gap-3">
+            {googleUser ? (
+              <div className="space-y-4 pt-1">
+                {/* Connected User Profile Info */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#007aff]/5 border border-[#007aff]/15">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={googleUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                      alt={googleUser.displayName}
+                    <img 
+                      src={googleUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} 
+                      alt="Google User"
+                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-white"
                       referrerPolicy="no-referrer"
-                      className="w-8 h-8 rounded-full border border-black/5 dark:border-white/10 shrink-0 object-cover"
                     />
                     <div className="min-w-0">
-                      <p className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider leading-none">{t('connectedAs')}</p>
-                      <p className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight mt-1">{googleUser.displayName || googleUser.email}</p>
-                      <p className="text-[10px] text-[#8e8e93] truncate leading-none mt-1 font-medium">{googleUser.email}</p>
+                      <p className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
+                        {googleUser.displayName || 'Google Account'}
+                      </p>
+                      <p className="text-[10px] text-[#8e8e93] truncate mt-0.5">
+                        {googleUser.email}
+                      </p>
                     </div>
                   </div>
-                  <button
-                    id="google-drive-signout-btn"
-                    type="button"
-                    onClick={onDisconnectGoogleDrive}
-                    className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-bold border-0 cursor-pointer"
-                  >
-                    {t('signOutGoogle')}
-                  </button>
-                </div>
-
-                <div className="flex items-start justify-between gap-4 p-3.5 bg-black/[0.01] dark:bg-white/[0.01] rounded-2xl border border-black/[0.03] dark:border-white/[0.03]">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-extrabold text-[#1c1c1e] dark:text-white">{t('autoSync')}</p>
-                    <p className="text-[10px] text-[#8e8e93] leading-relaxed max-w-[200px]">{t('autoSyncDesc')}</p>
+                  <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#34c759] animate-pulse" />
+                    <span className="text-[10px] font-extrabold text-[#34c759] uppercase tracking-wider">
+                      {settings.language === 'my' ? 'ချိတ်ဆက်ပြီး' : 'Linked'}
+                    </span>
                   </div>
-                  <button
-                    id="google-drive-autosync-toggle"
-                    type="button"
-                    onClick={onToggleAutoSync}
-                    className={`w-11 h-6 rounded-full p-0.5 transition-all duration-200 border-0 cursor-pointer flex items-center ${
-                      autoSyncEnabled ? 'bg-[#34c759]' : 'bg-[#e5e5ea] dark:bg-[#3a3a3c]'
-                    }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-all duration-200 ${
-                      autoSyncEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`} />
-                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3.5">
+                {/* Backup Status and Actions */}
+                <div className="flex flex-col gap-2.5">
                   <button
-                    id="google-drive-sync-now-btn"
-                    type="button"
-                    onClick={onTriggerDriveUpload}
-                    disabled={syncStatus === 'syncing'}
-                    className="h-11 flex items-center justify-center gap-1.5 bg-[#007aff]/10 hover:bg-[#007aff]/15 text-[#007aff] rounded-2xl text-xs font-bold transition-all border-0 cursor-pointer disabled:opacity-50"
+                    id="gmail-backup-now-btn"
+                    onClick={onTriggerGmailBackup}
+                    disabled={isSyncing}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-[#007aff] hover:bg-[#0071eb] disabled:bg-[#007aff]/50 text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs border-0"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
-                    <span>{t('syncNow')}</span>
+                    {isSyncing ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        {settings.language === 'my' ? 'သိမ်းဆည်းနေပါသည်...' : 'Sending Backup to Inbox...'}
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4" />
+                        {settings.language === 'my' ? 'Gmail သို့ Backup ပေးပို့မည်' : 'Send Backup to Gmail Inbox'}
+                      </>
+                    )}
                   </button>
-                  <button
-                    id="google-drive-restore-btn"
-                    type="button"
-                    onClick={onTriggerDriveDownload}
-                    disabled={syncStatus === 'syncing'}
-                    className="h-11 flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold transition-all border-0 cursor-pointer disabled:opacity-50"
-                  >
-                    <FileDown className="w-3.5 h-3.5" />
-                    <span>{t('restoreBackup')}</span>
-                  </button>
-                </div>
 
-                {lastSyncedTime && (
-                  <p className="text-[10px] text-[#8e8e93] text-center mt-1">
-                    {t('lastSynced')}: <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{lastSyncedTime}</span>
+                  <div className="flex items-center justify-between px-1 text-[10px] text-[#8e8e93] font-medium">
+                    <span>
+                      {lastSyncedTime 
+                        ? `${settings.language === 'my' ? 'နောက်ဆုံး သိမ်းဆည်းချိန်' : 'Last backed up'}: ${lastSyncedTime}` 
+                        : (settings.language === 'my' ? 'ဖိုင်မသိမ်းဆည်းရသေးပါ' : 'No recent backup sent')}
+                    </span>
+                    <button
+                      id="gmail-disconnect-btn"
+                      onClick={onDisconnectGmail}
+                      className="text-[#ff3b30] hover:underline flex items-center gap-1 bg-transparent border-0 cursor-pointer text-[10px] font-bold"
+                    >
+                      <LogOut className="w-3 h-3" />
+                      {settings.language === 'my' ? 'ဖြတ်မည်' : 'Disconnect'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                id="gmail-connect-btn"
+                onClick={onConnectGmail}
+                className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-2xl text-xs font-extrabold transition-all cursor-pointer border-0"
+              >
+                <img 
+                  src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" 
+                  alt="Google Icon" 
+                  className="w-4 h-4 shrink-0"
+                />
+                {settings.language === 'my' ? 'Google အကောင့်နှင့် ချိတ်ဆက်မည်' : 'Connect Google Account'}
+              </button>
+            )}
+          </div>
+
+          {/* Local / Offline File Restore Card */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-4">
+            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#34c759]" />
+              {settings.language === 'my' ? 'ဒေတာများကို ပြန်လည်သွင်းယူခြင်း' : 'Restore from Backup File'}
+            </h3>
+            <p className="text-xs text-[#8e8e93] leading-relaxed">
+              {settings.language === 'my'
+                ? 'သင့်အီးမေးလ် သို့မဟုတ် ကွန်ပျူတာထဲရှိ money_manager_backup.json ဖိုင်ကို ရွေးချယ်ပြီး ယခင်စာရင်းများကို စက္ကန့်ပိုင်းအတွင်း ပြန်လည်သွင်းယူပါ။'
+                : 'Import your money_manager_backup.json file (either from Gmail attachments or local storage) to restore your entire ledger instantly.'}
+            </p>
+
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
+                isDragging 
+                  ? 'border-[#34c759] bg-[#34c759]/5' 
+                  : 'border-black/[0.08] dark:border-white/[0.08] hover:border-[#34c759]/40 hover:bg-black/[0.01] dark:hover:bg-white/[0.01]'
+              }`}
+            >
+              <input
+                type="file"
+                id="backup-file-input"
+                accept=".json"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <label htmlFor="backup-file-input" className="cursor-pointer block space-y-2.5">
+                <div className="w-10 h-10 rounded-full bg-[#34c759]/10 text-[#34c759] flex items-center justify-center mx-auto">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                    {settings.language === 'my' ? 'ဖိုင်ရွေးချယ်ရန် နှိပ်ပါ သို့မဟုတ် ဖိုင်ဆွဲထည့်ပါ' : 'Click to select or drag & drop JSON file'}
                   </p>
-                )}
+                  <p className="text-[10px] text-[#8e8e93]">
+                    money_manager_backup.json
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {importError && (
+              <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-[#ff3b30]/10 text-[#ff3b30] text-[11px] font-semibold">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{importError}</span>
               </div>
             )}
           </div>
+
+
 
           {/* Data Management */}
           <div className="p-5 ios-glass rounded-[2rem] space-y-4">

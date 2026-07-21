@@ -39,18 +39,9 @@ import { SettingsSection } from './components/SettingsSection';
 import { ProfileSection } from './components/ProfileSection';
 import { OnboardingModal } from './components/OnboardingModal';
 import { AddTransactionSection } from './components/AddTransactionSection';
+import { initAuth, googleSignIn, googleSignOut, sendBackupEmail, getAccessToken, setAccessToken, BackupData } from './utils/gmailBackup';
 
-// Google Drive Cloud Sync Utilities
-import {
-  initAuth,
-  googleSignIn,
-  googleSignOut,
-  findDriveFile,
-  downloadFromDrive,
-  uploadToDrive,
-  SyncData,
-  GoogleUser
-} from './utils/googleDriveSync';
+
 
 const getCategoryStyle = (categoryName: string) => {
   const norm = categoryName.trim().toLowerCase();
@@ -242,310 +233,30 @@ export default function App() {
   // Interactive Quick Toast Notification State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
 
-  // iOS PWA Install prompt state
-  const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
-
-  // Google Drive Sync States
-  const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
-  const [driveFileId, setDriveFileId] = useState<string | null>(() => {
-    return localStorage.getItem('mm_drive_file_id');
-  });
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'not-connected' | 'idle'>(() => {
-    return 'not-connected';
-  });
+  // Gmail Sync & Auth States
+  const [googleUser, setGoogleUser] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(() => {
     return localStorage.getItem('mm_last_synced_time');
   });
-  const [autoSyncEnabled, setAutoSyncEnabled] = useState<boolean>(() => {
-    const saved = localStorage.getItem('mm_auto_sync_enabled');
-    return saved !== 'false'; // Enabled by default if logged in
-  });
 
-  // Attempt to silent re-auth if token is cached
+  // Listen to Auth State on mount
   useEffect(() => {
-    initAuth(
+    const unsubscribe = initAuth(
       (user, token) => {
         setGoogleUser(user);
-        setGoogleToken(token);
-        setSyncStatus('synced');
       },
       () => {
-        setGoogleUser(null);
-        setGoogleToken(null);
-        setSyncStatus('not-connected');
+        console.warn('Auth disconnected or failed');
       }
     );
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
-  // Auto Cloud Sync whenever state changes
-  useEffect(() => {
-    if (googleToken && autoSyncEnabled) {
-      const delayDebounceFn = setTimeout(() => {
-        const syncData: SyncData = {
-          transactions,
-          budgets,
-          incomeCategories,
-          expenseCategories,
-          customCurrency,
-          settings,
-          profile,
-          lastUpdated: new Date().toISOString()
-        };
-        setSyncStatus('syncing');
-        uploadToDrive(googleToken, syncData, driveFileId)
-          .then(fileId => {
-            if (fileId && fileId !== driveFileId) {
-              setDriveFileId(fileId);
-              localStorage.setItem('mm_drive_file_id', fileId);
-            }
-            setSyncStatus('synced');
-            const timeStr = new Date().toLocaleTimeString();
-            setLastSyncedTime(timeStr);
-            localStorage.setItem('mm_last_synced_time', timeStr);
-          })
-          .catch(err => {
-            console.error("Auto sync failed:", err);
-            setSyncStatus('error');
-          });
-      }, 2000); // Debounce by 2 seconds to avoid multiple saves while typing/editing rapidly
-      return () => clearTimeout(delayDebounceFn);
-    }
-  }, [transactions, budgets, incomeCategories, expenseCategories, customCurrency, settings, profile, googleToken, autoSyncEnabled, driveFileId]);
-
-  // Connect Google Drive (Google Sign-In)
-  const handleConnectGoogleDrive = async () => {
-    setSyncStatus('syncing');
-    try {
-      const result = await googleSignIn();
-      if (result) {
-        setGoogleUser(result.user);
-        setGoogleToken(result.accessToken);
-        
-        // Find existing backup file in Google Drive
-        const fileId = await findDriveFile(result.accessToken);
-        if (fileId) {
-          setDriveFileId(fileId);
-          localStorage.setItem('mm_drive_file_id', fileId);
-          
-          // Download data from Drive to offer restore/merge
-          const driveData = await downloadFromDrive(result.accessToken, fileId);
-          if (driveData) {
-            setConfirmDialog({
-              isOpen: true,
-              title: settings.language === 'my' ? 'Cloud Backup ရှာဖွေတွေ့ရှိသည်' : 'Cloud Backup Found',
-              message: settings.language === 'my' 
-                ? `သင်၏ Google Drive တွင် နောက်ဆုံးပြင်ဆင်ခဲ့သော (${new Date(driveData.lastUpdated).toLocaleString()}) မှတ်တမ်းဖိုင်ကို ရှာတွေ့ပါသည်။ ၎င်းကို ပြန်လည်ရယူမလား သို့မဟုတ် လက်ရှိဖုန်းထဲရှိမှတ်တမ်းများဖြင့် ထပ်မံသိမ်းဆည်းမလား?`
-                : `We found an existing cloud backup on your Google Drive from ${new Date(driveData.lastUpdated).toLocaleString()}. Would you like to Restore from Cloud (overwrite current local data) or Save Local data to Cloud (overwrite cloud backup)?`,
-              confirmText: settings.language === 'my' ? 'Cloud မှ ဒေတာရယူမည်' : 'Restore from Cloud',
-              cancelText: settings.language === 'my' ? 'လက်ရှိဖုန်းမှဒေတာ သိမ်းဆည်းမည်' : 'Save Local to Cloud',
-              isDestructive: false,
-              onConfirm: () => {
-                if (driveData.transactions) setTransactions(driveData.transactions);
-                if (driveData.budgets) setBudgets(driveData.budgets);
-                if (driveData.incomeCategories) setIncomeCategories(driveData.incomeCategories);
-                if (driveData.expenseCategories) setExpenseCategories(driveData.expenseCategories);
-                if (driveData.customCurrency) setCustomCurrency(driveData.customCurrency);
-                if (driveData.settings) setSettings(driveData.settings);
-                if (driveData.profile) setProfile(driveData.profile);
-                
-                setSyncStatus('synced');
-                const timeStr = new Date().toLocaleTimeString();
-                setLastSyncedTime(timeStr);
-                localStorage.setItem('mm_last_synced_time', timeStr);
-                showToast(settings.language === 'my' ? 'ဒေတာများကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။' : 'Cloud backup successfully restored!', 'success');
-                setConfirmDialog(null);
-              },
-              onCancel: () => {
-                const syncData: SyncData = {
-                  transactions,
-                  budgets,
-                  incomeCategories,
-                  expenseCategories,
-                  customCurrency,
-                  settings,
-                  profile,
-                  lastUpdated: new Date().toISOString()
-                };
-                uploadToDrive(result.accessToken, syncData, fileId)
-                  .then(() => {
-                    setSyncStatus('synced');
-                    const timeStr = new Date().toLocaleTimeString();
-                    setLastSyncedTime(timeStr);
-                    localStorage.setItem('mm_last_synced_time', timeStr);
-                    showToast(settings.language === 'my' ? 'လက်ရှိဒေတာကို Cloud တွင် သိမ်းဆည်းပြီးပါပြီ။' : 'Local data saved to Google Drive!', 'success');
-                  })
-                  .catch(err => {
-                    console.error(err);
-                    setSyncStatus('error');
-                    showToast('Failed to save to Cloud', 'error');
-                  });
-                setConfirmDialog(null);
-              }
-            });
-          }
-        } else {
-          // No backup found, perform initial save
-          const syncData: SyncData = {
-            transactions,
-            budgets,
-            incomeCategories,
-            expenseCategories,
-            customCurrency,
-            settings,
-            profile,
-            lastUpdated: new Date().toISOString()
-          };
-          const newFileId = await uploadToDrive(result.accessToken, syncData, null);
-          setDriveFileId(newFileId);
-          localStorage.setItem('mm_drive_file_id', newFileId);
-          setSyncStatus('synced');
-          const timeStr = new Date().toLocaleTimeString();
-          setLastSyncedTime(timeStr);
-          localStorage.setItem('mm_last_synced_time', timeStr);
-          showToast(settings.language === 'my' ? 'Google Drive တွင် အောင်မြင်စွာ စတင်သိမ်းဆည်းလိုက်ပါပြီ။' : 'Cloud sync successfully initialized on Google Drive!', 'success');
-        }
-      }
-    } catch (err: any) {
-      console.error("Failed to connect Google Drive:", err);
-      const isIframe = typeof window !== 'undefined' && window.self !== window.top;
-      
-      if (err?.code === 'auth/popup-closed-by-user' || err?.message?.includes('popup-closed-by-user')) {
-        setSyncStatus('not-connected');
-        if (isIframe) {
-          showToast(
-            settings.language === 'my'
-              ? 'ဘရောင်ဇာလုံခြုံရေးကြောင့် ညာဘက်အပေါ်ရှိ "ဝင်းဒိုးသစ်ဖြင့်ဖွင့်ရန်" ခလုတ်ကိုနှိပ်၍ ဝင်ရောက်ပေးပါ။'
-              : 'Browser security inside preview iframe: Please open the app in a new tab to sign in successfully!',
-            'error'
-          );
-        } else {
-          showToast(t('authPopupClosed'), 'info');
-        }
-      } else {
-        setSyncStatus('error');
-        showToast(err.message || t('authGeneralError'), 'error');
-      }
-    }
-  };
-
-  // Disconnect Google Drive
-  const handleDisconnectGoogleDrive = async () => {
-    try {
-      await googleSignOut();
-      setGoogleUser(null);
-      setGoogleToken(null);
-      setSyncStatus('not-connected');
-      showToast(settings.language === 'my' ? 'Google Drive ချိတ်ဆက်မှုကို ဖြတ်တောက်လိုက်ပါပြီ။' : 'Disconnected from Google Drive.', 'info');
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Manual Trigger Upload
-  const handleTriggerDriveUpload = async () => {
-    if (!googleToken) {
-      await handleConnectGoogleDrive();
-      return;
-    }
-    setSyncStatus('syncing');
-    try {
-      const syncData: SyncData = {
-        transactions,
-        budgets,
-        incomeCategories,
-        expenseCategories,
-        customCurrency,
-        settings,
-        profile,
-        lastUpdated: new Date().toISOString()
-      };
-      const fileId = await uploadToDrive(googleToken, syncData, driveFileId);
-      if (fileId && fileId !== driveFileId) {
-        setDriveFileId(fileId);
-        localStorage.setItem('mm_drive_file_id', fileId);
-      }
-      setSyncStatus('synced');
-      const timeStr = new Date().toLocaleTimeString();
-      setLastSyncedTime(timeStr);
-      localStorage.setItem('mm_last_synced_time', timeStr);
-      showToast(settings.language === 'my' ? 'ဒေတာများကို Google Drive ထဲသို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။' : 'Data successfully backed up to Google Drive!', 'success');
-    } catch (err) {
-      console.error(err);
-      setSyncStatus('error');
-      showToast('Backup failed.', 'error');
-    }
-  };
-
-  // Manual Trigger Download (Restore)
-  const handleTriggerDriveDownload = async () => {
-    if (!googleToken) {
-      await handleConnectGoogleDrive();
-      return;
-    }
-    setSyncStatus('syncing');
-    try {
-      const fileId = driveFileId || await findDriveFile(googleToken);
-      if (!fileId) {
-        setSyncStatus('idle');
-        showToast(settings.language === 'my' ? 'Google Drive ပေါ်တွင် မည်သည့်မှတ်တမ်းမှ ရှာမတွေ့ပါ။' : 'No backup found on Google Drive.', 'error');
-        return;
-      }
-      const driveData = await downloadFromDrive(googleToken, fileId);
-      if (!driveData) {
-        setSyncStatus('error');
-        showToast('Failed to download backup.', 'error');
-        return;
-      }
-
-      setConfirmDialog({
-        isOpen: true,
-        title: settings.language === 'my' ? 'မှတ်တမ်း ပြန်လည်ရယူရန် သေချာပါသလား?' : 'Restore Backup?',
-        message: settings.language === 'my'
-          ? `ဤလုပ်ဆောင်ချက်သည် သင့်ဖုန်းထဲရှိ လက်ရှိငွေစာရင်းမှတ်တမ်းအားလုံးကို Google Drive ရှိမှတ်တမ်းများ (${new Date(driveData.lastUpdated).toLocaleString()}) ဖြင့် အစားထိုးပါလိမ့်မည်။ ဆက်လုပ်ရန် သေချာပါသလား?`
-          : `Are you sure you want to restore the backup from ${new Date(driveData.lastUpdated).toLocaleString()}? This will overwrite all of your current local transaction entries, categories, budgets, and profile preferences permanently.`,
-        confirmText: settings.language === 'my' ? 'သေချာပါသည်၊ အစားထိုးမည်' : 'Yes, Restore and Overwrite',
-        cancelText: settings.language === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel',
-        isDestructive: true,
-        onConfirm: () => {
-          if (driveData.transactions) setTransactions(driveData.transactions);
-          if (driveData.budgets) setBudgets(driveData.budgets);
-          if (driveData.incomeCategories) setIncomeCategories(driveData.incomeCategories);
-          if (driveData.expenseCategories) setExpenseCategories(driveData.expenseCategories);
-          if (driveData.customCurrency) setCustomCurrency(driveData.customCurrency);
-          if (driveData.settings) setSettings(driveData.settings);
-          if (driveData.profile) setProfile(driveData.profile);
-          
-          setSyncStatus('synced');
-          const timeStr = new Date().toLocaleTimeString();
-          setLastSyncedTime(timeStr);
-          localStorage.setItem('mm_last_synced_time', timeStr);
-          showToast(settings.language === 'my' ? 'မှတ်တမ်းများကို အောင်မြင်စွာ ပြန်လည်ရယူပြီးပါပြီ။' : 'Backup restored successfully!', 'success');
-          setConfirmDialog(null);
-        },
-        onCancel: () => {
-          setSyncStatus('synced');
-          setConfirmDialog(null);
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      setSyncStatus('error');
-      showToast('Restore failed.', 'error');
-    }
-  };
-
-  const handleToggleAutoSync = () => {
-    const newVal = !autoSyncEnabled;
-    setAutoSyncEnabled(newVal);
-    localStorage.setItem('mm_auto_sync_enabled', newVal ? 'true' : 'false');
-    showToast(
-      newVal
-        ? (settings.language === 'my' ? 'အလိုအလျောက် သိမ်းဆည်းမှုကို ဖွင့်လိုက်ပါပြီ။' : 'Automatic saving enabled.')
-        : (settings.language === 'my' ? 'အလိုအလျောက် သိမ်းဆည်းမှုကို ပိတ်လိုက်ပါပြီ။' : 'Automatic saving disabled.'),
-      'info'
-    );
-  };
+  // iOS PWA Install prompt state
+  const [showIOSPrompt, setShowIOSPrompt] = useState<boolean>(false);
 
   // Custom Confirmation Dialog State
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -909,6 +620,135 @@ export default function App() {
       onConfirm: () => {
         setBudgets([]);
         showToast("Budget limit removed.", 'info');
+        setConfirmDialog(null);
+      }
+    });
+  }, [settings.language]);
+
+  const handleConnectGmail = React.useCallback(async () => {
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        setGoogleUser(result.user);
+        showToast(
+          settings.language === 'my' 
+            ? 'Google အကောင့် ချိတ်ဆက်ပြီးပါပြီ။' 
+            : 'Google Account connected successfully!', 
+          'success'
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast(
+        settings.language === 'my'
+          ? 'ချိတ်ဆက်မှု မအောင်မြင်ပါ- ' + (err.message || '')
+          : 'Failed to connect: ' + (err.message || ''),
+        'error'
+      );
+    }
+  }, [settings.language]);
+
+  const handleDisconnectGmail = React.useCallback(async () => {
+    try {
+      await googleSignOut();
+      setGoogleUser(null);
+      showToast(
+        settings.language === 'my'
+          ? 'Google အကောင့် ဖြတ်တောက်ပြီးပါပြီ။'
+          : 'Google Account disconnected!',
+        'info'
+      );
+    } catch (err: any) {
+      console.error(err);
+      showToast('Error signing out', 'error');
+    }
+  }, [settings.language]);
+
+  const handleTriggerGmailBackup = React.useCallback(async () => {
+    const token = getAccessToken();
+    const recipientEmail = googleUser?.email;
+
+    if (!token || !recipientEmail) {
+      showToast(
+        settings.language === 'my'
+          ? 'ကျေးဇူးပြု၍ Google အကောင့် အရင်ချိတ်ဆက်ပါ။'
+          : 'Please connect your Google account first.',
+        'error'
+      );
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const backupData: BackupData = {
+        transactions,
+        budgets,
+        incomeCategories,
+        expenseCategories,
+        customCurrency,
+        settings,
+        profile,
+        lastUpdated: new Date().toISOString()
+      };
+
+      await sendBackupEmail(token, recipientEmail, backupData);
+
+      const now = new Date();
+      const formattedTime = now.toLocaleString(settings.language === 'my' ? 'my-MM' : 'en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      setLastSyncedTime(formattedTime);
+      localStorage.setItem('mm_last_synced_time', formattedTime);
+      
+      showToast(
+        settings.language === 'my'
+          ? 'Backup ဖိုင်ကို သင်၏ Gmail Inbox သို့ ပို့ပေးပြီးပါပြီ။'
+          : 'Backup JSON successfully sent to your Gmail Inbox!',
+        'success'
+      );
+    } catch (err: any) {
+      console.error('Gmail backup error:', err);
+      showToast(
+        settings.language === 'my'
+          ? 'Backup ပို့ရန် အမှားအယွင်းရှိနေပါသည်- ' + (err.message || '')
+          : 'Failed to send backup: ' + (err.message || ''),
+        'error'
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [googleUser, transactions, budgets, incomeCategories, expenseCategories, customCurrency, settings, profile]);
+
+  const handleRestoreBackup = React.useCallback((importedData: any) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: settings.language === 'my' ? "ဒေတာများကို အစားထိုးမည်" : "Restore & Replace Ledger",
+      message: settings.language === 'my'
+        ? "ဤဖိုင်ကို သွင်းယူပါက လက်ရှိစာရင်းများအားလုံးကို ဤဖိုင်ဖြင့် လုံးဝအစားထိုးသွားမည် ဖြစ်သည်။ ဆက်လက်လုပ်ဆောင်ရန် သေချာပါသလား?"
+        : "Restoring from this backup file will completely REPLACE your current transactions, budgets, categories, and settings. This cannot be undone. Continue?",
+      confirmText: settings.language === 'my' ? "အစားထိုးမည်" : "Restore Now",
+      cancelText: settings.language === 'my' ? "မလုပ်တော့ပါ" : "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        if (importedData.transactions) setTransactions(importedData.transactions);
+        if (importedData.budgets) setBudgets(importedData.budgets);
+        if (importedData.incomeCategories) setIncomeCategories(importedData.incomeCategories);
+        if (importedData.expenseCategories) setExpenseCategories(importedData.expenseCategories);
+        if (importedData.customCurrency) setCustomCurrency(importedData.customCurrency);
+        if (importedData.settings) setSettings(importedData.settings);
+        if (importedData.profile) setProfile(importedData.profile);
+
+        showToast(
+          settings.language === 'my'
+            ? 'ဒေတာအားလုံး အောင်မြင်စွာ ပြန်လည်သွင်းယူပြီးပါပြီ။'
+            : 'All data successfully restored from backup file!',
+          'success'
+        );
         setConfirmDialog(null);
       }
     });
@@ -1957,14 +1797,12 @@ export default function App() {
                       setIsProfileEditing(true);
                     }}
                     googleUser={googleUser}
-                    syncStatus={syncStatus}
+                    isSyncing={isSyncing}
                     lastSyncedTime={lastSyncedTime}
-                    autoSyncEnabled={autoSyncEnabled}
-                    onToggleAutoSync={handleToggleAutoSync}
-                    onConnectGoogleDrive={handleConnectGoogleDrive}
-                    onDisconnectGoogleDrive={handleDisconnectGoogleDrive}
-                    onTriggerDriveUpload={handleTriggerDriveUpload}
-                    onTriggerDriveDownload={handleTriggerDriveDownload}
+                    onConnectGmail={handleConnectGmail}
+                    onDisconnectGmail={handleDisconnectGmail}
+                    onTriggerGmailBackup={handleTriggerGmailBackup}
+                    onRestoreBackup={handleRestoreBackup}
                   />
                 )}
 
