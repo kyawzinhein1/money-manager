@@ -86,25 +86,25 @@ option {
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-/* Dedicated Navigation Bar - Ultra Transparent Crystal Liquid Glass with Subtle Grey Tint */
+/* Dedicated Navigation Bar - Clean Glass with Soft Reduced Grey Tint and No Border */
 .ios-glass-nav {
-  background: rgba(160, 170, 185, 0.22) !important;
-  backdrop-filter: blur(2px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(2px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  background: rgba(160, 170, 185, 0.14) !important;
+  backdrop-filter: blur(4px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(180%) !important;
+  border: none !important;
   box-shadow: 
-    0 8px 32px -6px rgba(0, 0, 0, 0.08),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85) !important;
+    0 8px 30px -6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
 .dark .ios-glass-nav {
-  background: rgba(38, 42, 52, 0.38) !important;
-  backdrop-filter: blur(2px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(2px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(30, 36, 48, 0.25) !important;
+  backdrop-filter: blur(4px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(180%) !important;
+  border: none !important;
   box-shadow: 
-    0 12px 36px -8px rgba(0, 0, 0, 0.45),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22) !important;
+    0 12px 36px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 .ios-glass-card {
