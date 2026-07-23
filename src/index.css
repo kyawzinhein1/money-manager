@@ -63,72 +63,68 @@ option {
   animation: fluid-blob-3 22s infinite alternate ease-in-out;
 }
 
-/* Core Glassmorphism Base Styles - Crystal Clear iOS Liquid Glass */
+/* Core Glassmorphism Base Styles - Clean Crisp Frosted Neutral & Crystal Liquid Glass */
 .ios-glass {
-  background: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(40px) saturate(220%);
-  -webkit-backdrop-filter: blur(40px) saturate(220%);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow: 
-    0 20px 50px -15px rgba(0, 0, 0, 0.05),
-    0 10px 20px -12px rgba(0, 0, 0, 0.02),
-    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.03);
+    0 10px 30px -10px rgba(0, 0, 0, 0.05),
+    0 4px 12px -4px rgba(0, 0, 0, 0.02),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .dark .ios-glass {
-  background: rgba(22, 22, 28, 0.28);
-  backdrop-filter: blur(40px) saturate(220%);
-  -webkit-backdrop-filter: blur(40px) saturate(220%);
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: rgba(18, 18, 22, 0.32);
+  backdrop-filter: blur(12px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 
-    0 25px 60px -15px rgba(0, 0, 0, 0.45),
-    0 10px 25px -10px rgba(0, 0, 0, 0.35),
-    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.4);
-}
-
-/* Dedicated Navigation Ultra-Transparent iOS Glass Bar */
-.ios-glass-nav {
-  background: rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(35px) saturate(210%);
-  -webkit-backdrop-filter: blur(35px) saturate(210%);
-  border: 1.2px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 
-    0 20px 45px -12px rgba(0, 0, 0, 0.08),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.dark .ios-glass-nav {
-  background: rgba(20, 20, 26, 0.28);
-  backdrop-filter: blur(35px) saturate(210%);
-  -webkit-backdrop-filter: blur(35px) saturate(210%);
-  border: 1.2px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 
-    0 20px 45px -12px rgba(0, 0, 0, 0.5),
+    0 16px 40px -10px rgba(0, 0, 0, 0.4),
+    0 4px 12px -4px rgba(0, 0, 0, 0.2),
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-.ios-glass-card {
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(36px) saturate(260%);
-  -webkit-backdrop-filter: blur(36px) saturate(260%);
-  border: 1.2px solid rgba(255, 255, 255, 0.6);
+/* Dedicated Navigation Bar - Ultra Transparent Crystal Liquid Glass with Subtle Grey Tint */
+.ios-glass-nav {
+  background: rgba(160, 170, 185, 0.22) !important;
+  backdrop-filter: blur(2px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
   box-shadow: 
-    0 16px 40px -12px rgba(0, 0, 0, 0.04),
-    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.75),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+    0 8px 32px -6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+.dark .ios-glass-nav {
+  background: rgba(38, 42, 52, 0.38) !important;
+  backdrop-filter: blur(2px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 
+    0 12px 36px -8px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
+.ios-glass-card {
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px) saturate(200%);
+  -webkit-backdrop-filter: blur(10px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 8px 24px -6px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
 .dark .ios-glass-card {
-  background: rgba(20, 20, 24, 0.48);
-  backdrop-filter: blur(36px) saturate(260%);
-  -webkit-backdrop-filter: blur(36px) saturate(260%);
-  border: 1.2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 20, 26, 0.30);
+  backdrop-filter: blur(10px) saturate(200%);
+  -webkit-backdrop-filter: blur(10px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
-    0 20px 48px -12px rgba(0, 0, 0, 0.35),
-    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.18),
-    inset 0 -1.5px 2px rgba(0, 0, 0, 0.3);
+    0 12px 32px -8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 /* Glass Buttons with Specular Edge Highlights */

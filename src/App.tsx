@@ -1052,14 +1052,7 @@ export default function App() {
   }, [dashboardFilteredTransactions, budgets]);
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#09090b] text-[#1c1c1e] dark:text-[#f2f2f7] font-sans transition-colors duration-300 pb-28 lg:pb-8 relative overflow-hidden`}>
-      {/* iOS Liquid Backdrops */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 no-print">
-        <div className="absolute top-[10%] left-[-10%] w-[350px] md:w-[600px] h-[350px] md:h-[600px] rounded-full filter blur-[80px] md:blur-[140px] animate-blob-1 opacity-50 dark:opacity-30 bg-gradient-to-tr from-[#007aff]/20 to-[#af52de]/20" />
-        <div className="absolute top-[40%] right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full filter blur-[70px] md:blur-[120px] animate-blob-2 opacity-45 dark:opacity-25 bg-gradient-to-tr from-[#34c759]/15 to-[#5ac8fa]/15" />
-        <div className="absolute bottom-[15%] left-[10%] w-[400px] md:w-[650px] h-[400px] md:h-[650px] rounded-full filter blur-[90px] md:blur-[150px] animate-blob-3 opacity-40 dark:opacity-20 bg-gradient-to-tr from-[#ff9500]/15 to-[#ff3b30]/15" />
-      </div>
-
+    <div className={`min-h-screen bg-slate-50 dark:bg-[#09090b] text-[#1c1c1e] dark:text-[#f2f2f7] font-sans transition-colors duration-300 pb-28 lg:pb-8 relative overflow-x-clip`}>
       {/* Toast Notification (iOS Dynamic Island Style) */}
       <AnimatePresence>
         {toast && (
@@ -1089,7 +1082,7 @@ export default function App() {
       )}
 
       {/* Top Header */}
-      <header className="relative z-40 backdrop-blur-2xl bg-white/35 dark:bg-black/45 border-b border-white/40 dark:border-white/10 sticky top-0 no-print transition-all shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
+      <header className="relative z-40 ios-glass-nav sticky top-0 no-print transition-all">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#007aff] rounded-2xl flex items-center justify-center text-white shadow-xs">
@@ -1321,7 +1314,7 @@ export default function App() {
       </header>
 
       {/* Main Body */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 font-sans">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 pb-28 lg:pb-8 font-sans">
         {/* Navigation Sidebar for Large Screen & Header Tabs */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Rail Desktop Navigation Sidebar */}
@@ -1342,7 +1335,7 @@ export default function App() {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`w-full h-11 flex items-center gap-3.5 px-4 rounded-2xl text-sm font-bold transition-all text-left cursor-pointer border-0 ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#007aff] to-[#0066d6] text-white shadow-[0_4px_12px_rgba(0,122,255,0.25),inset_0_1px_1px_rgba(255,255,255,0.35)]'
+                      ? 'text-[#007aff] dark:text-[#0a84ff] font-extrabold bg-[#007aff]/10 dark:bg-[#007aff]/15 border border-[#007aff]/20'
                       : 'text-[#8e8e93] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7]'
                   }`}
                 >
@@ -1963,7 +1956,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile Devices */}
-      <nav className="fixed bottom-4 left-4 right-4 ios-glass-nav p-2.5 flex items-center justify-around lg:hidden no-print z-40 transition-all rounded-[24px]">
+      <nav className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md ios-glass-nav p-2 flex items-center justify-around lg:hidden no-print z-[9999] transition-all rounded-[24px]">
         {[
           { id: 'dashboard', label: t('dashboard'), icon: Wallet },
           { id: 'transactions', label: t('transactions'), icon: History },
@@ -1972,20 +1965,20 @@ export default function App() {
           { id: 'settings', label: t('settings'), icon: SettingsIcon },
         ].map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = activeTab === tab.id || (activeTab === 'add-transaction' && lastMainTab === tab.id);
           return (
             <button
               key={tab.id}
               id={`mobile-nav-${tab.id}`}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all cursor-pointer ${
+              className={`relative z-20 flex flex-col items-center justify-center py-1 flex-1 transition-all cursor-pointer border-0 bg-transparent ${
                 isActive
                   ? 'text-[#007aff] font-bold scale-105'
                   : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7]'
               }`}
             >
               <Icon className="w-5 h-5 shrink-0" />
-              <span className="text-[9px] font-bold tracking-tight w-full truncate text-center block mt-0.5">
+              <span className="text-[10px] font-bold tracking-tight w-full truncate text-center block mt-0.5">
                 {tab.label}
               </span>
             </button>
