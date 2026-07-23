@@ -332,22 +332,20 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
               </div>
 
               <div className="space-y-4">
-                <div className="max-w-md">
-                  <label htmlFor="budget-amount-input" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-2">
-                    {t('monthlyBudgetLimit')} ({currencySymbol})
-                  </label>
-                  
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-extrabold text-[#1c1c1e] dark:text-white font-mono">
-                      {currencySymbol}
-                    </span>
+                {/* Centered Large Immersive Amount Section matching Edit Transaction UI */}
+                <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] shadow-xs text-center space-y-4">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#8e8e93] block">
+                    {language === 'my' ? 'သတ်မှတ် ဘတ်ဂျက် ပမာဏ' : 'BUDGET LIMIT'}
+                  </span>
+
+                  <div className="relative flex items-center justify-center max-w-sm mx-auto">
                     <input
                       id="budget-amount-input"
                       type="number"
                       min="1"
                       step="any"
                       required
-                      placeholder="0.00"
+                      placeholder="0"
                       value={budgetLimit}
                       onChange={(e) => {
                         setBudgetLimit(e.target.value);
@@ -355,28 +353,38 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                           setError(undefined);
                         }
                       }}
-                      className={`w-full h-12 pl-12 pr-4 bg-[#f2f2f7] dark:bg-[#2c2c2e] border rounded-2xl text-base text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 font-mono font-bold transition-all duration-200 ${
-                        error
-                          ? 'border-red-500/70 focus:ring-red-500/20'
-                          : 'border-transparent focus:ring-[#007aff]/35'
-                      }`}
+                      className="w-full text-4xl sm:text-5xl font-mono font-black text-center text-[#1c1c1e] dark:text-white bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff]"
+                      style={{ width: `${Math.max(budgetLimit.length * 24 + 40, 120)}px`, maxWidth: '100%' }}
                     />
+                    {budgetLimit && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBudgetLimit('');
+                          setError(undefined);
+                        }}
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-black/[0.06] hover:bg-black/[0.1] dark:bg-white/[0.1] dark:hover:bg-white/[0.15] text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 text-[10px] ml-1 shrink-0"
+                        title="Clear Amount"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
 
                   {error && (
-                    <motion.p
+                    <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] text-red-500 font-bold mt-2 flex items-center gap-1.5"
+                      className="text-[11px] text-red-500 font-extrabold flex items-center justify-center gap-1.5 animate-bounce mt-1"
                     >
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {error}
-                    </motion.p>
+                      <span>{error}</span>
+                    </motion.div>
                   )}
                 </div>
 
                 {/* Quick Selection Presets */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 pt-1">
                   <span className="block text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
                     {language === 'en' ? 'Quick suggestions' : 'အကြံပြုချက်များ'}
                   </span>
@@ -395,7 +403,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                             : 'bg-transparent text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'
                         }`}
                       >
-                        {formatAmount(amount)}
+                        {amount.toLocaleString()}
                       </button>
                     ))}
                   </div>
@@ -445,147 +453,149 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Primary overall status column (7 cols) */}
-            <div className="lg:col-span-7 ios-glass rounded-[2.5rem] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[360px]">
-              {/* Background ambient mesh */}
-              <div className={`absolute top-0 right-0 w-44 h-44 rounded-full filter blur-[60px] opacity-[0.06] pointer-events-none -mr-16 -mt-16 transition-colors duration-300 ${
-                isExceeded ? 'bg-[#ff3b30]' : percent > 85 ? 'bg-amber-500' : 'bg-[#34c759]'
-              }`} />
+            {!isEditing && (
+              <div className="lg:col-span-7 ios-glass rounded-[2.5rem] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[360px]">
+                {/* Background ambient mesh */}
+                <div className={`absolute top-0 right-0 w-44 h-44 rounded-full filter blur-[60px] opacity-[0.06] pointer-events-none -mr-16 -mt-16 transition-colors duration-300 ${
+                  isExceeded ? 'bg-[#ff3b30]' : percent > 85 ? 'bg-amber-500' : 'bg-[#34c759]'
+                }`} />
 
-              <div>
-                {/* Vault Card Title Bar */}
-                <div className="relative z-10 flex items-start justify-between">
-                  <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/5 dark:bg-white/5 text-[#8e8e93]">
-                      <Clock className="w-3 h-3" />
-                      {getRangeLabel()}
-                    </span>
-                    <h4 className="text-xs font-bold text-[#8e8e93] pt-1">
-                      {t('overallMonthlyBudget')}
-                    </h4>
+                <div>
+                  {/* Vault Card Title Bar */}
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div className="space-y-1">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/5 dark:bg-white/5 text-[#8e8e93]">
+                        <Clock className="w-3 h-3" />
+                        {getRangeLabel()}
+                      </span>
+                      <h4 className="text-xs font-bold text-[#8e8e93] pt-1">
+                        {t('overallMonthlyBudget')}
+                      </h4>
+                    </div>
+                    
+                    {/* Action controls */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        id="edit-overall-budget"
+                        onClick={handleEditClick}
+                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-full transition-all cursor-pointer"
+                        title={t('edit')}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        id="delete-overall-budget"
+                        onClick={() => onDeleteBudget('Total')}
+                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-full transition-all cursor-pointer"
+                        title={t('delete')}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  
-                  {/* Action controls */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      id="edit-overall-budget"
-                      onClick={handleEditClick}
-                      className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-full transition-all cursor-pointer"
-                      title={t('edit')}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      id="delete-overall-budget"
-                      onClick={() => onDeleteBudget('Total')}
-                      className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-full transition-all cursor-pointer"
-                      title={t('delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                  {/* Amount display and Ring Progress layout */}
+                  <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 mt-4 mb-6">
+                    <div className="text-center sm:text-left space-y-1">
+                      <div className="text-4xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight">
+                        {formatAmount(activeBudget.limit)}
+                      </div>
+                      <div className="text-xs text-[#8e8e93] font-medium">
+                        {language === 'en' ? 'Limit target setup' : 'သတ်မှတ်ဘတ်ဂျက် ပမာဏ'}
+                      </div>
+                    </div>
+
+                    {/* Circular SVG Ring Gauge */}
+                    <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90">
+                        {/* Tracking loop */}
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r={radius}
+                          className="stroke-black/[0.06] dark:stroke-white/[0.06]"
+                          strokeWidth="10"
+                          fill="transparent"
+                        />
+                        {/* Active progress indicator */}
+                        <motion.circle
+                          cx="56"
+                          cy="56"
+                          r={radius}
+                          className={`${
+                            isExceeded
+                              ? 'stroke-[#ff3b30]'
+                              : percent > 85
+                              ? 'stroke-amber-500'
+                              : 'stroke-[#34c759]'
+                          }`}
+                          strokeWidth="10"
+                          fill="transparent"
+                          strokeDasharray={circumference}
+                          initial={{ strokeDashoffset: circumference }}
+                          animate={{ strokeDashoffset }}
+                          transition={{ duration: 1.2, ease: 'easeOut' }}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      {/* Ring interior label */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-xl font-black text-[#1c1c1e] dark:text-white font-mono">
+                          {percent.toFixed(0)}%
+                        </span>
+                        <span className="text-[9px] text-[#8e8e93] font-bold uppercase tracking-wider">
+                          {t('spent')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Linear tracking information */}
+                  <div className="relative z-10 space-y-2 border-t border-black/5 dark:border-white/5 pt-4">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#8e8e93] font-medium">
+                        {t('totalExpenseSpent')}
+                      </span>
+                      <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] font-mono">
+                        {formatAmount(totalSpent)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#8e8e93] font-medium">
+                        {isExceeded ? t('overBudgetLimit') : t('availableRemainingSpend')}
+                      </span>
+                      <span className={`font-black font-mono ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                        {isExceeded ? '-' : ''}{formatAmount(Math.abs(remaining))}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Amount display and Ring Progress layout */}
-                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 mt-4 mb-6">
-                  <div className="text-center sm:text-left space-y-1">
-                    <div className="text-4xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight">
-                      {formatAmount(activeBudget.limit)}
-                    </div>
-                    <div className="text-xs text-[#8e8e93] font-medium">
-                      {language === 'en' ? 'Limit target setup' : 'သတ်မှတ်ဘတ်ဂျက် ပမာဏ'}
-                    </div>
-                  </div>
-
-                  {/* Circular SVG Ring Gauge */}
-                  <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                      {/* Tracking loop */}
-                      <circle
-                        cx="56"
-                        cy="56"
-                        r={radius}
-                        className="stroke-black/[0.06] dark:stroke-white/[0.06]"
-                        strokeWidth="10"
-                        fill="transparent"
-                      />
-                      {/* Active progress indicator */}
-                      <motion.circle
-                        cx="56"
-                        cy="56"
-                        r={radius}
-                        className={`${
-                          isExceeded
-                            ? 'stroke-[#ff3b30]'
-                            : percent > 85
-                            ? 'stroke-amber-500'
-                            : 'stroke-[#34c759]'
-                        }`}
-                        strokeWidth="10"
-                        fill="transparent"
-                        strokeDasharray={circumference}
-                        initial={{ strokeDashoffset: circumference }}
-                        animate={{ strokeDashoffset }}
-                        transition={{ duration: 1.2, ease: 'easeOut' }}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    {/* Ring interior label */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-black text-[#1c1c1e] dark:text-white font-mono">
-                        {percent.toFixed(0)}%
+                {/* Status bar block */}
+                <div className="relative z-10 flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-4 mt-4">
+                  <div className="flex items-center gap-1.5">
+                    {isExceeded ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#ff3b30]/10 text-[#ff3b30] uppercase tracking-wider">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        {t('overBudgetLimit')}
                       </span>
-                      <span className="text-[9px] text-[#8e8e93] font-bold uppercase tracking-wider">
-                        {t('spent')}
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#34c759]/10 text-[#34c759] uppercase tracking-wider">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        {t('budgetSpendingIsSafe')}
                       </span>
-                    </div>
+                    )}
                   </div>
-                </div>
-
-                {/* Linear tracking information */}
-                <div className="relative z-10 space-y-2 border-t border-black/5 dark:border-white/5 pt-4">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8e8e93] font-medium">
-                      {t('totalExpenseSpent')}
-                    </span>
-                    <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] font-mono">
-                      {formatAmount(totalSpent)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8e8e93] font-medium">
-                      {isExceeded ? t('overBudgetLimit') : t('availableRemainingSpend')}
-                    </span>
-                    <span className={`font-black font-mono ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                      {isExceeded ? '-' : ''}{formatAmount(Math.abs(remaining))}
-                    </span>
+                  <div className="text-[10px] text-[#8e8e93] font-mono">
+                    {daysRemaining} {language === 'en' ? 'days left' : 'ရက်ကျန်ရှိ'}
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Status bar block */}
-              <div className="relative z-10 flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-4 mt-4">
-                <div className="flex items-center gap-1.5">
-                  {isExceeded ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#ff3b30]/10 text-[#ff3b30] uppercase tracking-wider">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {t('overBudgetLimit')}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#34c759]/10 text-[#34c759] uppercase tracking-wider">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      {t('budgetSpendingIsSafe')}
-                    </span>
-                  )}
-                </div>
-                <div className="text-[10px] text-[#8e8e93] font-mono">
-                  {daysRemaining} {language === 'en' ? 'days left' : 'ရက်ကျန်ရှိ'}
-                </div>
-              </div>
-            </div>
-
-            {/* Smart Daily Allowance, Burn Rate & Projections (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-6">
+            {/* Smart Daily Allowance, Burn Rate & Projections (5 cols or 12 cols when editing) */}
+            <div className={isEditing ? "lg:col-span-12 flex flex-col gap-6" : "lg:col-span-5 flex flex-col gap-6"}>
               {/* Burn Rate & Smart Projections Details Card */}
               <div className="ios-glass rounded-[2.5rem] p-6 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">

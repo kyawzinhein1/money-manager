@@ -1963,7 +1963,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile Devices */}
-      <nav className="fixed bottom-4 left-4 right-4 backdrop-blur-2xl bg-white/35 dark:bg-[#0d0d11]/45 border border-white/50 dark:border-white/10 p-2.5 flex items-center justify-around lg:hidden no-print z-40 transition-all rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
+      <nav className="fixed bottom-4 left-4 right-4 ios-glass-nav p-2.5 flex items-center justify-around lg:hidden no-print z-40 transition-all rounded-[24px]">
         {[
           { id: 'dashboard', label: t('dashboard'), icon: Wallet },
           { id: 'transactions', label: t('transactions'), icon: History },
