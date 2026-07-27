@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useDebounce } from '../utils/useDebounce';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -18,6 +19,8 @@ import {
   TrendingDown,
   Coins,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   XCircle,
   HelpCircle,
   FolderOpen
@@ -160,20 +163,21 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   onAddTransactionTrigger,
   onEditTransactionTrigger,
 }) => {
-  const t = (key: string) => TRANSLATIONS[language][key] || key;
-  const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
+  const t = useCallback((key: string) => TRANSLATIONS[language][key] || key, [language]);
+  const tc = useCallback((cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat, [language]);
 
-  const formatDateDMY = (dateString: string): string => {
+  const formatDateDMY = useCallback((dateString: string): string => {
     if (!dateString) return '';
     const parts = dateString.split('-');
     if (parts.length === 3) {
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
     return dateString;
-  };
+  }, []);
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -276,35 +280,68 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   };
 
   // Filter transactions
-  const filteredTransactions = transactions
-    .filter((tx) => {
-      const matchesSearch =
-        tx.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.category.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = typeFilter === 'all' || tx.type === typeFilter;
-      const matchesCategory = categoryFilter === 'All' || tx.category === categoryFilter;
-      return matchesSearch && matchesType && matchesCategory;
-    })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // descending by date
+  const filteredTransactions = useMemo(() => {
+    const sTerm = debouncedSearchTerm.trim().toLowerCase();
+    return transactions
+      .filter((tx) => {
+        const matchesSearch =
+          !sTerm ||
+          tx.description.toLowerCase().includes(sTerm) ||
+          tx.category.toLowerCase().includes(sTerm);
+        const matchesType = typeFilter === 'all' || tx.type === typeFilter;
+        const matchesCategory = categoryFilter === 'All' || tx.category === categoryFilter;
+        return matchesSearch && matchesType && matchesCategory;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [transactions, debouncedSearchTerm, typeFilter, categoryFilter]);
+
+  // Pagination & High-Performance Scaling State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+
+  // Auto-reset page position on search query / filter criteria changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, categoryFilter, typeFilter, pageSize]);
+
+  const totalPages = useMemo(() => {
+    if (pageSize === 0) return 1;
+    return Math.ceil(filteredTransactions.length / pageSize) || 1;
+  }, [filteredTransactions.length, pageSize]);
+
+  const paginatedTransactions = useMemo(() => {
+    if (pageSize === 0) return filteredTransactions;
+    const start = (currentPage - 1) * pageSize;
+    return filteredTransactions.slice(start, start + pageSize);
+  }, [filteredTransactions, currentPage, pageSize]);
 
   // Reset Filters trigger
-  const hasActiveFilters = searchTerm !== '' || categoryFilter !== 'All';
-  const handleClearFilters = () => {
+  const hasActiveFilters = useMemo(() => searchTerm !== '' || categoryFilter !== 'All' || typeFilter !== 'all', [searchTerm, categoryFilter, typeFilter]);
+
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setCategoryFilter('All');
     setTypeFilter('all');
-  };
+  }, []);
 
   // Real-Time summary metrics based on active filter criteria!
-  const filteredIncomeTotal = filteredTransactions
-    .filter((tx) => tx.type === 'income')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const filteredExpenseTotal = filteredTransactions
-    .filter((tx) => tx.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const filteredNetBalance = filteredIncomeTotal - filteredExpenseTotal;
+  const { filteredIncomeTotal, filteredExpenseTotal, filteredNetBalance } = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (let i = 0; i < filteredTransactions.length; i++) {
+      const tx = filteredTransactions[i];
+      if (tx.type === 'income') {
+        income += tx.amount;
+      } else {
+        expense += tx.amount;
+      }
+    }
+    return {
+      filteredIncomeTotal: income,
+      filteredExpenseTotal: expense,
+      filteredNetBalance: income - expense,
+    };
+  }, [filteredTransactions]);
 
   // CSV Export action
   const handleExportCSV = () => {
@@ -577,12 +614,12 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   </td>
                 </tr>
               ) : (
-                filteredTransactions.map((tx) => {
+                paginatedTransactions.map((tx) => {
                   const catStyle = getCategoryStyle(tx.category);
                   return (
                     <tr
                       key={tx.id}
-                      className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-all duration-150 text-sm"
+                      className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-all duration-150 text-sm fast-render-row"
                     >
                       {/* Date */}
                       <td className="p-4.5 font-mono text-xs text-[#8e8e93] font-extrabold">
@@ -669,12 +706,12 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               </div>
             </div>
           ) : (
-            filteredTransactions.map((tx) => {
+            paginatedTransactions.map((tx) => {
               const catStyle = getCategoryStyle(tx.category);
               return (
                 <div
                   key={tx.id}
-                  className="p-4 space-y-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  className="p-4 space-y-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors fast-render-row"
                 >
                   {/* Top Line: Category badg and Amount */}
                   <div className="flex items-center justify-between gap-2">
@@ -734,6 +771,58 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             })
           )}
         </div>
+
+        {/* High-Performance Pagination Bar Controls */}
+        {filteredTransactions.length > 0 && (
+          <div className="p-4 bg-black/[0.015] dark:bg-white/[0.015] border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8e8e93] font-bold">
+            {/* Rows Per Page Selector */}
+            <div className="flex items-center gap-2">
+              <span>{language === 'my' ? 'တစ်မျက်နှာလျှင် အရေအတွက်:' : 'Rows per page:'}</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="px-2.5 py-1 bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 rounded-lg font-mono font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-1 focus:ring-[#007aff]"
+              >
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={0}>{language === 'my' ? 'အားလုံး' : 'All'}</option>
+              </select>
+              {pageSize > 0 && (
+                <span className="font-mono text-[11px]">
+                  {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)} -{' '}
+                  {Math.min(currentPage * pageSize, filteredTransactions.length)} / {filteredTransactions.length}
+                </span>
+              )}
+            </div>
+
+            {/* Pagination Navigation Buttons */}
+            {pageSize > 0 && totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="px-3 font-mono text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Slide-over or Modal for Add/Edit Transaction */}
@@ -754,7 +843,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="relative w-full max-w-md p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-5"
+              className="relative w-full max-w-md p-6 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl border border-white/50 dark:border-white/12 shadow-2xl space-y-5 gpu-layer"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-[#1c1c1e] dark:text-white flex items-center gap-2">

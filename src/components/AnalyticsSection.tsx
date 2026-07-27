@@ -532,7 +532,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
             </div>
           </div>
 
-          <div className="h-64 w-full pt-2" id="daily-trend-chart">
+          <div className="h-64 w-full pt-2 gpu-layer" id="daily-trend-chart">
             {dailyData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-[#8e8e93] text-xs">
                 {t('noTransactions')}

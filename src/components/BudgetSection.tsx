@@ -844,7 +844,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min((spent / (totalSpent || 1)) * 100, 100)}%` }}
                               transition={{ duration: 0.6, ease: 'easeOut' }}
-                              className={`h-full rounded-full ${catStyle.fill}`}
+                              className={`h-full rounded-full gpu-layer ${catStyle.fill}`}
                             />
                           </div>
                         </div>

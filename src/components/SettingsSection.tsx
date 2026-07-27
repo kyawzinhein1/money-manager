@@ -79,7 +79,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 
   const customCurrency: Currency = {
     code: settings.currency || 'MMK',
-    symbol: settings.currencySymbol || 'Ks',
+    symbol: PRESET_CURRENCIES.find((c) => c.code === settings.currency)?.symbol || 'Ks',
     name: PRESET_CURRENCIES.find((c) => c.code === settings.currency)?.name || 'Local Currency'
   };
 

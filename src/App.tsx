@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Wallet,
@@ -38,12 +38,22 @@ import { generateForecastReport } from './utils/forecasting';
 
 // Component Imports
 import { TransactionsSection } from './components/TransactionsSection';
-import { BudgetSection } from './components/BudgetSection';
-import { AnalyticsSection } from './components/AnalyticsSection';
-import { SettingsSection } from './components/SettingsSection';
-import { ProfileSection } from './components/ProfileSection';
 import { OnboardingModal } from './components/OnboardingModal';
-import { AddTransactionSection } from './components/AddTransactionSection';
+import { BottomNav } from './components/BottomNav';
+
+// Lazy Loaded Tab Modules for Code Splitting and Instant Initial Page Load
+const BudgetSection = lazy(() => import('./components/BudgetSection').then(m => ({ default: m.BudgetSection })));
+const AnalyticsSection = lazy(() => import('./components/AnalyticsSection').then(m => ({ default: m.AnalyticsSection })));
+const SettingsSection = lazy(() => import('./components/SettingsSection').then(m => ({ default: m.SettingsSection })));
+const ProfileSection = lazy(() => import('./components/ProfileSection').then(m => ({ default: m.ProfileSection })));
+const AddTransactionSection = lazy(() => import('./components/AddTransactionSection').then(m => ({ default: m.AddTransactionSection })));
+
+const SectionLoadingFallback = () => (
+  <div className="w-full py-16 flex flex-col items-center justify-center space-y-3 animate-fade-in">
+    <div className="w-9 h-9 border-2 border-[#007aff]/20 border-t-[#007aff] rounded-full animate-spin" />
+    <p className="text-xs font-bold text-[#8e8e93]">Loading...</p>
+  </div>
+);
 
 
 
@@ -1866,95 +1876,105 @@ export default function App() {
 
                 {/* 7. Add/Edit Transaction Section */}
                 {activeTab === 'add-transaction' && (
-                  <AddTransactionSection
-                    language={settings.language}
-                    currencySymbol={customCurrency.symbol}
-                    currencyCode={customCurrency.code}
-                    incomeCategories={incomeCategories}
-                    expenseCategories={expenseCategories}
-                    onAddTransaction={handleAddTransaction}
-                    onCancel={() => setActiveTab(lastMainTab)}
-                    initialTransaction={editingTxInAddPage}
-                    onEditTransaction={handleEditTransaction}
-                    formatAmount={formatAmount}
-                  />
+                  <Suspense fallback={<SectionLoadingFallback />}>
+                    <AddTransactionSection
+                      language={settings.language}
+                      currencySymbol={customCurrency.symbol}
+                      currencyCode={customCurrency.code}
+                      incomeCategories={incomeCategories}
+                      expenseCategories={expenseCategories}
+                      onAddTransaction={handleAddTransaction}
+                      onCancel={() => setActiveTab(lastMainTab)}
+                      initialTransaction={editingTxInAddPage}
+                      onEditTransaction={handleEditTransaction}
+                      formatAmount={formatAmount}
+                    />
+                  </Suspense>
                 )}
 
                 {/* 3. Budgets Section */}
                 {activeTab === 'budgets' && (
-                  <BudgetSection
-                    budgets={budgets}
-                    transactions={dashboardFilteredTransactions}
-                    currencySymbol={customCurrency.symbol}
-                    language={settings.language}
-                    onSaveBudget={handleSaveBudget}
-                    onDeleteBudget={handleDeleteBudget}
-                    formatAmount={formatAmount}
-                    selectedMonth={selectedMonth}
-                    selectedYear={selectedYear}
-                  />
+                  <Suspense fallback={<SectionLoadingFallback />}>
+                    <BudgetSection
+                      budgets={budgets}
+                      transactions={dashboardFilteredTransactions}
+                      currencySymbol={customCurrency.symbol}
+                      language={settings.language}
+                      onSaveBudget={handleSaveBudget}
+                      onDeleteBudget={handleDeleteBudget}
+                      formatAmount={formatAmount}
+                      selectedMonth={selectedMonth}
+                      selectedYear={selectedYear}
+                    />
+                  </Suspense>
                 )}
 
                 {/* 4. Analytics Section */}
                 {activeTab === 'analytics' && (
-                  <AnalyticsSection
-                    transactions={dashboardFilteredTransactions}
-                    currencySymbol={customCurrency.symbol}
-                    language={settings.language}
-                    formatAmount={formatAmount}
-                    budgets={budgets}
-                    selectedMonth={selectedMonth}
-                    selectedYear={selectedYear}
-                    readAlertIds={readAlertIds}
-                    toggleReadAlert={toggleReadAlert}
-                  />
+                  <Suspense fallback={<SectionLoadingFallback />}>
+                    <AnalyticsSection
+                      transactions={dashboardFilteredTransactions}
+                      currencySymbol={customCurrency.symbol}
+                      language={settings.language}
+                      formatAmount={formatAmount}
+                      budgets={budgets}
+                      selectedMonth={selectedMonth}
+                      selectedYear={selectedYear}
+                      readAlertIds={readAlertIds}
+                      toggleReadAlert={toggleReadAlert}
+                    />
+                  </Suspense>
                 )}
 
                 {/* 5. Settings Section */}
                 {activeTab === 'settings' && (
-                  <SettingsSection
-                    settings={settings}
-                    customCurrency={customCurrency}
-                    onUpdateLanguage={handleUpdateLanguage}
-                    onUpdateTheme={handleUpdateTheme}
-                    onUpdateCurrency={handleUpdateCurrency}
-                    onExportCSV={handleExportCSV}
-                    onExportPDF={handleExportPDF}
-                    incomeCategories={incomeCategories}
-                    expenseCategories={expenseCategories}
-                    onAddCategory={handleAddCategory}
-                    onDeleteCategory={handleDeleteCategory}
-                    onLoadDemoData={handleLoadDemoData}
-                    onClearAllData={handleClearAllData}
-                    profile={profile}
-                    onEditProfileClick={() => {
-                      setActiveTab('profile');
-                      setIsProfileEditing(true);
-                    }}
-                    onRestoreBackup={handleRestoreBackup}
-                    transactions={transactions}
-                    budgets={budgets}
-                    readAlertIds={readAlertIds}
-                    onUpdateRawKey={handleUpdateRawKey}
-                  />
+                  <Suspense fallback={<SectionLoadingFallback />}>
+                    <SettingsSection
+                      t={t}
+                      settings={settings}
+                      onUpdateLanguage={handleUpdateLanguage}
+                      onUpdateTheme={handleUpdateTheme}
+                      onUpdateCurrency={handleUpdateCurrency}
+                      onExportCSV={handleExportCSV}
+                      onExportPDF={handleExportPDF}
+                      incomeCategories={incomeCategories}
+                      expenseCategories={expenseCategories}
+                      onAddCategory={handleAddCategory}
+                      onDeleteCategory={handleDeleteCategory}
+                      onLoadDemoData={handleLoadDemoData}
+                      onClearAllData={handleClearAllData}
+                      profile={profile}
+                      onEditProfileClick={() => {
+                        setActiveTab('profile');
+                        setIsProfileEditing(true);
+                      }}
+                      onRestoreBackup={handleRestoreBackup}
+                      transactions={transactions}
+                      budgets={budgets}
+                      readAlertIds={readAlertIds}
+                      onUpdateRawKey={handleUpdateRawKey}
+                    />
+                  </Suspense>
                 )}
 
                 {/* 6. Profile Section */}
                 {activeTab === 'profile' && (
-                  <ProfileSection
-                    profile={profile}
-                    onSaveProfile={(updatedProfile) => {
-                      setProfile(updatedProfile);
-                      showToast(t('updateProfileSuccess') || 'Profile updated successfully!', 'success');
-                      setIsProfileEditing(false);
-                    }}
-                    language={settings.language}
-                    onClose={() => {
-                      setActiveTab(previousTab);
-                      setIsProfileEditing(false);
-                    }}
-                    initialEdit={isProfileEditing}
-                  />
+                  <Suspense fallback={<SectionLoadingFallback />}>
+                    <ProfileSection
+                      profile={profile}
+                      onSaveProfile={(updatedProfile) => {
+                        setProfile(updatedProfile);
+                        showToast(t('updateProfileSuccess') || 'Profile updated successfully!', 'success');
+                        setIsProfileEditing(false);
+                      }}
+                      language={settings.language}
+                      onClose={() => {
+                        setActiveTab(previousTab);
+                        setIsProfileEditing(false);
+                      }}
+                      initialEdit={isProfileEditing}
+                    />
+                  </Suspense>
                 )}
             </div>
           </div>
@@ -1962,35 +1982,12 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile Devices */}
-      <nav className="fixed bottom-3 left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md ios-glass-nav px-1.5 py-1.5 flex items-center justify-around lg:hidden no-print z-[9999] rounded-[24px]">
-        {[
-          { id: 'dashboard', label: t('navDashboard'), icon: Wallet },
-          { id: 'transactions', label: t('navTransactions'), icon: History },
-          { id: 'budgets', label: t('navBudgets'), icon: PiggyBank },
-          { id: 'analytics', label: t('navAnalytics'), icon: TrendingUp },
-          { id: 'settings', label: t('navSettings'), icon: SettingsIcon },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id || (activeTab === 'add-transaction' && lastMainTab === tab.id);
-          return (
-            <button
-              key={tab.id}
-              id={`mobile-nav-${tab.id}`}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`relative z-20 flex flex-col items-center justify-center py-1.5 px-1 flex-1 min-w-0 transition-all cursor-pointer border-0 bg-transparent rounded-xl ${
-                isActive
-                  ? 'text-[#007aff] dark:text-[#30b0ff] font-extrabold scale-105'
-                  : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7]'
-              }`}
-            >
-              <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? 'scale-110 text-[#007aff] dark:text-[#30b0ff]' : ''}`} />
-              <span className="text-[10px] font-bold tracking-tight w-full truncate text-center block mt-0.5 whitespace-nowrap">
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+      <BottomNav
+        activeTab={activeTab}
+        lastMainTab={lastMainTab}
+        onTabChange={setActiveTab}
+        t={t}
+      />
 
       {/* iOS Liquid Glass PWA Install guidance overlay */}
       <AnimatePresence>

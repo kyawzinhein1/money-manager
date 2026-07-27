@@ -53,14 +53,35 @@ option {
 
 .animate-blob-1 {
   animation: fluid-blob-1 25s infinite alternate ease-in-out;
+  will-change: transform;
+  transform: translate3d(0,0,0);
 }
 
 .animate-blob-2 {
   animation: fluid-blob-2 20s infinite alternate ease-in-out;
+  will-change: transform;
+  transform: translate3d(0,0,0);
 }
 
 .animate-blob-3 {
   animation: fluid-blob-3 22s infinite alternate ease-in-out;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+}
+
+/* GPU Hardware Acceleration & Performance Utility Classes */
+.gpu-layer {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+.fast-render-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 64px;
 }
 
 /* Core Glassmorphism Base Styles - Clean Crisp Frosted Neutral & Crystal Liquid Glass */

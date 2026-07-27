@@ -18,7 +18,7 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({ activeTab, last
   ] as const;
 
   return (
-    <nav className="fixed bottom-3 left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md ios-glass-nav px-1.5 py-1.5 flex items-center justify-around lg:hidden no-print z-[9999] rounded-[24px]">
+    <nav className="fixed bottom-3 left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md ios-glass-nav px-1.5 py-1.5 flex items-center justify-around lg:hidden no-print z-[9999] rounded-[24px] gpu-layer">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id || (activeTab === 'add-transaction' && lastMainTab === tab.id);
