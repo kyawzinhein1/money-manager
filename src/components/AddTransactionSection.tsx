@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
-  ArrowLeft,
+  X,
   Coins,
   ArrowUpRight,
   ArrowDownLeft,
@@ -43,129 +43,123 @@ interface AddTransactionSectionProps {
 
 const getCategoryIcon = (name: string): LucideIcon => {
   const norm = name.trim().toLowerCase();
-  switch (norm) {
-    case 'food':
-    case 'စားသောက်စရိတ်':
-      return Utensils;
-    case 'transportation':
-    case 'သယ်ယူပို့ဆောင်ရေး':
-      return Car;
-    case 'shopping':
-    case 'ဈေးဝယ်ခြင်း':
-      return ShoppingBag;
-    case 'entertainment':
-    case 'ဖျော်ဖြေရေး':
-      return Film;
-    case 'housing':
-    case 'အိမ်လခ/အိမ်စရိတ်':
-      return Home;
-    case 'utilities':
-    case 'မီတာ/ရေဖိုး/ဖုန်းဘေလ်':
-      return Zap;
-    case 'healthcare':
-    case 'ကျန်းမာရေး':
-      return HeartPulse;
-    case 'education':
-    case 'ပညာရေး':
-      return GraduationCap;
-    case 'salary':
-    case 'လစာဝင်ငွေ':
-      return Briefcase;
-    case 'freelance':
-    case 'လွတ်လပ်သောလုပ်ငန်း':
-      return Laptop;
-    case 'investment':
-    case 'ရင်းနှီးမြှုပ်နှံမှု':
-      return TrendingUp;
-    case 'gift':
-    case 'လက်ဆောင်ရရှိမှု':
-      return Gift;
-    default:
-      return Tag;
+  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
+    return Utensils;
   }
+  if (norm.includes('transport') || norm.includes('travel') || norm.includes('thukyan') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
+    return Car;
+  }
+  if (norm.includes('shop') || norm.includes('store') || norm.includes('ဈေးဝယ်')) {
+    return ShoppingBag;
+  }
+  if (norm.includes('entertain') || norm.includes('movie') || norm.includes('ဖျော်ဖြေ')) {
+    return Film;
+  }
+  if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
+    return Home;
+  }
+  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
+    return Zap;
+  }
+  if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
+    return HeartPulse;
+  }
+  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
+    return GraduationCap;
+  }
+  if (norm.includes('salar') || norm.includes('လစာ')) {
+    return Briefcase;
+  }
+  if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
+    return Laptop;
+  }
+  if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
+    return TrendingUp;
+  }
+  if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
+    return Gift;
+  }
+  return Tag;
 };
 
 const getCategoryColors = (name: string) => {
   const norm = name.trim().toLowerCase();
-  switch (norm) {
-    case 'food':
-    case 'စားသောက်စရိတ်':
-      return {
-        bg: 'bg-amber-500/10 text-amber-600 border-amber-500/15 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20',
-        active: 'bg-white dark:bg-white/10 text-amber-600 dark:text-amber-400 border-amber-500 shadow-sm border-2'
-      };
-    case 'transportation':
-    case 'သယ်ယူပို့ဆောင်ရေး':
-      return {
-        bg: 'bg-blue-500/10 text-blue-600 border-blue-500/15 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20',
-        active: 'bg-white dark:bg-white/10 text-blue-600 dark:text-blue-400 border-blue-500 shadow-sm border-2'
-      };
-    case 'shopping':
-    case 'ဈေးဝယ်ခြင်း':
-      return {
-        bg: 'bg-pink-500/10 text-pink-600 border-pink-500/15 dark:bg-pink-500/15 dark:text-pink-400 dark:border-pink-500/20',
-        active: 'bg-white dark:bg-white/10 text-pink-600 dark:text-pink-400 border-pink-500 shadow-sm border-2'
-      };
-    case 'entertainment':
-    case 'ဖျော်ဖြေရေး':
-      return {
-        bg: 'bg-purple-500/10 text-purple-600 border-purple-500/15 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/20',
-        active: 'bg-white dark:bg-white/10 text-purple-600 dark:text-purple-400 border-purple-500 shadow-sm border-2'
-      };
-    case 'housing':
-    case 'အိမ်လခ/အိမ်စရိတ်':
-      return {
-        bg: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/15 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20',
-        active: 'bg-white dark:bg-white/10 text-indigo-600 dark:text-indigo-400 border-indigo-500 shadow-sm border-2'
-      };
-    case 'utilities':
-    case 'မီတာ/ရေဖိုး/ဖုန်းဘေလ်':
-      return {
-        bg: 'bg-teal-500/10 text-teal-600 border-teal-500/15 dark:bg-teal-500/15 dark:text-teal-400 dark:border-teal-500/20',
-        active: 'bg-white dark:bg-white/10 text-teal-600 dark:text-teal-400 border-teal-500 shadow-sm border-2'
-      };
-    case 'healthcare':
-    case 'ကျန်းမာရေး':
-      return {
-        bg: 'bg-red-500/10 text-red-600 border-red-500/15 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20',
-        active: 'bg-white dark:bg-white/10 text-red-600 dark:text-red-400 border-red-500 shadow-sm border-2'
-      };
-    case 'education':
-    case 'ပညာရေး':
-      return {
-        bg: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/15 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/20',
-        active: 'bg-white dark:bg-white/10 text-cyan-600 dark:text-cyan-400 border-cyan-500 shadow-sm border-2'
-      };
-    case 'salary':
-    case 'လစာဝင်ငွေ':
-      return {
-        bg: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/15 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/20',
-        active: 'bg-white dark:bg-white/10 text-emerald-600 dark:text-emerald-400 border-emerald-500 shadow-sm border-2'
-      };
-    case 'freelance':
-    case 'လွတ်လပ်သောလုပ်ငန်း':
-      return {
-        bg: 'bg-sky-500/10 text-sky-600 border-sky-500/15 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/20',
-        active: 'bg-white dark:bg-white/10 text-sky-600 dark:text-sky-400 border-sky-500 shadow-sm border-2'
-      };
-    case 'investment':
-    case 'ရင်းနှီးမြှုပ်နှံမှု':
-      return {
-        bg: 'bg-violet-500/10 text-violet-600 border-violet-500/15 dark:bg-violet-500/15 dark:text-violet-400 dark:border-violet-500/20',
-        active: 'bg-white dark:bg-white/10 text-violet-600 dark:text-violet-400 border-violet-500 shadow-sm border-2'
-      };
-    case 'gift':
-    case 'လက်ဆောင်ရရှိမှု':
-      return {
-        bg: 'bg-rose-500/10 text-rose-600 border-rose-500/15 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/20',
-        active: 'bg-white dark:bg-white/10 text-rose-600 dark:text-rose-400 border-rose-500 shadow-sm border-2'
-      };
-    default:
-      return {
-        bg: 'bg-slate-500/10 text-slate-600 border-slate-500/15 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/20',
-        active: 'bg-white dark:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-500 shadow-sm border-2'
-      };
+  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
+    return {
+      bg: 'bg-amber-500/10 text-amber-600 border-amber-500/15 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20',
+      active: 'bg-white dark:bg-white/10 text-amber-600 dark:text-amber-400 border-amber-500 shadow-sm border-2'
+    };
   }
+  if (norm.includes('transport') || norm.includes('travel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
+    return {
+      bg: 'bg-blue-500/10 text-blue-600 border-blue-500/15 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20',
+      active: 'bg-white dark:bg-white/10 text-blue-600 dark:text-blue-400 border-blue-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) {
+    return {
+      bg: 'bg-pink-500/10 text-pink-600 border-pink-500/15 dark:bg-pink-500/15 dark:text-pink-400 dark:border-pink-500/20',
+      active: 'bg-white dark:bg-white/10 text-pink-600 dark:text-pink-400 border-pink-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) {
+    return {
+      bg: 'bg-purple-500/10 text-purple-600 border-purple-500/15 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/20',
+      active: 'bg-white dark:bg-white/10 text-purple-600 dark:text-purple-400 border-purple-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
+    return {
+      bg: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/15 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20',
+      active: 'bg-white dark:bg-white/10 text-indigo-600 dark:text-indigo-400 border-indigo-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
+    return {
+      bg: 'bg-teal-500/10 text-teal-600 border-teal-500/15 dark:bg-teal-500/15 dark:text-teal-400 dark:border-teal-500/20',
+      active: 'bg-white dark:bg-white/10 text-teal-600 dark:text-teal-400 border-teal-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
+    return {
+      bg: 'bg-red-500/10 text-red-600 border-red-500/15 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20',
+      active: 'bg-white dark:bg-white/10 text-red-600 dark:text-red-400 border-red-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
+    return {
+      bg: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/15 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/20',
+      active: 'bg-white dark:bg-white/10 text-cyan-600 dark:text-cyan-400 border-cyan-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('salar') || norm.includes('လစာ')) {
+    return {
+      bg: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/15 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/20',
+      active: 'bg-white dark:bg-white/10 text-emerald-600 dark:text-emerald-400 border-emerald-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
+    return {
+      bg: 'bg-sky-500/10 text-sky-600 border-sky-500/15 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/20',
+      active: 'bg-white dark:bg-white/10 text-sky-600 dark:text-sky-400 border-sky-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
+    return {
+      bg: 'bg-violet-500/10 text-violet-600 border-violet-500/15 dark:bg-violet-500/15 dark:text-violet-400 dark:border-violet-500/20',
+      active: 'bg-white dark:bg-white/10 text-violet-600 dark:text-violet-400 border-violet-500 shadow-sm border-2'
+    };
+  }
+  if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
+    return {
+      bg: 'bg-rose-500/10 text-rose-600 border-rose-500/15 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/20',
+      active: 'bg-white dark:bg-white/10 text-rose-600 dark:text-rose-400 border-rose-500 shadow-sm border-2'
+    };
+  }
+  return {
+    bg: 'bg-slate-500/10 text-slate-600 border-slate-500/15 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/20',
+    active: 'bg-white dark:bg-white/10 text-slate-600 dark:text-slate-400 border-slate-500 shadow-sm border-2'
+  };
 };
 
 // Map categories to list of common descriptions (autocomplete help chips)
@@ -334,27 +328,26 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
       
       {/* Header Panel */}
       <div className="flex items-center justify-between border-b border-black/[0.05] dark:border-white/[0.05] pb-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="w-10 h-10 flex items-center justify-center bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full transition-all cursor-pointer border-0"
-            title="Go Back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-lg font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-              <Coins className="w-5 h-5 text-[#007aff]" />
-              {initialTransaction ? t('editTransaction') : t('addTransaction')}
-            </h2>
-            <p className="text-[11px] text-[#8e8e93] font-medium">
-              {initialTransaction
-                ? (language === 'my' ? 'မှတ်တမ်းအချက်အလက်များကို ပြင်ဆင်ပါ' : 'Modify the existing transaction details')
-                : (language === 'my' ? 'မှတ်တမ်းသစ်တစ်ခု ထည့်သွင်းပါ' : 'Establish a high-fidelity record in your ledger')}
-            </p>
-          </div>
+        <div>
+          <h2 className="text-lg font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+            <Coins className="w-5 h-5 text-[#007aff]" />
+            {initialTransaction ? t('editTransaction') : t('addTransaction')}
+          </h2>
+          <p className="text-[11px] text-[#8e8e93] font-medium">
+            {initialTransaction
+              ? (language === 'my' ? 'မှတ်တမ်းအချက်အလက်များကို ပြင်ဆင်ပါ' : 'Modify the existing transaction details')
+              : (language === 'my' ? 'မှတ်တမ်းသစ်တစ်ခု ထည့်သွင်းပါ' : 'Establish a high-fidelity record in your ledger')}
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-11 h-11 flex items-center justify-center bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full hover:opacity-80 transition-all cursor-pointer border-0 shrink-0"
+          title="Close"
+          id="close-transaction-form-btn"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">

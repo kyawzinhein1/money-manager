@@ -1052,7 +1052,7 @@ export default function App() {
   }, [dashboardFilteredTransactions, budgets]);
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#09090b] text-[#1c1c1e] dark:text-[#f2f2f7] font-sans transition-colors duration-300 pb-28 lg:pb-8 relative overflow-x-clip`}>
+    <div className={`min-h-screen bg-slate-50 dark:bg-[#09090b] text-[#1c1c1e] dark:text-[#f2f2f7] font-sans transition-colors duration-300 pb-28 lg:pb-8 relative`}>
       {/* Toast Notification (iOS Dynamic Island Style) */}
       <AnimatePresence>
         {toast && (
@@ -1082,17 +1082,18 @@ export default function App() {
       )}
 
       {/* Top Header */}
-      <header className="relative z-40 ios-glass-nav sticky top-0 no-print transition-all">
+      <header className="relative z-40 ios-glass-nav sticky top-0 no-print transition-all border-b border-black/[0.04] dark:border-white/[0.05]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#007aff] rounded-2xl flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 bg-gradient-to-tr from-[#007aff] to-[#30b0ff] rounded-2xl flex items-center justify-center text-white shadow-md shadow-[#007aff]/25 ring-2 ring-white/50 dark:ring-black/50">
               <Wallet className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base md:text-lg font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] font-sans">
+              <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] font-sans">
                 {t('appName')}
               </h1>
-              <p className="text-[10px] text-[#8e8e93] font-mono tracking-wider uppercase font-medium">
+              <p className="text-[10px] text-[#8e8e93] font-mono tracking-wider uppercase font-bold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34c759]" />
                 {customCurrency.code} Mode
               </p>
             </div>
@@ -1318,7 +1319,7 @@ export default function App() {
         {/* Navigation Sidebar for Large Screen & Header Tabs */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Rail Desktop Navigation Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0 space-y-1.5 no-print">
+          <aside className="hidden lg:block w-64 shrink-0 space-y-2 no-print">
             {[
               { id: 'dashboard', label: t('dashboard'), icon: Wallet },
               { id: 'transactions', label: t('transactions'), icon: History },
@@ -1497,28 +1498,33 @@ export default function App() {
                 {/* 1. Dashboard Tab */}
                 {activeTab === 'dashboard' && (
                   <div className="space-y-6" id="view-dashboard">
-                    {/* Welcome Grid - Apple Card Style */}
-                    <div className="ios-glass text-[#1c1c1e] dark:text-[#f2f2f7] rounded-[2rem] p-6 relative overflow-hidden transition-all duration-300">
+                    {/* Welcome Grid - Apple Card Style with Gradient Accent */}
+                    <div className="ios-glass text-[#1c1c1e] dark:text-[#f2f2f7] rounded-[2.25rem] p-6 relative overflow-hidden transition-all duration-300 border border-white/60 dark:border-white/10 shadow-lg shadow-black/[0.03]">
+                      {/* Ambient lighting backdrop blob */}
+                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#007aff]/10 dark:bg-[#007aff]/15 rounded-full blur-3xl pointer-events-none" />
+                      
                       <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                         {/* Left side: Balance (7 cols on md) */}
-                        <div className="md:col-span-7 space-y-2.5">
+                        <div className="md:col-span-7 space-y-3">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-2.5 w-2.5 rounded-full bg-[#34c759] animate-pulse" />
-                            <span className="text-[#8e8e93] text-[10px] md:text-xs font-bold uppercase tracking-widest font-sans">
+                            <span className="flex h-2.5 w-2.5 rounded-full bg-[#34c759] animate-pulse shadow-xs shadow-[#34c759]" />
+                            <span className="text-[#8e8e93] text-[10px] md:text-xs font-black uppercase tracking-widest font-sans">
                               {t('totalBalance')}
                             </span>
-                            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-bold">
+                            <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5">
                               {selectedMonth === 'all' ? t('allMonths') : selectedMonth}/{selectedYear === 'all' ? t('allYears') : selectedYear}
                             </span>
                           </div>
-                          <div className="flex items-baseline gap-2">
-                            <h2 className="text-3xl md:text-4xl font-extrabold text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
+                          <div className="flex items-baseline gap-2.5 flex-wrap">
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
                               {formatAmount(totals.balance)}
                             </h2>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              totals.balance >= 0 ? 'bg-[#34c759]/10 text-[#34c759]' : 'bg-[#ff3b30]/10 text-[#ff3b30]'
+                            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
+                              totals.balance >= 0 
+                                ? 'bg-[#34c759]/10 text-[#34c759] border-[#34c759]/20' 
+                                : 'bg-[#ff3b30]/10 text-[#ff3b30] border-[#ff3b30]/20'
                             }`}>
-                              {totals.balance >= 0 ? 'Healthy' : 'Overdraft'}
+                              {totals.balance >= 0 ? '✓ Healthy' : '⚠ Overdraft'}
                             </span>
                           </div>
                         </div>
@@ -1526,26 +1532,26 @@ export default function App() {
                         {/* Right side: Income/Expense Side-by-Side (5 cols on md) */}
                         <div className="md:col-span-5 grid grid-cols-2 gap-3">
                           {/* Income Mini Card */}
-                          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f2f2f7]/50 dark:bg-[#2c2c2e]/40 border border-[#e5e5ea]/50 dark:border-white/5">
-                            <div className="w-8 h-8 rounded-full bg-[#34c759]/10 flex items-center justify-center shrink-0">
-                              <ArrowUpRight className="w-4.5 h-4.5 text-[#34c759]" />
+                          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-br from-[#34c759]/10 to-[#34c759]/5 border border-[#34c759]/20 shadow-xs hover:scale-[1.02] transition-transform">
+                            <div className="w-9 h-9 rounded-2xl bg-[#34c759] text-white flex items-center justify-center shrink-0 shadow-sm shadow-[#34c759]/30">
+                              <ArrowUpRight className="w-5 h-5 stroke-[2.5]" />
                             </div>
                             <div className="min-w-0">
-                              <span className="text-[#8e8e93] text-[9px] uppercase font-bold block tracking-wider">{t('income')}</span>
-                              <span className="font-extrabold text-xs md:text-sm text-[#34c759] font-mono truncate block mt-0.5">
+                              <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('income')}</span>
+                              <span className="font-black text-xs md:text-sm text-[#34c759] font-mono truncate block mt-0.5">
                                 {formatAmount(totals.income)}
                               </span>
                             </div>
                           </div>
 
                           {/* Expense Mini Card */}
-                          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f2f2f7]/50 dark:bg-[#2c2c2e]/40 border border-[#e5e5ea]/50 dark:border-white/5">
-                            <div className="w-8 h-8 rounded-full bg-[#ff3b30]/10 flex items-center justify-center shrink-0">
-                              <ArrowDownLeft className="w-4.5 h-4.5 text-[#ff3b30]" />
+                          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-br from-[#ff3b30]/10 to-[#ff3b30]/5 border border-[#ff3b30]/20 shadow-xs hover:scale-[1.02] transition-transform">
+                            <div className="w-9 h-9 rounded-2xl bg-[#ff3b30] text-white flex items-center justify-center shrink-0 shadow-sm shadow-[#ff3b30]/30">
+                              <ArrowDownLeft className="w-5 h-5 stroke-[2.5]" />
                             </div>
                             <div className="min-w-0">
-                              <span className="text-[#8e8e93] text-[9px] uppercase font-bold block tracking-wider">{t('expense')}</span>
-                              <span className="font-extrabold text-xs md:text-sm text-[#ff3b30] font-mono truncate block mt-0.5">
+                              <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('expense')}</span>
+                              <span className="font-black text-xs md:text-sm text-[#ff3b30] font-mono truncate block mt-0.5">
                                 {formatAmount(totals.expense)}
                               </span>
                             </div>
@@ -1956,13 +1962,13 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation for Mobile Devices */}
-      <nav className="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md ios-glass-nav p-2 flex items-center justify-around lg:hidden no-print z-[9999] transition-all rounded-[24px]">
+      <nav className="fixed bottom-3 left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md ios-glass-nav px-1.5 py-1.5 flex items-center justify-around lg:hidden no-print z-[9999] rounded-[24px]">
         {[
-          { id: 'dashboard', label: t('dashboard'), icon: Wallet },
-          { id: 'transactions', label: t('transactions'), icon: History },
-          { id: 'budgets', label: t('budgets'), icon: PiggyBank },
-          { id: 'analytics', label: t('analytics'), icon: TrendingUp },
-          { id: 'settings', label: t('settings'), icon: SettingsIcon },
+          { id: 'dashboard', label: t('navDashboard'), icon: Wallet },
+          { id: 'transactions', label: t('navTransactions'), icon: History },
+          { id: 'budgets', label: t('navBudgets'), icon: PiggyBank },
+          { id: 'analytics', label: t('navAnalytics'), icon: TrendingUp },
+          { id: 'settings', label: t('navSettings'), icon: SettingsIcon },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id || (activeTab === 'add-transaction' && lastMainTab === tab.id);
@@ -1971,14 +1977,14 @@ export default function App() {
               key={tab.id}
               id={`mobile-nav-${tab.id}`}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`relative z-20 flex flex-col items-center justify-center py-1 flex-1 transition-all cursor-pointer border-0 bg-transparent ${
+              className={`relative z-20 flex flex-col items-center justify-center py-1.5 px-1 flex-1 min-w-0 transition-all cursor-pointer border-0 bg-transparent rounded-xl ${
                 isActive
-                  ? 'text-[#007aff] font-bold scale-105'
+                  ? 'text-[#007aff] dark:text-[#30b0ff] font-extrabold scale-105'
                   : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7]'
               }`}
             >
-              <Icon className="w-5 h-5 shrink-0" />
-              <span className="text-[10px] font-bold tracking-tight w-full truncate text-center block mt-0.5">
+              <Icon className={`w-5 h-5 shrink-0 transition-transform ${isActive ? 'scale-110 text-[#007aff] dark:text-[#30b0ff]' : ''}`} />
+              <span className="text-[10px] font-bold tracking-tight w-full truncate text-center block mt-0.5 whitespace-nowrap">
                 {tab.label}
               </span>
             </button>

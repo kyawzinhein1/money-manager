@@ -56,98 +56,95 @@ const EXPENSE_CATEGORIES = [
 // Aesthetic Category styles with specific backgrounds, borders, and text colors
 const getCategoryStyle = (categoryName: string) => {
   const norm = categoryName.trim().toLowerCase();
-  switch (norm) {
-    case 'food':
-    case 'စားသောက်စရိတ်':
-      return {
-        bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-        text: 'text-amber-600 dark:text-amber-400',
-        border: 'border-amber-500/10 dark:border-amber-500/20'
-      };
-    case 'transportation':
-    case 'သယ်ယူပို့ဆောင်ရေး':
-      return {
-        bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-        text: 'text-blue-600 dark:text-blue-400',
-        border: 'border-blue-500/10 dark:border-blue-500/20'
-      };
-    case 'shopping':
-    case 'ဈေးဝယ်ခြင်း':
-      return {
-        bg: 'bg-pink-500/10 dark:bg-pink-500/20',
-        text: 'text-pink-600 dark:text-pink-400',
-        border: 'border-pink-500/10 dark:border-pink-500/20'
-      };
-    case 'entertainment':
-    case 'ဖျော်ဖြေရေး':
-      return {
-        bg: 'bg-purple-500/10 dark:bg-purple-500/20',
-        text: 'text-purple-600 dark:text-purple-400',
-        border: 'border-purple-500/10 dark:border-purple-500/20'
-      };
-    case 'housing':
-    case 'အိမ်လခ/အိမ်စရိတ်':
-      return {
-        bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
-        text: 'text-indigo-600 dark:text-indigo-400',
-        border: 'border-indigo-500/10 dark:border-indigo-500/20'
-      };
-    case 'utilities':
-    case 'မီတာ/ရေဖိုး/ဖုန်းဘေလ်':
-      return {
-        bg: 'bg-teal-500/10 dark:bg-teal-500/20',
-        text: 'text-teal-600 dark:text-teal-400',
-        border: 'border-teal-500/10 dark:border-teal-500/20'
-      };
-    case 'healthcare':
-    case 'ကျန်းမာရေး':
-      return {
-        bg: 'bg-red-500/10 dark:bg-red-500/20',
-        text: 'text-red-600 dark:text-red-400',
-        border: 'border-red-500/10 dark:border-red-500/20'
-      };
-    case 'education':
-    case 'ပညာရေး':
-      return {
-        bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
-        text: 'text-cyan-600 dark:text-cyan-400',
-        border: 'border-cyan-500/10 dark:border-cyan-500/20'
-      };
-    case 'salary':
-    case 'လစာဝင်ငွေ':
-      return {
-        bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-        text: 'text-emerald-600 dark:text-emerald-400',
-        border: 'border-emerald-500/10 dark:border-emerald-500/20'
-      };
-    case 'freelance':
-    case 'လွတ်လပ်သောလုပ်ငန်း':
-      return {
-        bg: 'bg-sky-500/10 dark:bg-sky-500/20',
-        text: 'text-sky-600 dark:text-sky-400',
-        border: 'border-sky-500/10 dark:border-sky-500/20'
-      };
-    case 'investment':
-    case 'ရင်းနှီးမြှုပ်နှံမှု':
-      return {
-        bg: 'bg-violet-500/10 dark:bg-violet-500/20',
-        text: 'text-violet-600 dark:text-violet-400',
-        border: 'border-violet-500/10 dark:border-violet-500/20'
-      };
-    case 'gift':
-    case 'လက်ဆောင်ရရှိမှု':
-      return {
-        bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-        text: 'text-rose-600 dark:text-rose-400',
-        border: 'border-rose-500/10 dark:border-rose-500/20'
-      };
-    default:
-      return {
-        bg: 'bg-slate-500/10 dark:bg-slate-500/20',
-        text: 'text-slate-600 dark:text-slate-400',
-        border: 'border-slate-500/10 dark:border-slate-500/20'
-      };
+  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
+    return {
+      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+      text: 'text-amber-600 dark:text-amber-400',
+      border: 'border-amber-500/10 dark:border-amber-500/20'
+    };
   }
+  if (norm.includes('transport') || norm.includes('travel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
+    return {
+      bg: 'bg-blue-500/10 dark:bg-blue-500/20',
+      text: 'text-blue-600 dark:text-blue-400',
+      border: 'border-blue-500/10 dark:border-blue-500/20'
+    };
+  }
+  if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) {
+    return {
+      bg: 'bg-pink-500/10 dark:bg-pink-500/20',
+      text: 'text-pink-600 dark:text-pink-400',
+      border: 'border-pink-500/10 dark:border-pink-500/20'
+    };
+  }
+  if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) {
+    return {
+      bg: 'bg-purple-500/10 dark:bg-purple-500/20',
+      text: 'text-purple-600 dark:text-purple-400',
+      border: 'border-purple-500/10 dark:border-purple-500/20'
+    };
+  }
+  if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
+    return {
+      bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+      text: 'text-indigo-600 dark:text-indigo-400',
+      border: 'border-indigo-500/10 dark:border-indigo-500/20'
+    };
+  }
+  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
+    return {
+      bg: 'bg-teal-500/10 dark:bg-teal-500/20',
+      text: 'text-teal-600 dark:text-teal-400',
+      border: 'border-teal-500/10 dark:border-teal-500/20'
+    };
+  }
+  if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
+    return {
+      bg: 'bg-red-500/10 dark:bg-red-500/20',
+      text: 'text-red-600 dark:text-red-400',
+      border: 'border-red-500/10 dark:border-red-500/20'
+    };
+  }
+  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
+    return {
+      bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
+      text: 'text-cyan-600 dark:text-cyan-400',
+      border: 'border-cyan-500/10 dark:border-cyan-500/20'
+    };
+  }
+  if (norm.includes('salar') || norm.includes('လစာ')) {
+    return {
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      text: 'text-emerald-600 dark:text-emerald-400',
+      border: 'border-emerald-500/10 dark:border-emerald-500/20'
+    };
+  }
+  if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
+    return {
+      bg: 'bg-sky-500/10 dark:bg-sky-500/20',
+      text: 'text-sky-600 dark:text-sky-400',
+      border: 'border-sky-500/10 dark:border-sky-500/20'
+    };
+  }
+  if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
+    return {
+      bg: 'bg-violet-500/10 dark:bg-violet-500/20',
+      text: 'text-violet-600 dark:text-violet-400',
+      border: 'border-violet-500/10 dark:border-violet-500/20'
+    };
+  }
+  if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
+    return {
+      bg: 'bg-rose-500/10 dark:bg-rose-500/20',
+      text: 'text-rose-600 dark:text-rose-400',
+      border: 'border-rose-500/10 dark:border-rose-500/20'
+    };
+  }
+  return {
+    bg: 'bg-slate-500/10 dark:bg-slate-500/20',
+    text: 'text-slate-600 dark:text-slate-400',
+    border: 'border-slate-500/10 dark:border-slate-500/20'
+  };
 };
 
 export const TransactionsSection: React.FC<TransactionsSectionProps> = React.memo(({
@@ -486,7 +483,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
           {/* Action Filters Row */}
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
             {/* Apple Styled Type Segmented Control */}
-            <div className="flex w-full sm:w-72 md:w-80 p-1 bg-black/[0.04] dark:bg-white/[0.05] rounded-full shrink-0 border border-black/[0.02] dark:border-white/[0.02] h-11 items-center">
+            <div className="flex w-full sm:w-72 md:w-80 p-1 bg-black/[0.03] dark:bg-white/[0.04] rounded-full shrink-0 border border-black/[0.02] dark:border-white/[0.02] h-11 items-center">
               {(['all', 'income', 'expense'] as const).map((type) => (
                 <button
                   key={type}
