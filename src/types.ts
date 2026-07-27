@@ -26,6 +26,9 @@ export interface Settings {
   language: Language;
   currency: string; // Currency code
   theme: 'light' | 'dark';
+  reminderEnabled?: boolean;
+  reminderTime?: string; // e.g., "20:00"
+  reminderMessage?: string;
 }
 
 export interface UserProfile {

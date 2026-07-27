@@ -740,6 +740,71 @@ export default function App() {
     setSettings((prev) => ({ ...prev, currency: code }));
   }, []);
 
+  const handleUpdateReminder = React.useCallback((reminderEnabled: boolean, reminderTime: string, reminderMessage: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      reminderEnabled,
+      reminderTime,
+      reminderMessage
+    }));
+  }, []);
+
+  const handleTriggerTestReminder = React.useCallback(() => {
+    const msg = settings.reminderMessage || (settings.language === 'my' 
+      ? "ဒီနေ့ အသုံးစရိတ်များကို ရေးသွင်းရန် မမေ့ပါနဲ့!" 
+      : "Don't forget to log your daily expenses!");
+    showToast(msg, 'info');
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(settings.language === 'my' ? "Money Manager သတိပေးချက်" : "Money Manager Reminder", {
+          body: msg,
+        });
+      } catch (e) {
+        console.warn('Browser Notification Error:', e);
+      }
+    }
+  }, [settings.reminderMessage, settings.language, showToast]);
+
+  // Daily Expense Reminder Background Timer
+  useEffect(() => {
+    if (!settings.reminderEnabled || !settings.reminderTime) return;
+
+    const checkDailyReminder = () => {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+
+      const todayStr = now.toISOString().split('T')[0];
+      const lastReminderDate = localStorage.getItem('mm_last_reminder_date');
+
+      if (currentTimeStr === settings.reminderTime && lastReminderDate !== todayStr) {
+        localStorage.setItem('mm_last_reminder_date', todayStr);
+
+        const msg = settings.reminderMessage || (settings.language === 'my' 
+          ? "ဒီနေ့ အသုံးစရိတ်များကို ရေးသွင်းရန် မမေ့ပါနဲ့!" 
+          : "Don't forget to log your daily expenses!");
+
+        showToast(msg, 'info');
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(settings.language === 'my' ? "Money Manager သတိပေးချက်" : "Money Manager Reminder", {
+              body: msg,
+            });
+          } catch (e) {
+            console.warn('Browser Notification Error:', e);
+          }
+        }
+      }
+    };
+
+    checkDailyReminder();
+    const interval = setInterval(checkDailyReminder, 30000);
+    return () => clearInterval(interval);
+  }, [settings.reminderEnabled, settings.reminderTime, settings.reminderMessage, settings.language, showToast]);
+
   const handleAddTransactionTrigger = React.useCallback(() => {
     setEditingTxInAddPage(null);
     setActiveTab('add-transaction');
@@ -1933,6 +1998,8 @@ export default function App() {
                       onUpdateLanguage={handleUpdateLanguage}
                       onUpdateTheme={handleUpdateTheme}
                       onUpdateCurrency={handleUpdateCurrency}
+                      onUpdateReminder={handleUpdateReminder}
+                      onTriggerTestReminder={handleTriggerTestReminder}
                       onExportCSV={handleExportCSV}
                       onExportPDF={handleExportPDF}
                       incomeCategories={incomeCategories}

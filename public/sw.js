@@ -32,35 +32,38 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('/');
+    })
+  );
+});
+
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  
   const url = new URL(e.request.url);
-  // Only handle same-origin assets
   if (url.origin !== self.location.origin) return;
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch fresh copy in background to update cache
         fetch(e.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(e.request, networkResponse);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
           }
         }).catch(() => {});
         return cachedResponse;
       }
 
       return fetch(e.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200) {
-          return networkResponse;
-        }
+        if (!networkResponse || networkResponse.status !== 200) return networkResponse;
         const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, responseToCache);
-        });
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
         return networkResponse;
       }).catch(() => {
         if (e.request.mode === 'navigate') {

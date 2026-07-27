@@ -30,6 +30,8 @@ interface SettingsSectionProps {
   onUpdateLanguage: (lang: Language) => void;
   onUpdateCurrency: (code: string, symbol: string, name: string) => void;
   onUpdateTheme: (theme: 'light' | 'dark') => void;
+  onUpdateReminder?: (enabled: boolean, time: string, message: string) => void;
+  onTriggerTestReminder?: () => void;
   onAddCategory: (type: 'expense' | 'income', category: string) => void;
   onDeleteCategory: (type: 'expense' | 'income', category: string) => void;
   onEditProfileClick: () => void;
@@ -65,6 +67,8 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   onUpdateLanguage,
   onUpdateCurrency,
   onUpdateTheme,
+  onUpdateReminder,
+  onTriggerTestReminder,
   onAddCategory,
   onDeleteCategory,
   onEditProfileClick,
@@ -172,6 +176,8 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             settings={settings}
             onUpdateLanguage={onUpdateLanguage}
             onUpdateTheme={onUpdateTheme}
+            onUpdateReminder={onUpdateReminder}
+            onTriggerTestReminder={onTriggerTestReminder}
           />
 
           <CurrencySettingsView
