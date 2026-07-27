@@ -44,6 +44,55 @@ interface DashboardOverviewProps {
   setEditingTxInAddPage: (tx: Transaction | null) => void;
 }
 
+interface DashboardRecentTxItemProps {
+  tx: Transaction;
+  style: { bg: string; text: string; border: string };
+  translatedCategory: string;
+  formattedDate: string;
+  formattedAmount: string;
+}
+
+const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo(({
+  tx,
+  style,
+  translatedCategory,
+  formattedDate,
+  formattedAmount
+}) => {
+  return (
+    <div
+      className="group flex items-center justify-between p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 fast-render-row"
+    >
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div
+          className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${style.bg} ${style.text} ${style.border}`}
+        >
+          {tx.type === 'income' ? (
+            <ArrowUpRight className="w-5 h-5" />
+          ) : (
+            <ArrowDownLeft className="w-5 h-5" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight">
+            {tx.description}
+          </p>
+          <span className="text-[10px] text-[#8e8e93] font-mono block mt-1 uppercase font-bold tracking-wider">
+            {translatedCategory} | {formattedDate}
+          </span>
+        </div>
+      </div>
+      <span
+        className={`text-sm md:text-base font-extrabold font-mono whitespace-nowrap leading-none ${
+          tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+        }`}
+      >
+        {tx.type === 'income' ? '+' : '-'}{formattedAmount}
+      </span>
+    </div>
+  );
+});
+
 export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   t,
   tc,
@@ -500,42 +549,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
           </div>
 
           <div className="space-y-2.5">
-            {dashboardFilteredTransactions.slice(0, 5).map((tx) => {
-              const style = getCategoryStyle(tx.category);
-              return (
-                <div
-                  key={tx.id}
-                  className="group flex items-center justify-between p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div
-                      className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 border ${style.bg} ${style.text} ${style.border}`}
-                    >
-                      {tx.type === 'income' ? (
-                        <ArrowUpRight className="w-5 h-5" />
-                      ) : (
-                        <ArrowDownLeft className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight">
-                        {tx.description}
-                      </p>
-                      <span className="text-[10px] text-[#8e8e93] font-mono block mt-1 uppercase font-bold tracking-wider">
-                        {tc(tx.category)} | {formatDateDMY(tx.date)}
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    className={`text-sm md:text-base font-extrabold font-mono whitespace-nowrap leading-none ${
-                      tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
-                    }`}
-                  >
-                    {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
-                  </span>
-                </div>
-              );
-            })}
+            {dashboardFilteredTransactions.slice(0, 5).map((tx) => (
+              <DashboardRecentTxItem
+                key={tx.id}
+                tx={tx}
+                style={getCategoryStyle(tx.category)}
+                translatedCategory={tc(tx.category)}
+                formattedDate={formatDateDMY(tx.date)}
+                formattedAmount={formatAmount(tx.amount)}
+              />
+            ))}
             {dashboardFilteredTransactions.length === 0 && (
               <div className="text-center py-10">
                 <p className="text-xs text-[#8e8e93]">

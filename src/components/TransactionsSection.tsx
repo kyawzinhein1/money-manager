@@ -56,99 +56,252 @@ const EXPENSE_CATEGORIES = [
   'Others'
 ];
 
-// Aesthetic Category styles with specific backgrounds, borders, and text colors
+// Aesthetic Category styles with specific backgrounds, borders, and text colors (cached for instant lookup)
+const categoryStyleCache = new Map<string, { bg: string; text: string; border: string }>();
+
 const getCategoryStyle = (categoryName: string) => {
+  if (categoryStyleCache.has(categoryName)) {
+    return categoryStyleCache.get(categoryName)!;
+  }
   const norm = categoryName.trim().toLowerCase();
+  let style = {
+    bg: 'bg-slate-500/10 dark:bg-slate-500/20',
+    text: 'text-slate-600 dark:text-slate-400',
+    border: 'border-slate-500/10 dark:border-slate-500/20'
+  };
   if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
-    return {
+    style = {
       bg: 'bg-amber-500/10 dark:bg-amber-500/20',
       text: 'text-amber-600 dark:text-amber-400',
       border: 'border-amber-500/10 dark:border-amber-500/20'
     };
-  }
-  if (norm.includes('transport') || norm.includes('travel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
-    return {
+  } else if (norm.includes('transport') || norm.includes('travel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
+    style = {
       bg: 'bg-blue-500/10 dark:bg-blue-500/20',
       text: 'text-blue-600 dark:text-blue-400',
       border: 'border-blue-500/10 dark:border-blue-500/20'
     };
-  }
-  if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) {
-    return {
+  } else if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) {
+    style = {
       bg: 'bg-pink-500/10 dark:bg-pink-500/20',
       text: 'text-pink-600 dark:text-pink-400',
       border: 'border-pink-500/10 dark:border-pink-500/20'
     };
-  }
-  if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) {
-    return {
+  } else if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) {
+    style = {
       bg: 'bg-purple-500/10 dark:bg-purple-500/20',
       text: 'text-purple-600 dark:text-purple-400',
       border: 'border-purple-500/10 dark:border-purple-500/20'
     };
-  }
-  if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
-    return {
+  } else if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
+    style = {
       bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
       text: 'text-indigo-600 dark:text-indigo-400',
       border: 'border-indigo-500/10 dark:border-indigo-500/20'
     };
-  }
-  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
-    return {
+  } else if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
+    style = {
       bg: 'bg-teal-500/10 dark:bg-teal-500/20',
       text: 'text-teal-600 dark:text-teal-400',
       border: 'border-teal-500/10 dark:border-teal-500/20'
     };
-  }
-  if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
-    return {
+  } else if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
+    style = {
       bg: 'bg-red-500/10 dark:bg-red-500/20',
       text: 'text-red-600 dark:text-red-400',
       border: 'border-red-500/10 dark:border-red-500/20'
     };
-  }
-  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
-    return {
+  } else if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
+    style = {
       bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
       text: 'text-cyan-600 dark:text-cyan-400',
       border: 'border-cyan-500/10 dark:border-cyan-500/20'
     };
-  }
-  if (norm.includes('salar') || norm.includes('လစာ')) {
-    return {
+  } else if (norm.includes('salar') || norm.includes('လစာ')) {
+    style = {
       bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
       text: 'text-emerald-600 dark:text-emerald-400',
       border: 'border-emerald-500/10 dark:border-emerald-500/20'
     };
-  }
-  if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
-    return {
+  } else if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
+    style = {
       bg: 'bg-sky-500/10 dark:bg-sky-500/20',
       text: 'text-sky-600 dark:text-sky-400',
       border: 'border-sky-500/10 dark:border-sky-500/20'
     };
-  }
-  if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
-    return {
+  } else if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
+    style = {
       bg: 'bg-violet-500/10 dark:bg-violet-500/20',
       text: 'text-violet-600 dark:text-violet-400',
       border: 'border-violet-500/10 dark:border-violet-500/20'
     };
-  }
-  if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
-    return {
+  } else if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
+    style = {
       bg: 'bg-rose-500/10 dark:bg-rose-500/20',
       text: 'text-rose-600 dark:text-rose-400',
       border: 'border-rose-500/10 dark:border-rose-500/20'
     };
   }
-  return {
-    bg: 'bg-slate-500/10 dark:bg-slate-500/20',
-    text: 'text-slate-600 dark:text-slate-400',
-    border: 'border-slate-500/10 dark:border-slate-500/20'
-  };
+  categoryStyleCache.set(categoryName, style);
+  return style;
 };
+
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  return isMobile;
+};
+
+interface TransactionRowProps {
+  tx: Transaction;
+  formattedDate: string;
+  categoryStyle: { bg: string; text: string; border: string };
+  translatedCategory: string;
+  formattedAmount: string;
+  onEdit: (tx: Transaction) => void;
+  onDelete: (id: string) => void;
+}
+
+const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
+  tx,
+  formattedDate,
+  categoryStyle,
+  translatedCategory,
+  formattedAmount,
+  onEdit,
+  onDelete
+}) => {
+  return (
+    <tr
+      className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] text-sm fast-render-row"
+    >
+      <td className="p-4.5 font-mono text-xs text-[#8e8e93] font-extrabold">
+        {formattedDate}
+      </td>
+      <td className="p-4.5 whitespace-nowrap">
+        <span
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+        >
+          {tx.type === 'income' ? (
+            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+          ) : (
+            <ArrowDownLeft className="w-3.5 h-3.5 shrink-0" />
+          )}
+          {translatedCategory}
+        </span>
+      </td>
+      <td className="p-4.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold max-w-[240px] truncate">
+        {tx.description}
+      </td>
+      <td
+        className={`p-4.5 text-right font-black font-mono whitespace-nowrap text-base ${
+          tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+        }`}
+      >
+        {tx.type === 'income' ? '+' : '-'}{formattedAmount}
+      </td>
+      <td className="p-4.5">
+        <div className="flex items-center justify-center gap-1.5">
+          <button
+            id={`edit-tx-${tx.id}`}
+            onClick={() => onEdit(tx)}
+            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-xl cursor-pointer border-0 bg-transparent"
+            title="Edit Ledger Entry"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            id={`delete-tx-${tx.id}`}
+            onClick={() => onDelete(tx.id)}
+            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl cursor-pointer border-0 bg-transparent"
+            title="Remove ledger entry"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
+  tx,
+  formattedDate,
+  categoryStyle,
+  translatedCategory,
+  formattedAmount,
+  onEdit,
+  onDelete
+}) => {
+  return (
+    <div
+      className="p-4 space-y-3 hover:bg-black/5 dark:hover:bg-white/5 fast-render-row"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+        >
+          {tx.type === 'income' ? (
+            <ArrowUpRight className="w-3 h-3 shrink-0" />
+          ) : (
+            <ArrowDownLeft className="w-3 h-3 shrink-0" />
+          )}
+          {translatedCategory}
+        </span>
+        <span
+          className={`text-base font-black font-mono ${
+            tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+          }`}
+        >
+          {tx.type === 'income' ? '+' : '-'}{formattedAmount}
+        </span>
+      </div>
+
+      <div className="flex items-start justify-between gap-3 pt-0.5">
+        <div className="space-y-1 min-w-0">
+          <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
+            {tx.description}
+          </p>
+          <p className="text-[11px] font-extrabold text-[#8e8e93] font-mono leading-none">
+            {formattedDate}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0 self-center">
+          <button
+            id={`edit-tx-mob-${tx.id}`}
+            onClick={() => onEdit(tx)}
+            className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl cursor-pointer"
+            title="Edit entry"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            id={`delete-tx-mob-${tx.id}`}
+            onClick={() => onDelete(tx.id)}
+            className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl cursor-pointer"
+            title="Delete entry"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export const TransactionsSection: React.FC<TransactionsSectionProps> = React.memo(({
   transactions,
@@ -163,6 +316,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   onAddTransactionTrigger,
   onEditTransactionTrigger,
 }) => {
+  const isMobile = useIsMobile();
   const t = useCallback((key: string) => TRANSLATIONS[language][key] || key, [language]);
   const tc = useCallback((cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat, [language]);
 
@@ -217,7 +371,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     setIsOpenForm(true);
   };
 
-  const handleOpenEdit = (tx: Transaction) => {
+  const handleOpenEdit = useCallback((tx: Transaction) => {
     if (onEditTransactionTrigger) {
       onEditTransactionTrigger(tx);
       return;
@@ -230,7 +384,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     setFormDescription(tx.description);
     setErrors({});
     setIsOpenForm(true);
-  };
+  }, [onEditTransactionTrigger]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -574,203 +728,99 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
 
       {/* Transaction List - iOS Table Style */}
       <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 overflow-hidden shadow-xs">
-        {/* Desktop View Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse" id="transactions-table">
-            <thead>
-              <tr className="bg-black/[0.02] dark:bg-white/[0.02] text-[#8e8e93] font-bold text-[10px] uppercase tracking-wider border-b border-black/5 dark:border-white/5">
-                <th className="p-4.5">{t('date')}</th>
-                <th className="p-4.5">{t('category')}</th>
-                <th className="p-4.5">{t('description')}</th>
-                <th className="p-4.5 text-right">{t('amount')}</th>
-                <th className="p-4.5 text-center">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-              {filteredTransactions.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-16 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-3.5 max-w-sm mx-auto">
-                      <div className="w-14 h-14 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-center text-[#8e8e93]">
-                        <FolderOpen className="w-7 h-7" />
-                      </div>
-                      <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
-                        {t('noTransactions')}
-                      </p>
-                      <p className="text-xs text-[#8e8e93] leading-relaxed">
-                        {language === 'my'
-                          ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
-                          : 'No entries match your active query. Create a new transaction or reset filters.'}
-                      </p>
-                      {hasActiveFilters && (
-                        <button
-                          onClick={handleClearFilters}
-                          className="h-9 px-4 rounded-full bg-[#007aff] hover:opacity-90 text-white text-xs font-bold transition-all border-0 cursor-pointer"
-                        >
-                          {language === 'my' ? 'စီစစ်မှုအားလုံးကို ပြန်လည်စတင်ပါ' : 'Clear Active Filters'}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedTransactions.map((tx) => {
-                  const catStyle = getCategoryStyle(tx.category);
-                  return (
-                    <tr
-                      key={tx.id}
-                      className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-all duration-150 text-sm fast-render-row"
+        {isMobile ? (
+          /* Mobile View Card List */
+          <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
+            {filteredTransactions.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <FolderOpen className="w-10 h-10 text-[#8e8e93]" />
+                  <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
+                    {t('noTransactions')}
+                  </p>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={handleClearFilters}
+                      className="h-8 px-3 rounded-full bg-[#007aff] text-white text-[11px] font-bold transition-all border-0 cursor-pointer mt-1"
                     >
-                      {/* Date */}
-                      <td className="p-4.5 font-mono text-xs text-[#8e8e93] font-extrabold">
-                        {formatDateDMY(tx.date)}
-                      </td>
-
-                      {/* Category */}
-                      <td className="p-4.5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${catStyle.bg} ${catStyle.text} ${catStyle.border}`}
-                        >
-                          {tx.type === 'income' ? (
-                            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
-                          ) : (
-                            <ArrowDownLeft className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          {tc(tx.category)}
-                        </span>
-                      </td>
-
-                      {/* Description */}
-                      <td className="p-4.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold max-w-[240px] truncate">
-                        {tx.description}
-                      </td>
-
-                      {/* Amount */}
-                      <td
-                        className={`p-4.5 text-right font-black font-mono whitespace-nowrap text-base ${
-                          tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
-                        }`}
-                      >
-                        {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
-                      </td>
-
-                      {/* Action buttons */}
-                      <td className="p-4.5">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {/* Edit button */}
-                          <button
-                            id={`edit-tx-${tx.id}`}
-                            onClick={() => handleOpenEdit(tx)}
-                            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-xl transition-all cursor-pointer border-0 bg-transparent"
-                            title="Edit Ledger Entry"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-
-                          {/* Delete button */}
-                          <button
-                            id={`delete-tx-${tx.id}`}
-                            onClick={() => onDeleteTransaction(tx.id)}
-                            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl transition-all cursor-pointer border-0 bg-transparent"
-                            title="Remove ledger entry"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile View Card List (No horizontal scroll, fully responsive layout) */}
-        <div className="block md:hidden divide-y divide-black/[0.04] dark:divide-white/[0.04]">
-          {filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <FolderOpen className="w-10 h-10 text-[#8e8e93]" />
-                <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
-                  {t('noTransactions')}
-                </p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={handleClearFilters}
-                    className="h-8 px-3 rounded-full bg-[#007aff] text-white text-[11px] font-bold transition-all border-0 cursor-pointer mt-1"
-                  >
-                    {language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters'}
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            paginatedTransactions.map((tx) => {
-              const catStyle = getCategoryStyle(tx.category);
-              return (
-                <div
-                  key={tx.id}
-                  className="p-4 space-y-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors fast-render-row"
-                >
-                  {/* Top Line: Category badg and Amount */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${catStyle.bg} ${catStyle.text} ${catStyle.border}`}
-                    >
-                      {tx.type === 'income' ? (
-                        <ArrowUpRight className="w-3 h-3 shrink-0" />
-                      ) : (
-                        <ArrowDownLeft className="w-3 h-3 shrink-0" />
-                      )}
-                      {tc(tx.category)}
-                    </span>
-
-                    <span
-                      className={`text-base font-black font-mono ${
-                        tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
-                      }`}
-                    >
-                      {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
-                    </span>
-                  </div>
-
-                  {/* Description, Date & Actions Row */}
-                  <div className="flex items-start justify-between gap-3 pt-0.5">
-                    <div className="space-y-1 min-w-0">
-                      <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
-                        {tx.description}
-                      </p>
-                      <p className="text-[11px] font-extrabold text-[#8e8e93] font-mono leading-none">
-                        {formatDateDMY(tx.date)}
-                      </p>
-                    </div>
-
-                    {/* Circular Action triggers */}
-                    <div className="flex items-center gap-1.5 shrink-0 self-center">
-                      <button
-                        id={`edit-tx-mob-${tx.id}`}
-                        onClick={() => handleOpenEdit(tx)}
-                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl transition-all cursor-pointer"
-                        title="Edit entry"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        id={`delete-tx-mob-${tx.id}`}
-                        onClick={() => onDeleteTransaction(tx.id)}
-                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl transition-all cursor-pointer"
-                        title="Delete entry"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                      {language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters'}
+                    </button>
+                  )}
                 </div>
-              );
-            })
-          )}
-        </div>
+              </div>
+            ) : (
+              paginatedTransactions.map((tx) => (
+                <MobileTransactionCard
+                  key={tx.id}
+                  tx={tx}
+                  formattedDate={formatDateDMY(tx.date)}
+                  categoryStyle={getCategoryStyle(tx.category)}
+                  translatedCategory={tc(tx.category)}
+                  formattedAmount={formatAmount(tx.amount)}
+                  onEdit={handleOpenEdit}
+                  onDelete={onDeleteTransaction}
+                />
+              ))
+            )}
+          </div>
+        ) : (
+          /* Desktop View Table */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse" id="transactions-table">
+              <thead>
+                <tr className="bg-black/[0.02] dark:bg-white/[0.02] text-[#8e8e93] font-bold text-[10px] uppercase tracking-wider border-b border-black/5 dark:border-white/5">
+                  <th className="p-4.5">{t('date')}</th>
+                  <th className="p-4.5">{t('category')}</th>
+                  <th className="p-4.5">{t('description')}</th>
+                  <th className="p-4.5 text-right">{t('amount')}</th>
+                  <th className="p-4.5 text-center">{t('actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                {filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-16 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-3.5 max-w-sm mx-auto">
+                        <div className="w-14 h-14 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-center text-[#8e8e93]">
+                          <FolderOpen className="w-7 h-7" />
+                        </div>
+                        <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
+                          {t('noTransactions')}
+                        </p>
+                        <p className="text-xs text-[#8e8e93] leading-relaxed">
+                          {language === 'my'
+                            ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
+                            : 'No entries match your active query. Create a new transaction or reset filters.'}
+                        </p>
+                        {hasActiveFilters && (
+                          <button
+                            onClick={handleClearFilters}
+                            className="h-9 px-4 rounded-full bg-[#007aff] hover:opacity-90 text-white text-xs font-bold transition-all border-0 cursor-pointer"
+                          >
+                            {language === 'my' ? 'စီစစ်မှုအားလုံးကို ပြန်လည်စတင်ပါ' : 'Clear Active Filters'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedTransactions.map((tx) => (
+                    <DesktopTransactionRow
+                      key={tx.id}
+                      tx={tx}
+                      formattedDate={formatDateDMY(tx.date)}
+                      categoryStyle={getCategoryStyle(tx.category)}
+                      translatedCategory={tc(tx.category)}
+                      formattedAmount={formatAmount(tx.amount)}
+                      onEdit={handleOpenEdit}
+                      onDelete={onDeleteTransaction}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* High-Performance Pagination Bar Controls */}
         {filteredTransactions.length > 0 && (

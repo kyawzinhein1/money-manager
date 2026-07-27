@@ -595,8 +595,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                     <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
                     <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Area type="monotone" name={t('expense')} dataKey="expense" stroke="#ff3b30" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" style={{ outline: 'none' }} />
-                    <Area type="monotone" name={t('income')} dataKey="income" stroke="#34c759" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" style={{ outline: 'none' }} />
+                    <Area type="monotone" name={t('expense')} dataKey="expense" stroke="#ff3b30" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" style={{ outline: 'none' }} isAnimationActive={false} />
+                    <Area type="monotone" name={t('income')} dataKey="income" stroke="#34c759" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" style={{ outline: 'none' }} isAnimationActive={false} />
                   </AreaChart>
                 ) : (
                   <LineChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -605,8 +605,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                     <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
                     <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
-                    <Line type="monotone" name={t('expense')} dataKey="expense" stroke="#ff3b30" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6 }} style={{ outline: 'none' }} />
-                    <Line type="monotone" name={t('income')} dataKey="income" stroke="#34c759" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6 }} style={{ outline: 'none' }} />
+                    <Line type="monotone" name={t('expense')} dataKey="expense" stroke="#ff3b30" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6 }} style={{ outline: 'none' }} isAnimationActive={false} />
+                    <Line type="monotone" name={t('income')} dataKey="income" stroke="#34c759" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1 }} activeDot={{ r: 6 }} style={{ outline: 'none' }} isAnimationActive={false} />
                   </LineChart>
                 )}
               </ResponsiveContainer>
@@ -641,6 +641,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                         paddingAngle={3}
                         dataKey="value"
                         style={{ outline: 'none' }}
+                        isAnimationActive={false}
                       >
                         {categoryData.map((entry, index) => {
                           const styleInfo = getCategoryColorClasses(entry.rawName, index);
@@ -671,7 +672,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               {categoryData.slice(0, 5).map((item, index) => {
                 const styleInfo = getCategoryColorClasses(item.rawName, index);
                 return (
-                  <div key={item.rawName} className="space-y-1.5">
+                  <div key={item.rawName} className="space-y-1.5 fast-render-row">
                     <div className="flex items-center justify-between text-xs text-[#1c1c1e] dark:text-[#f2f2f7]">
                       <span className="flex items-center gap-2 font-bold">
                         <div className={`p-1.5 rounded-lg ${styleInfo.bg} ${styleInfo.text} border ${styleInfo.border}`}>
@@ -805,7 +806,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                       return (
                         <div
                           key={alert.id}
-                          className={`group p-3 rounded-xl border flex gap-2.5 leading-normal transition-all duration-200 ${
+                          className={`group p-3 rounded-xl border flex gap-2.5 leading-normal fast-render-row ${
                             isRead
                               ? 'bg-black/[0.01] dark:bg-white/[0.01] border-black/[0.04] dark:border-white/[0.04] opacity-50'
                               : `${alertBg} shadow-xs`
@@ -905,8 +906,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                     {(budgets[0]?.limit || 0) > 0 && (
                       <ReferenceLine y={budgets[0].limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: language === 'en' ? 'Limit Ceiling' : 'ဘတ်ဂျက်အမြင့်ဆုံး', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft', fontWeight: 'bold' }} />
                     )}
-                    <Area type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorActual)" connectNulls />
-                    <Area type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" fillOpacity={1} fill="url(#colorProjected)" />
+                    <Area type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorActual)" connectNulls isAnimationActive={false} />
+                    <Area type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" fillOpacity={1} fill="url(#colorProjected)" isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -933,8 +934,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                   <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
                   <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
-                  <Bar name={t('income')} dataKey="income" fill="#34c759" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} />
-                  <Bar name={t('expense')} dataKey="expense" fill="#ff3b30" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} />
+                  <Bar name={t('income')} dataKey="income" fill="#34c759" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} isAnimationActive={false} />
+                  <Bar name={t('expense')} dataKey="expense" fill="#ff3b30" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             )}

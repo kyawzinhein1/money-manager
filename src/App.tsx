@@ -278,6 +278,13 @@ export default function App() {
     }
   }, [activeTab]);
 
+  // Synchronously reset scroll position to top when activeTab changes
+  React.useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [activeTab]);
+
   // Interactive Quick Toast Notification State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
 

@@ -762,8 +762,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                               {activeBudget.limit > 0 && (
                                 <ReferenceLine y={activeBudget.limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'Ceiling', fill: '#ff3b30', fontSize: 8, position: 'insideTopLeft' }} />
                               )}
-                              <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls style={{ outline: 'none' }} />
-                              <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} style={{ outline: 'none' }} />
+                              <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls style={{ outline: 'none' }} isAnimationActive={false} />
+                              <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} style={{ outline: 'none' }} isAnimationActive={false} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
@@ -817,7 +817,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                       const isHighWarn = relativePercent > (100 / (categorySpentList.length || 1)) * 1.5;
 
                       return (
-                        <div key={category} className="space-y-1.5">
+                        <div key={category} className="space-y-1.5 fast-render-row">
                           <div className="flex justify-between items-center text-xs">
                             <div className="flex items-center gap-2">
                               <div className={`p-1.5 rounded-lg ${catStyle.bg} ${catStyle.text} border ${catStyle.border}`}>
