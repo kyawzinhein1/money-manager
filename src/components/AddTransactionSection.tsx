@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
+import { IOSDatePicker } from './IOSDatePicker';
 
 interface AddTransactionSectionProps {
   language: Language;
@@ -479,57 +480,17 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
               {t('date')}
             </h3>
 
-            <div className="space-y-3">
-              {/* Predefined Shortcuts */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setQuickDate(0)}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border-0 transition-all cursor-pointer ${
-                    date === new Date().toISOString().substring(0, 10)
-                      ? 'bg-[#007aff]/15 text-[#007aff]'
-                      : 'bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]'
-                  }`}
-                >
-                  {language === 'my' ? 'ယနေ့' : 'Today'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDate(1)}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border-0 transition-all cursor-pointer ${
-                    date === new Date(Date.now() - 86400000).toISOString().substring(0, 10)
-                      ? 'bg-[#007aff]/15 text-[#007aff]'
-                      : 'bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]'
-                  }`}
-                >
-                  {language === 'my' ? 'မနေ့က' : 'Yesterday'}
-                </button>
-              </div>
-
-              {/* Native Input field */}
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => {
-                  setDate(e.target.value);
-                  if (errors.date) {
-                    setErrors(prev => ({ ...prev, date: undefined }));
-                  }
-                }}
-                className={`w-full h-11 px-4 bg-black/[0.03] dark:bg-white/[0.04] border rounded-2xl text-xs sm:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.date
-                    ? 'border-red-500/70 focus:ring-red-500/10'
-                    : 'border-transparent focus:ring-[#007aff]/15'
-                }`}
-              />
-              {errors.date && (
-                <div className="text-[11px] text-red-500 font-extrabold flex items-center gap-1.5 mt-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>{errors.date}</span>
-                </div>
-              )}
-            </div>
+            <IOSDatePicker
+              value={date}
+              onChange={(newDate) => {
+                setDate(newDate);
+                if (errors.date) {
+                  setErrors(prev => ({ ...prev, date: undefined }));
+                }
+              }}
+              language={language}
+              error={errors.date}
+            />
           </div>
 
           {/* Right: Smart Description suggestions & Input */}

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   Globe,
   FolderKanban,
-  Database
+  Database,
+  RefreshCw
 } from 'lucide-react';
 import {
   Language,
@@ -17,6 +18,7 @@ import { DatabaseConsoleView } from './settings/DatabaseConsoleView';
 import { GeneralPreferencesView } from './settings/GeneralPreferencesView';
 import { CurrencySettingsView } from './settings/CurrencySettingsView';
 import { ExportDataView } from './settings/ExportDataView';
+import { CheckUpdatesView } from './settings/CheckUpdatesView';
 
 interface SettingsSectionProps {
   t: (key: string) => string;
@@ -76,6 +78,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 }) => {
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [showDatabaseConsole, setShowDatabaseConsole] = useState(false);
+  const [showCheckUpdates, setShowCheckUpdates] = useState(false);
 
   const customCurrency: Currency = {
     code: settings.currency || 'MMK',
@@ -95,6 +98,20 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
         onDeleteCategory={onDeleteCategory}
         onClose={() => {
           setShowManageCategories(false);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
+      />
+    );
+  }
+
+  // Sub-view: Check Updates
+  if (showCheckUpdates) {
+    return (
+      <CheckUpdatesView
+        t={t}
+        settings={settings}
+        onClose={() => {
+          setShowCheckUpdates(false);
           window.scrollTo({ top: 0, behavior: 'instant' });
         }}
       />
@@ -234,6 +251,30 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             >
               <Database className="w-4 h-4" />
               {settings.language === 'my' ? 'ဒေတာဘေ့စ် ကွန်ဆိုးလ် ဖွင့်ရန်' : 'Open Database & Ledger Console'}
+            </button>
+          </div>
+
+          {/* App Updates & GitHub Deployment Tile */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-4">
+            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-[#007aff]" />
+              {settings.language === 'my' ? 'ဗားရှင်းနှင့် အပ်ဒိတ် စစ်ဆေးရန်' : 'App Updates & Deployment'}
+            </h3>
+            <p className="text-xs text-[#8e8e93] leading-relaxed">
+              {settings.language === 'my'
+                ? 'GitHub မှတစ်ဆင့် Domain တွင် ထုတ်လွှင့်ပြီးနောက် နောက်ဆုံးထွက် ပြင်ဆင်ချက်များနှင့် လုပ်ဆောင်ချက်အသစ်များကို ရယူရန် ဤနေရာတွင် စစ်ဆေးပါ။'
+                : 'Check for newly published features, revalidate web bundle cache, and view release notes after deploying from GitHub.'}
+            </p>
+            <button
+              id="open-check-updates-btn"
+              onClick={() => {
+                setShowCheckUpdates(true);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/15 text-[#007aff] rounded-2xl text-xs font-bold transition-all cursor-pointer border-0 mt-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              {settings.language === 'my' ? 'အပ်ဒိတ်များ စစ်ဆေးမည်' : 'Check for Updates & Release Notes'}
             </button>
           </div>
         </div>
