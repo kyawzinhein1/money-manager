@@ -40,13 +40,11 @@ import { generateForecastReport } from './utils/forecasting';
 import { TransactionsSection } from './components/TransactionsSection';
 import { OnboardingModal } from './components/OnboardingModal';
 import { BottomNav } from './components/BottomNav';
-
-// Lazy Loaded Tab Modules for Code Splitting and Instant Initial Page Load
-const BudgetSection = lazy(() => import('./components/BudgetSection').then(m => ({ default: m.BudgetSection })));
-const AnalyticsSection = lazy(() => import('./components/AnalyticsSection').then(m => ({ default: m.AnalyticsSection })));
-const SettingsSection = lazy(() => import('./components/SettingsSection').then(m => ({ default: m.SettingsSection })));
-const ProfileSection = lazy(() => import('./components/ProfileSection').then(m => ({ default: m.ProfileSection })));
-const AddTransactionSection = lazy(() => import('./components/AddTransactionSection').then(m => ({ default: m.AddTransactionSection })));
+import { BudgetSection } from './components/BudgetSection';
+import { AnalyticsSection } from './components/AnalyticsSection';
+import { SettingsSection } from './components/SettingsSection';
+import { ProfileSection } from './components/ProfileSection';
+import { AddTransactionSection } from './components/AddTransactionSection';
 
 const SectionLoadingFallback = () => (
   <div className="w-full py-16 flex flex-col items-center justify-center space-y-3 animate-fade-in">
@@ -168,9 +166,9 @@ const getCategoryStyle = (categoryName: string) => {
 export default function App() {
   // State Initialization from LocalStorage or Defaults with a one-time clean-up of old mock data
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const isCleaned = localStorage.getItem('mm_default_cleaned_v7');
+    const isCleaned = localStorage.getItem('mm_default_cleaned_v9');
     if (!isCleaned) {
-      localStorage.setItem('mm_default_cleaned_v7', 'true');
+      localStorage.setItem('mm_default_cleaned_v9', 'true');
       localStorage.removeItem('mm_transactions');
       localStorage.removeItem('mm_budgets');
       localStorage.removeItem('mm_onboarding_completed');
@@ -179,15 +177,15 @@ export default function App() {
       localStorage.removeItem('mm_currency');
       localStorage.removeItem('mm_income_categories');
       localStorage.removeItem('mm_expense_categories');
-      return DEFAULT_TRANSACTIONS;
+      return [];
     }
     const saved = localStorage.getItem('mm_transactions');
-    return saved ? JSON.parse(saved) : DEFAULT_TRANSACTIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [budgets, setBudgets] = useState<Budget[]>(() => {
     const saved = localStorage.getItem('mm_budgets');
-    return saved ? JSON.parse(saved) : DEFAULT_BUDGETS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [incomeCategories, setIncomeCategories] = useState<string[]>(() => {

@@ -70,6 +70,26 @@ option {
 }
 
 /* GPU Hardware Acceleration & Performance Utility Classes */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-gpu {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 .gpu-layer {
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);

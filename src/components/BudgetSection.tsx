@@ -129,9 +129,11 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   }, [transactions, budgets, selectedMonth, selectedYear, formatAmount]);
 
   // Total expenses in the active range (only expense type)
-  const totalSpent = transactions
-    .filter(tx => tx.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  const totalSpent = React.useMemo(() => {
+    return transactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+  }, [transactions]);
 
   const getRangeLabel = () => {
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];

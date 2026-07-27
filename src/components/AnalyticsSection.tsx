@@ -41,7 +41,9 @@ import {
   HelpCircle,
   Clock,
   CheckCircle2,
-  Check
+  Check,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Transaction, Language, Budget } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
@@ -180,6 +182,9 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   
   // Toggle style for daily trend line vs area chart
   const [trendStyle, setTrendStyle] = useState<'area' | 'line'>('area');
+  
+  // Collapse/Expand state for combined Net Savings, Income & Expense summary card (default is collapsed)
+  const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(true);
 
   // Calculations for current selected range
   const summary = useMemo(() => {
@@ -375,95 +380,132 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
         </div>
       </div>
 
-      {/* Bento Grid Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Net Savings (Left Bento Card) */}
-        <div className="ios-glass rounded-[2rem] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[155px]">
-          <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-[#007aff]/5 filter blur-2xl pointer-events-none -mr-10 -mt-10" />
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="text-[10px] bg-[#007aff]/10 text-[#007aff] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
-              {t('netSavings')}
+      {/* Combined & Collapsible Financial Summary Card */}
+      <div className="ios-glass rounded-[2rem] p-5 shadow-xs relative overflow-hidden transition-all duration-300 border border-slate-200/80 dark:border-neutral-800">
+        <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-[#007aff]/5 filter blur-3xl pointer-events-none -mr-8 -mt-8" />
+        
+        {/* Header Bar with Toggle Button */}
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/5 dark:border-white/5 relative z-10">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] bg-[#007aff]/10 text-[#007aff] px-2.5 py-1 rounded-full font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+              <Landmark className="w-3.5 h-3.5" />
+              <span className="truncate">{language === 'en' ? 'Cash Flow Summary' : 'ငွေကြေးစီးဆင်းမှု အနှစ်ချုပ်'}</span>
             </span>
-            <span className="text-[10px] text-[#8e8e93] font-bold">
+            <span className="text-[10px] text-[#8e8e93] font-bold truncate hidden sm:inline-block">
               {t('savingRate')}: {summary.savingRate.toFixed(1)}%
             </span>
           </div>
 
-          <div className="relative z-10 my-3">
-            <h3 className={`text-2xl font-black font-sans tracking-tight leading-none ${summary.netSavings >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
-              {summary.netSavings < 0 ? '-' : ''}{formatAmount(Math.abs(summary.netSavings))}
-            </h3>
-          </div>
-
-          {/* Simple relative progress indicator showing visual cashflow state */}
-          <div className="relative z-10 w-full pt-1">
-            <div className="w-full h-1 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all duration-500 ${summary.netSavings >= 0 ? 'bg-[#34c759]' : 'bg-[#ff3b30]'}`}
-                style={{ width: `${Math.min(Math.max(summary.savingRate, 0), 100)}%` }}
-              />
-            </div>
-            <span className="block text-[9px] text-[#8e8e93] pt-1.5 font-bold">
-              {language === 'en' ? 'Cashflow safety index' : 'ငွေကြေးလုံခြုံမှု အညွှန်းကိန်း'}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsSummaryCollapsed(!isSummaryCollapsed)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-[#007aff] text-xs font-bold leading-none transition-all cursor-pointer border border-slate-200/50 dark:border-neutral-700/50 active:scale-95 shrink-0 whitespace-nowrap select-none"
+            aria-label={isSummaryCollapsed ? 'Expand Summary' : 'Collapse Summary'}
+          >
+            <span className="whitespace-nowrap leading-none flex items-center">{isSummaryCollapsed ? (language === 'en' ? 'Expand' : 'ဖြန့်ပါ') : (language === 'en' ? 'Collapse' : 'ခေါက်ပါ')}</span>
+            {isSummaryCollapsed ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
+          </button>
         </div>
 
-        {/* Total Cash Inflow (Middle Bento Card) */}
-        <div className="ios-glass rounded-[2rem] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[155px]">
-          <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-[#34c759]/5 filter blur-2xl pointer-events-none -mr-10 -mt-10" />
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="text-[10px] bg-[#34c759]/10 text-[#34c759] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              {t('income')}
-            </span>
-            <span className="text-[10px] text-[#8e8e93] font-bold">
-              {filteredData.filter(tx => tx.type === 'income').length} {language === 'en' ? 'entries' : 'ခု'}
-            </span>
-          </div>
-
-          <div className="relative z-10 my-3">
-            <h3 className="text-2xl font-black font-sans tracking-tight leading-none text-[#34c759]">
-              {formatAmount(summary.totalIncome)}
-            </h3>
-          </div>
-
-          <div className="relative z-10 text-[9px] text-[#8e8e93] font-bold">
-            {language === 'en' ? 'Total monthly funds received' : 'စုစုပေါင်းလက်ခံရရှိသော ဝင်ငွေ'}
-          </div>
-        </div>
-
-        {/* Total Cash Outflow (Right Bento Card) */}
-        <div className="ios-glass rounded-[2rem] p-5 shadow-xs flex flex-col justify-between relative overflow-hidden min-h-[155px]">
-          <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-[#ff3b30]/5 filter blur-2xl pointer-events-none -mr-10 -mt-10" />
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="text-[10px] bg-[#ff3b30]/10 text-[#ff3b30] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
-              <ArrowDownLeft className="w-3 h-3" />
-              {t('expense')}
-            </span>
-            <span className="text-[10px] text-[#8e8e93] font-bold">
-              {filteredData.filter(tx => tx.type === 'expense').length} {language === 'en' ? 'entries' : 'ခု'}
-            </span>
-          </div>
-
-          <div className="relative z-10 my-3">
-            <h3 className="text-2xl font-black font-sans tracking-tight leading-none text-[#ff3b30]">
-              {formatAmount(summary.totalExpense)}
-            </h3>
-          </div>
-
-          <div className="relative z-10 flex items-center justify-between text-[9px] text-[#8e8e93] font-bold">
-            <span>{language === 'en' ? 'Disbursed funds' : 'သုံးစွဲပြီးသော အသုံးစရိတ်'}</span>
-            {mostExpensiveDay && (
-              <span className="text-[#ff3b30] font-mono">
-                {language === 'en' ? 'Peak' : 'အများဆုံးနေ့'}: {mostExpensiveDay.date}
+        {/* Collapsed Compact Row View */}
+        {isSummaryCollapsed ? (
+          <div className="pt-3.5 flex flex-wrap items-center justify-between gap-4 relative z-10 animate-fade-in">
+            <div>
+              <span className="text-[10px] text-[#8e8e93] font-bold block uppercase tracking-wider">
+                {t('netSavings')}
               </span>
-            )}
+              <h3 className={`text-xl font-black font-sans tracking-tight ${summary.netSavings >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                {summary.netSavings < 0 ? '-' : ''}{formatAmount(Math.abs(summary.netSavings))}
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs font-bold font-mono">
+              <div className="flex items-center gap-1 bg-[#34c759]/10 text-[#34c759] px-2.5 py-1 rounded-xl">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{formatAmount(summary.totalIncome)}</span>
+              </div>
+              <div className="flex items-center gap-1 bg-[#ff3b30]/10 text-[#ff3b30] px-2.5 py-1 rounded-xl">
+                <ArrowDownLeft className="w-3.5 h-3.5" />
+                <span>{formatAmount(summary.totalExpense)}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Expanded Full Combined Grid View */
+          <div className="pt-4 space-y-4 relative z-10 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Net Savings Metric Card */}
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-[#8e8e93] font-black uppercase tracking-wider block mb-1">
+                    {t('netSavings')}
+                  </span>
+                  <h3 className={`text-2xl font-black font-sans tracking-tight ${summary.netSavings >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                    {summary.netSavings < 0 ? '-' : ''}{formatAmount(Math.abs(summary.netSavings))}
+                  </h3>
+                </div>
+                <div className="w-full pt-3">
+                  <div className="w-full h-1.5 bg-slate-200 dark:bg-neutral-800 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${summary.netSavings >= 0 ? 'bg-[#34c759]' : 'bg-[#ff3b30]'}`}
+                      style={{ width: `${Math.min(Math.max(summary.savingRate, 0), 100)}%` }}
+                    />
+                  </div>
+                  <span className="block text-[9px] text-[#8e8e93] pt-1.5 font-bold">
+                    {language === 'en' ? 'Cashflow safety index' : 'ငွေကြေးလုံခြုံမှု အညွှန်းကိန်း'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Total Income Metric Card */}
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-[#34c759] font-black uppercase tracking-wider flex items-center gap-1">
+                      <ArrowUpRight className="w-3 h-3" />
+                      {t('income')}
+                    </span>
+                    <span className="text-[10px] text-[#8e8e93] font-bold">
+                      {filteredData.filter(tx => tx.type === 'income').length} {language === 'en' ? 'entries' : 'ခု'}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-black font-sans tracking-tight text-[#34c759]">
+                    {formatAmount(summary.totalIncome)}
+                  </h3>
+                </div>
+                <span className="text-[9px] text-[#8e8e93] font-bold pt-2 block">
+                  {language === 'en' ? 'Total monthly funds received' : 'စုစုပေါင်းလက်ခံရရှိသော ဝင်ငွေ'}
+                </span>
+              </div>
+
+              {/* Total Expense Metric Card */}
+              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-[#ff3b30] font-black uppercase tracking-wider flex items-center gap-1">
+                      <ArrowDownLeft className="w-3 h-3" />
+                      {t('expense')}
+                    </span>
+                    <span className="text-[10px] text-[#8e8e93] font-bold">
+                      {filteredData.filter(tx => tx.type === 'expense').length} {language === 'en' ? 'entries' : 'ခု'}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-black font-sans tracking-tight text-[#ff3b30]">
+                    {formatAmount(summary.totalExpense)}
+                  </h3>
+                </div>
+                <div className="flex items-center justify-between text-[9px] text-[#8e8e93] font-bold pt-2">
+                  <span>{language === 'en' ? 'Disbursed funds' : 'သုံးစွဲပြီးသော အသုံးစရိတ်'}</span>
+                  {mostExpensiveDay && (
+                    <span className="text-[#ff3b30] font-mono">
+                      {language === 'en' ? 'Peak' : 'အများဆုံးနေ့'}: {mostExpensiveDay.date}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Smart Localized Financial Coach Insight Bubble */}
@@ -483,9 +525,6 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
           <div className="space-y-1">
             <h4 className="font-extrabold text-[#1c1c1e] dark:text-white flex items-center gap-1.5">
               {coachInsight.title}
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 text-[#8e8e93] font-bold uppercase tracking-wider">
-                {language === 'en' ? 'AI Coach' : 'ဉာဏ်ရည်တု အကြံပြုချက်'}
-              </span>
             </h4>
             <p className="text-black/75 dark:text-white/75 leading-relaxed font-medium">
               {coachInsight.desc}
