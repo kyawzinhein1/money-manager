@@ -306,6 +306,8 @@ export default function App() {
     language: Language;
     currency: Currency;
     financialGoals: string[];
+    initialBalance: number;
+    autoSetupBudgets: boolean;
   }) => {
     // Update profile
     setProfile(prev => ({
@@ -326,20 +328,68 @@ export default function App() {
     // Save financial goals chosen during onboarding
     localStorage.setItem('mm_onboarding_goals', JSON.stringify(data.financialGoals));
 
-    // Initialize budgets to empty (user requested to remove default budget limit)
-    setBudgets([]);
+    // Handle Initial Balance entry if provided
+    let newTxList: Transaction[] = [];
+    if (data.initialBalance > 0) {
+      const initialTx: Transaction = {
+        id: `tx-initial-${Date.now()}`,
+        type: 'income',
+        category: data.language === 'my' ? 'စတင် လက်ကျန်ငွေ' : 'Opening Balance',
+        amount: data.initialBalance,
+        date: new Date().toISOString().split('T')[0],
+        description: data.language === 'my' ? 'စတင်အသုံးပြုချိန် လက်ကျန်ငွေ' : 'Initial Starting Balance'
+      };
+      newTxList = [initialTx];
+    }
+    setTransactions(newTxList);
 
-    // Ensure we start with a clean transactions state
-    setTransactions([]);
+    // Handle Auto Setup Category Budgets
+    if (data.autoSetupBudgets || data.financialGoals.includes('budget') || data.financialGoals.includes('save')) {
+      let defaultBudgets: Budget[] = [];
+      if (data.currency.code === 'MMK') {
+        defaultBudgets = [
+          { category: 'Food', limit: 200000 },
+          { category: 'Transportation', limit: 80000 },
+          { category: 'Shopping', limit: 100000 },
+          { category: 'Utilities', limit: 50000 }
+        ];
+      } else if (data.currency.code === 'THB') {
+        defaultBudgets = [
+          { category: 'Food', limit: 5000 },
+          { category: 'Transportation', limit: 2000 },
+          { category: 'Shopping', limit: 3000 },
+          { category: 'Utilities', limit: 1500 }
+        ];
+      } else {
+        defaultBudgets = [
+          { category: 'Food', limit: 400 },
+          { category: 'Transportation', limit: 150 },
+          { category: 'Shopping', limit: 200 },
+          { category: 'Utilities', limit: 100 }
+        ];
+      }
+      setBudgets(defaultBudgets);
+    } else {
+      setBudgets([]);
+    }
 
     // Save onboarding completion status
     localStorage.setItem('mm_onboarding_completed', 'true');
     setShowOnboarding(false);
 
+    // Redirect user to the relevant tab based on primary goal chosen
+    if (data.financialGoals.includes('budget')) {
+      setActiveTab('budgets');
+    } else if (data.financialGoals.includes('analytics')) {
+      setActiveTab('analytics');
+    } else {
+      setActiveTab('dashboard');
+    }
+
     // Show nice welcome toast
     const welcomeMsg = data.language === 'my'
       ? 'ငွေစာရင်း မန်နေဂျာမှ ကြိုဆိုပါသည်။ စတင်ပြင်ဆင်မှု ပြီးဆုံးပါပြီ။'
-      : 'Welcome to Money Manager! Your space is ready.';
+      : 'Welcome to Money Manager! Your workspace is active and tailored for you.';
     showToast(welcomeMsg, 'success');
   };
 
@@ -739,71 +789,6 @@ export default function App() {
     setCustomCurrency({ code, symbol, name });
     setSettings((prev) => ({ ...prev, currency: code }));
   }, []);
-
-  const handleUpdateReminder = React.useCallback((reminderEnabled: boolean, reminderTime: string, reminderMessage: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      reminderEnabled,
-      reminderTime,
-      reminderMessage
-    }));
-  }, []);
-
-  const handleTriggerTestReminder = React.useCallback(() => {
-    const msg = settings.reminderMessage || (settings.language === 'my' 
-      ? "ဒီနေ့ အသုံးစရိတ်များကို ရေးသွင်းရန် မမေ့ပါနဲ့!" 
-      : "Don't forget to log your daily expenses!");
-    showToast(msg, 'info');
-
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(settings.language === 'my' ? "Money Manager သတိပေးချက်" : "Money Manager Reminder", {
-          body: msg,
-        });
-      } catch (e) {
-        console.warn('Browser Notification Error:', e);
-      }
-    }
-  }, [settings.reminderMessage, settings.language, showToast]);
-
-  // Daily Expense Reminder Background Timer
-  useEffect(() => {
-    if (!settings.reminderEnabled || !settings.reminderTime) return;
-
-    const checkDailyReminder = () => {
-      const now = new Date();
-      const currentHours = String(now.getHours()).padStart(2, '0');
-      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-      const currentTimeStr = `${currentHours}:${currentMinutes}`;
-
-      const todayStr = now.toISOString().split('T')[0];
-      const lastReminderDate = localStorage.getItem('mm_last_reminder_date');
-
-      if (currentTimeStr === settings.reminderTime && lastReminderDate !== todayStr) {
-        localStorage.setItem('mm_last_reminder_date', todayStr);
-
-        const msg = settings.reminderMessage || (settings.language === 'my' 
-          ? "ဒီနေ့ အသုံးစရိတ်များကို ရေးသွင်းရန် မမေ့ပါနဲ့!" 
-          : "Don't forget to log your daily expenses!");
-
-        showToast(msg, 'info');
-
-        if ('Notification' in window && Notification.permission === 'granted') {
-          try {
-            new Notification(settings.language === 'my' ? "Money Manager သတိပေးချက်" : "Money Manager Reminder", {
-              body: msg,
-            });
-          } catch (e) {
-            console.warn('Browser Notification Error:', e);
-          }
-        }
-      }
-    };
-
-    checkDailyReminder();
-    const interval = setInterval(checkDailyReminder, 30000);
-    return () => clearInterval(interval);
-  }, [settings.reminderEnabled, settings.reminderTime, settings.reminderMessage, settings.language, showToast]);
 
   const handleAddTransactionTrigger = React.useCallback(() => {
     setEditingTxInAddPage(null);
@@ -1998,8 +1983,6 @@ export default function App() {
                       onUpdateLanguage={handleUpdateLanguage}
                       onUpdateTheme={handleUpdateTheme}
                       onUpdateCurrency={handleUpdateCurrency}
-                      onUpdateReminder={handleUpdateReminder}
-                      onTriggerTestReminder={handleTriggerTestReminder}
                       onExportCSV={handleExportCSV}
                       onExportPDF={handleExportPDF}
                       incomeCategories={incomeCategories}

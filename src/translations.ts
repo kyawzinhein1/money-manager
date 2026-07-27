@@ -203,16 +203,10 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     notificationsBlocked: "Notifications Blocked",
     testReminderTriggered: "Daily reminder notification triggered!",
     syncCalendar: "Sync with Device Calendar / Alarm",
-    syncCalendarDesc: "Export a daily recurring alarm to Google Calendar or Phone Calendar to get notified even if the browser is closed.",
-    downloadIcs: "Download .ICS Calendar Alarm",
-    openGoogleCalendar: "Add to Google Calendar",
-    syncGoogleCalendarDirect: "Sync Directly to Google Calendar",
-    removeFromGoogleCalendar: "Remove from Google Calendar",
-    googleCalendarSynced: "Synced with Google Calendar!",
-    confirmRemoveGoogleCalendar: "Are you sure you want to delete the daily expense reminder event from your Google Calendar?",
-    calendarNotice: "Google Calendar event synced! Turning off the daily reminder here will also ask to automatically remove the reminder from your Google Calendar.",
-    popupClosedByUser: "Google Sign-in popup was closed before completing.",
-    popupBlocked: "Google Sign-in popup was blocked by browser. Please allow popups for this site."
+    syncCalendarDesc: "Export a daily recurring alarm to your phone or computer calendar (iPhone, Android, Mac, PC, Google Calendar) to stay notified even when the browser is closed.",
+    downloadIcs: "Add to Device Calendar (.ICS)",
+    openGoogleCalendar: "Add to Google Calendar (Web)",
+    calendarNotice: "Note: Device Calendar alarms sync directly with your phone or PC calendar app (Apple Calendar, Google Calendar, Outlook). To remove exported alarms, manage them in your device's Calendar app."
   },
   my: {
     appName: "Money Manager",
@@ -470,17 +464,11 @@ export const CATEGORY_TRANSLATIONS: Record<Language, Record<string, string>> = {
     "notificationsAllowed": "အသိပေးချက်များ ဖွင့်ထားပြီး",
     "notificationsBlocked": "အသိပေးချက်များ ပိတ်ထားသည်",
     "testReminderTriggered": "နေ့စဉ် သတိပေးချက် စမ်းသပ်မှု ပြုလုပ်ပြီးပါပြီ!",
-    "syncCalendar": "ဖုန်း သို့မဟုတ် Calendar နှင့် ချိတ်ဆက်ရန်",
-    "syncCalendarDesc": "Browser ပိတ်ထားချိန်တွင်လည်း သတိပေးချက် ရရှိနိုင်ရန် Google Calendar သို့မဟုတ် ဖုန်း Calendar သို့ သတိပေးချက် ထည့်သွင်းပါ။",
-    "downloadIcs": ".ICS Alarm ဖိုင် ဒေါင်းလုဒ်ဆွဲရန်",
-    "openGoogleCalendar": "Google Calendar သို့ ထည့်မည်",
-    "syncGoogleCalendarDirect": "Google Calendar သို့ တိုက်ရိုက် ချိတ်ဆက်မည်",
-    "removeFromGoogleCalendar": "Google Calendar မှ ဖျက်မည်",
-    "googleCalendarSynced": "Google Calendar နှင့် ချိတ်ဆက်ပြီးပါပြီ!",
-    "confirmRemoveGoogleCalendar": "Google Calendar ထဲမှ နေ့စဉ် သတိပေးချက် event ကို ဖျက်ရန် သေချာပါသလား?",
-    "calendarNotice": "Google Calendar နှင့် ချိတ်ဆက်ထားပါသည်။ ဤနေရာတွင် သတိပေးချက်ကို ပိတ်ပါက Google Calendar ထဲမှ သတိပေးချက်ကိုပါ အလိုအလျောက် ပယ်ဖျက်ပေးမည် ဖြစ်ပါသည်။",
-    "popupClosedByUser": "Google Sign-in popup ကို ပိတ်လိုက်သောကြောင့် ချိတ်ဆက်မှု မအောင်မြင်ပါ။",
-    "popupBlocked": "Browser မှ Popup ကို ပိတ်ထားသောကြောင့် မဖွင့်နိုင်ပါ။ Popup ကို ခွင့်ပြုပေးပါ။"
+    "syncCalendar": "ဖုန်း သို့မဟုတ် Device Calendar သို့ ချိတ်ဆက်ရန်",
+    "syncCalendarDesc": "Browser ပိတ်ထားချိန်တွင်လည်း သတိပေးချက် ရရှိနိုင်ရန် ဖုန်း Calendar (iPhone, Android) သို့မဟုတ် Google Calendar သို့ နေ့စဉ် သတိပေးချက် ထည့်သွင်းပါ။",
+    "downloadIcs": "ဖုန်း Calendar ထဲသို့ ထည့်သွင်းမည် (.ICS)",
+    "openGoogleCalendar": "Google Calendar Web သို့ ထည့်မည်",
+    "calendarNotice": "မှတ်ချက် - ဖုန်း Calendar သတိပေးချက်များသည် သင့်ဖုန်း သို့မဟုတ် ကွန်ပျူတာ၏ Calendar App (Apple Calendar, Google Calendar, Outlook) နှင့် တိုက်ရိုက် ချိတ်ဆက်ပါသည်။ ထည့်သွင်းထားသော event များကို မိမိဖုန်း Calendar App ထဲမှ ပြန်လည် ပြင်ဆင်/ဖျက်နိုင်ပါသည်။"
   }
 };
 

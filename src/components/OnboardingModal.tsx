@@ -22,6 +22,8 @@ interface OnboardingModalProps {
     language: Language;
     currency: Currency;
     financialGoals: string[];
+    initialBalance: number;
+    autoSetupBudgets: boolean;
   }) => void;
 }
 
@@ -38,7 +40,9 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
   const [name, setName] = useState<string>('');
   const [language, setLanguage] = useState<Language>('en');
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(PRESET_CURRENCIES[0]);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>(['track']);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(['track', 'budget']);
+  const [initialBalance, setInitialBalance] = useState<string>('');
+  const [autoSetupBudgets, setAutoSetupBudgets] = useState<boolean>(true);
   const [nameError, setNameError] = useState<string | undefined>(undefined);
 
   const goals = [
@@ -94,7 +98,9 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
         name: name.trim(),
         language,
         currency: selectedCurrency,
-        financialGoals: selectedGoals
+        financialGoals: selectedGoals,
+        initialBalance: parseFloat(initialBalance) || 0,
+        autoSetupBudgets,
       });
     }
   };
@@ -349,20 +355,21 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.18 }}
-                  className="space-y-2.5 flex-1 py-1 flex flex-col justify-center"
+                  className="space-y-2 flex-1 py-1 flex flex-col justify-center overflow-y-auto max-h-[60vh] pr-0.5"
                 >
                   <div className="space-y-0.5">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight font-sans">
-                      {language === 'en' ? "Select Your Financial Goals" : "သင်၏ ဘဏ္ဍာရေး ပန်းတိုင်များ ရွေးချယ်ပါ"}
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight font-sans">
+                      {language === 'en' ? "Workspace Methods & Setup" : "ဘဏ္ဍာရေး ပန်းတိုင်နှင့် စတင်ပြင်ဆင်မှု"}
                     </h3>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                    <p className="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium">
                       {language === 'en' 
-                        ? "Customize your financial workspace." 
-                        : "သင်၏ ငွေစာရင်းစနစ်အား စိတ်ကြိုက်ပြင်ဆင်ပါ။"}
+                        ? "Selecting goals directly configures your starting budgets and workspace features." 
+                        : "ရွေးချယ်လိုက်သော နည်းလမ်းများသည် သင့်စနစ်အား တိုက်ရိုက် ပြင်ဆင်ပေးမည်ဖြစ်ပါသည်။"}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-1.5">
+                  {/* Financial Goal Methods */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {goals.map((goal) => {
                       const isSelected = selectedGoals.includes(goal.id);
                       return (
@@ -370,22 +377,22 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
                           key={goal.id}
                           type="button"
                           onClick={() => toggleGoal(goal.id)}
-                          className={`w-full p-2 sm:p-2.5 rounded-xl border text-left flex items-center gap-2.5 cursor-pointer transition-all duration-200 ${
+                          className={`p-2 rounded-xl border text-left flex items-center gap-2 cursor-pointer transition-all duration-200 ${
                             isSelected
-                              ? 'bg-[#007aff]/5 dark:bg-[#007aff]/10 border-[#007aff] shadow-sm'
+                              ? 'bg-[#007aff]/10 dark:bg-[#007aff]/15 border-[#007aff] shadow-xs'
                               : 'bg-slate-50 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 hover:bg-slate-100'
                           }`}
                         >
-                          <div className={`p-1.5 rounded-lg shrink-0 ${
+                          <div className={`p-1 rounded-lg shrink-0 ${
                             isSelected 
-                              ? 'bg-white dark:bg-neutral-800 shadow-sm' 
+                              ? 'bg-white dark:bg-neutral-800 shadow-xs' 
                               : 'bg-slate-200 dark:bg-neutral-800'
                           }`}>
                             {goal.icon}
                           </div>
                           <div className="space-y-0 min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-1">
-                              <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-wider truncate">
+                              <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-wider truncate">
                                 {goal.title}
                               </span>
                               {isSelected && (
@@ -394,13 +401,47 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
                                 </span>
                               )}
                             </div>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
-                              {goal.desc}
-                            </p>
                           </div>
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* Initial Starting Balance Input */}
+                  <div className="space-y-1 pt-1.5 border-t border-slate-200 dark:border-neutral-800">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 block">
+                      {language === 'en' ? "Initial Starting Balance (Optional)" : "စတင် လက်ကျန်ငွေ (စိတ်ကြိုက်)"}
+                    </label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-xs font-black text-[#007aff] font-mono">
+                        {selectedCurrency.symbol}
+                      </span>
+                      <input
+                        type="number"
+                        value={initialBalance}
+                        onChange={(e) => setInitialBalance(e.target.value)}
+                        placeholder={selectedCurrency.code === 'MMK' ? 'e.g. 500000' : 'e.g. 1000'}
+                        className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:border-[#007aff] focus:ring-[#007aff]/35"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Auto-generate Budgets Checkbox */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-2">
+                    <div className="space-y-0.5">
+                      <span className="text-[11px] font-bold text-slate-900 dark:text-white block">
+                        {language === 'en' ? "Auto-Generate Starter Category Budgets" : "အကြံပြုထားသော ဘတ်ဂျက်များ စတင်ထည့်သွင်းမည်"}
+                      </span>
+                      <p className="text-[9.5px] text-slate-500 dark:text-slate-400">
+                        {language === 'en' ? "Creates realistic category limits adapted to " + selectedCurrency.code : selectedCurrency.code + " အတွက် သင့်တော်သော ဘတ်ဂျက်ကန့်သတ်ချက်များ သတ်မှတ်ပေးမည်။"}
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={autoSetupBudgets}
+                      onChange={(e) => setAutoSetupBudgets(e.target.checked)}
+                      className="w-4 h-4 accent-[#007aff] rounded cursor-pointer"
+                    />
                   </div>
                 </motion.div>
               )}
