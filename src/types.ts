@@ -12,6 +12,7 @@ export interface Transaction {
 export interface Budget {
   category: string;
   limit: number;
+  month?: string; // YYYY-MM format, e.g. "2026-07"
 }
 
 export type Language = 'en' | 'my';

@@ -167,6 +167,12 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
 
+  const currentMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+  const activeBudgetLimit = useMemo(() => {
+    const found = budgets.find(b => b.month === currentMonthKey) || budgets.find(b => !b.month);
+    return found ? found.limit : 0;
+  }, [budgets, currentMonthKey]);
+
   const forecast = useMemo(() => {
     return generateForecastReport(
       transactions,
@@ -745,7 +751,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                   <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                     {language === 'en' ? 'Projected Spend' : 'ခန့်မှန်းခြေ စုစုပေါင်း'}
                   </span>
-                  <span className={`block text-lg font-black font-mono ${forecast.projectedSpent > (budgets[0]?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                  <span className={`block text-lg font-black font-mono ${forecast.projectedSpent > activeBudgetLimit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                     {formatAmount(forecast.projectedSpent)}
                   </span>
                 </div>
@@ -755,8 +761,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                   <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                     {language === 'en' ? 'Monthly Pacing' : 'အရှိန်အခြေအနေ'}
                   </span>
-                  <span className={`block text-lg font-black font-sans ${forecast.projectedSpent > (budgets[0]?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                    {forecast.projectedSpent > (budgets[0]?.limit || 0) 
+                  <span className={`block text-lg font-black font-sans ${forecast.projectedSpent > activeBudgetLimit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                    {forecast.projectedSpent > activeBudgetLimit 
                       ? (language === 'en' ? 'Danger Zone' : 'ဘတ်ဂျက်ကျော်လွန်') 
                       : (language === 'en' ? 'Safe Zone' : 'ပုံမှန်အခြေအနေ')
                     }
@@ -903,8 +909,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                         return null;
                       }}
                     />
-                    {(budgets[0]?.limit || 0) > 0 && (
-                      <ReferenceLine y={budgets[0].limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: language === 'en' ? 'Limit Ceiling' : 'ဘတ်ဂျက်အမြင့်ဆုံး', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft', fontWeight: 'bold' }} />
+                    {activeBudgetLimit > 0 && (
+                      <ReferenceLine y={activeBudgetLimit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: language === 'en' ? 'Limit Ceiling' : 'ဘတ်ဂျက်အမြင့်ဆုံး', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft', fontWeight: 'bold' }} />
                     )}
                     <Area type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorActual)" connectNulls isAnimationActive={false} />
                     <Area type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" fillOpacity={1} fill="url(#colorProjected)" isAnimationActive={false} />

@@ -198,6 +198,35 @@ export default function App() {
     return saved ? JSON.parse(saved) : ['Food', 'Transportation', 'Shopping', 'Entertainment', 'Housing', 'Utilities', 'Healthcare', 'Education', 'Others'];
   });
 
+  const [inactiveIncomeCategories, setInactiveIncomeCategories] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mm_inactive_income_categories');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [inactiveExpenseCategories, setInactiveExpenseCategories] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mm_inactive_expense_categories');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>(() => {
+    const saved = localStorage.getItem('mm_category_colors');
+    return saved ? JSON.parse(saved) : {
+      'Food': '#ff9500',
+      'Transportation': '#007aff',
+      'Shopping': '#ec4899',
+      'Entertainment': '#af52de',
+      'Housing': '#5856d6',
+      'Utilities': '#00c7be',
+      'Healthcare': '#ff3b30',
+      'Education': '#06b6d4',
+      'Others': '#8e8e93',
+      'Salary': '#34c759',
+      'Freelance': '#0ea5e9',
+      'Investment': '#8b5cf6',
+      'Gift': '#f43f5e'
+    };
+  });
+
   const [customCurrency, setCustomCurrency] = useState<Currency>(() => {
     const saved = localStorage.getItem('mm_currency');
     return saved ? JSON.parse(saved) : { code: 'MMK', symbol: 'Ks', name: 'Myanmar Kyat' };
@@ -237,6 +266,31 @@ export default function App() {
   const [showMonthMenu, setShowMonthMenu] = useState<boolean>(false);
   const [showYearMenu, setShowYearMenu] = useState<boolean>(false);
   const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
+
+  const monthMenuRef = React.useRef<HTMLDivElement>(null);
+  const yearMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (showMonthMenu && monthMenuRef.current) {
+      const currentMonthVal = new Date().toISOString().substring(5, 7);
+      const targetVal = selectedMonth !== 'all' ? selectedMonth : currentMonthVal;
+      const targetBtn = monthMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
+      if (targetBtn) {
+        monthMenuRef.current.scrollTop = targetBtn.offsetTop - 6;
+      }
+    }
+  }, [showMonthMenu, selectedMonth]);
+
+  React.useLayoutEffect(() => {
+    if (showYearMenu && yearMenuRef.current) {
+      const currentYearVal = new Date().getFullYear().toString();
+      const targetVal = selectedYear !== 'all' ? selectedYear : currentYearVal;
+      const targetBtn = yearMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
+      if (targetBtn) {
+        yearMenuRef.current.scrollTop = targetBtn.offsetTop - 6;
+      }
+    }
+  }, [showYearMenu, selectedYear]);
 
   // Read/unread notification state
   const [readAlertIds, setReadAlertIds] = useState<string[]>(() => {
@@ -434,53 +488,116 @@ export default function App() {
     localStorage.setItem('mm_expense_categories', JSON.stringify(expenseCategories));
   }, [expenseCategories]);
 
+  useEffect(() => {
+    localStorage.setItem('mm_inactive_income_categories', JSON.stringify(inactiveIncomeCategories));
+  }, [inactiveIncomeCategories]);
+
+  useEffect(() => {
+    localStorage.setItem('mm_inactive_expense_categories', JSON.stringify(inactiveExpenseCategories));
+  }, [inactiveExpenseCategories]);
+
+  useEffect(() => {
+    localStorage.setItem('mm_category_colors', JSON.stringify(categoryColors));
+  }, [categoryColors]);
+
   const t = React.useCallback((key: string) => TRANSLATIONS[settings.language][key] || key, [settings.language]);
   const tc = React.useCallback((cat: string) => CATEGORY_TRANSLATIONS[settings.language][cat] || cat, [settings.language]);
 
-  const handleAddCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
+  const handleAddCategory = React.useCallback((type: 'income' | 'expense', category: string, color?: string) => {
     if (type === 'income') {
       if (!incomeCategories.includes(category)) {
         setIncomeCategories(prev => [...prev, category]);
-        showToast(`Income category "${category}" added.`, 'success');
+        setInactiveIncomeCategories(prev => prev.filter(c => c !== category));
+        if (color) {
+          setCategoryColors(prev => ({ ...prev, [category]: color }));
+        }
+        showToast(settings.language === 'my' ? `ဝင်ငွေ အမျိုးအစား "${category}" ထည့်သွင်းပြီးပါပြီ။` : `Income category "${category}" added.`, 'success');
       } else {
-        showToast(`Category already exists.`, 'error');
+        showToast(TRANSLATIONS[settings.language]?.['categoryAlreadyExists'] || 'Category already exists.', 'error');
       }
     } else {
       if (!expenseCategories.includes(category)) {
         setExpenseCategories(prev => [...prev, category]);
-        showToast(`Expense category "${category}" added.`, 'success');
+        setInactiveExpenseCategories(prev => prev.filter(c => c !== category));
+        if (color) {
+          setCategoryColors(prev => ({ ...prev, [category]: color }));
+        }
+        showToast(settings.language === 'my' ? `ထွက်ငွေ အမျိုးအစား "${category}" ထည့်သွင်းပြီးပါပြီ။` : `Expense category "${category}" added.`, 'success');
       } else {
-        showToast(`Category already exists.`, 'error');
+        showToast(TRANSLATIONS[settings.language]?.['categoryAlreadyExists'] || 'Category already exists.', 'error');
       }
     }
-  }, [incomeCategories, expenseCategories]);
+  }, [incomeCategories, expenseCategories, settings.language]);
 
-  const handleDeleteCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
+  const handleDeactivateCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
+    if (type === 'income') {
+      if (incomeCategories.length <= 1) {
+        showToast(settings.language === 'my' ? "အနည်းဆုံး အမျိုးအစား ၁ ခု ရှိရပါမည်။" : "At least 1 active category required.", 'error');
+        return;
+      }
+      setIncomeCategories(prev => prev.filter(c => c !== category));
+      setInactiveIncomeCategories(prev => Array.from(new Set([...prev, category])));
+      showToast(settings.language === 'my' ? `"${category}" ကို ပိတ်ထားသော အမျိုးအစားသို့ ရွှေ့လိုက်ပါပြီ။` : `Category "${category}" moved to inactive.`, 'info');
+    } else {
+      if (expenseCategories.length <= 1) {
+        showToast(settings.language === 'my' ? "အနည်းဆုံး အမျိုးအစား ၁ ခု ရှိရပါမည်။" : "At least 1 active category required.", 'error');
+        return;
+      }
+      setExpenseCategories(prev => prev.filter(c => c !== category));
+      setInactiveExpenseCategories(prev => Array.from(new Set([...prev, category])));
+      showToast(settings.language === 'my' ? `"${category}" ကို ပိတ်ထားသော အမျိုးအစားသို့ ရွှေ့လိုက်ပါပြီ။` : `Category "${category}" moved to inactive.`, 'info');
+    }
+  }, [incomeCategories, expenseCategories, settings.language]);
+
+  const handleReactivateCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
+    if (type === 'income') {
+      setInactiveIncomeCategories(prev => prev.filter(c => c !== category));
+      setIncomeCategories(prev => Array.from(new Set([...prev, category])));
+      showToast(settings.language === 'my' ? `"${category}" ကို ပြန်လည်ဖွင့်လိုက်ပါပြီ။` : `Category "${category}" reactivated.`, 'success');
+    } else {
+      setInactiveExpenseCategories(prev => prev.filter(c => c !== category));
+      setExpenseCategories(prev => Array.from(new Set([...prev, category])));
+      showToast(settings.language === 'my' ? `"${category}" ကို ပြန်လည်ဖွင့်လိုက်ပါပြီ။` : `Category "${category}" reactivated.`, 'success');
+    }
+  }, [settings.language]);
+
+  const handleDeleteCategoryPermanently = React.useCallback((type: 'income' | 'expense', category: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: settings.language === 'my' ? "အမျိုးအစားဖျက်မည်" : "Delete Category",
+      title: settings.language === 'my' ? "အမျိုးအစား အပြီးတိုင်ဖျက်မည်" : "Delete Category Permanently",
       message: settings.language === 'my'
-        ? `"${tc(category)}" အမျိုးအစားကို ဖျက်ရန် သေချာပါသလား?`
-        : `Are you sure you want to delete category "${tc(category)}"?`,
-      confirmText: settings.language === 'my' ? "ဖျက်မည်" : "Delete",
+        ? `"${tc(category)}" အမျိုးအစားကို အပြီးတိုင်ဖျက်ရန် သေချာပါသလား?`
+        : `Are you sure you want to permanently delete category "${tc(category)}"?`,
+      confirmText: settings.language === 'my' ? "အပြီးတိုင်ဖျက်မည်" : "Delete Permanently",
       cancelText: settings.language === 'my' ? "မလုပ်တော့ပါ" : "Cancel",
       isDestructive: true,
       onConfirm: () => {
         if (type === 'income') {
-          if (incomeCategories.length > 1) {
-            setIncomeCategories(prev => prev.filter(c => c !== category));
-            showToast(`Income category "${category}" removed.`, 'info');
-          }
+          setInactiveIncomeCategories(prev => prev.filter(c => c !== category));
+          setIncomeCategories(prev => prev.filter(c => c !== category));
         } else {
-          if (expenseCategories.length > 1) {
-            setExpenseCategories(prev => prev.filter(c => c !== category));
-            showToast(`Expense category "${category}" removed.`, 'info');
-          }
+          setInactiveExpenseCategories(prev => prev.filter(c => c !== category));
+          setExpenseCategories(prev => prev.filter(c => c !== category));
         }
+        setCategoryColors(prev => {
+          const updated = { ...prev };
+          delete updated[category];
+          return updated;
+        });
+        showToast(settings.language === 'my' ? `"${category}" ကို အပြီးတိုင် ဖျက်ပြီးပါပြီ။` : `Category "${category}" deleted permanently.`, 'info');
         setConfirmDialog(null);
       }
     });
-  }, [settings.language, incomeCategories, expenseCategories, tc]);
+  }, [settings.language, tc]);
+
+  const handleUpdateCategoryColor = React.useCallback((category: string, color: string) => {
+    setCategoryColors(prev => ({ ...prev, [category]: color }));
+    showToast(settings.language === 'my' ? `"${category}" အရောင် ပြောင်းလဲပြီးပါပြီ။` : `Category color updated for "${category}".`, 'success');
+  }, [settings.language]);
+
+  const handleDeleteCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
+    handleDeactivateCategory(type, category);
+  }, [handleDeactivateCategory]);
 
   useEffect(() => {
     localStorage.setItem('mm_currency', JSON.stringify(customCurrency));
@@ -542,6 +659,10 @@ export default function App() {
       onConfirm: () => {
         setTransactions([]);
         setBudgets([]);
+        localStorage.removeItem('mm_onboarding_completed');
+        localStorage.removeItem('mm_onboarding_goals');
+        setShowOnboarding(true);
+        setActiveTab('dashboard');
         showToast(t('clearSuccess') || 'All transactions and budgets cleared!', 'success');
         setConfirmDialog(null);
       }
@@ -579,9 +700,9 @@ export default function App() {
   }, []);
 
   const availableYears = React.useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 5;
-    const endYear = currentYear + 5;
+    const currentYearStr = new Date().getFullYear().toString();
+    const startYear = parseInt(currentYearStr) - 5;
+    const endYear = parseInt(currentYearStr) + 5;
     const yearsList: string[] = [];
     for (let y = startYear; y <= endYear; y++) {
       yearsList.push(y.toString());
@@ -593,7 +714,11 @@ export default function App() {
         yearsList.push(yr);
       }
     });
-    return yearsList.sort((a, b) => b.localeCompare(a));
+
+    const pastYears = yearsList.filter(y => parseInt(y) < parseInt(currentYearStr)).sort((a, b) => b.localeCompare(a));
+    const futureYears = yearsList.filter(y => parseInt(y) > parseInt(currentYearStr)).sort((a, b) => a.localeCompare(b));
+
+    return [currentYearStr, ...pastYears, ...futureYears];
   }, [transactions]);
 
   const monthOptions = React.useMemo(() => [
@@ -657,12 +782,13 @@ export default function App() {
 
     // Check if total monthly expense budget is exceeded with this new transaction
     if (tx.type === 'expense') {
-      const overallBudget = budgets[0];
-      if (overallBudget) {
+      const txMonthKey = tx.date.substring(0, 7);
+      const monthlyBudget = budgets.find(b => b.month === txMonthKey) || budgets.find(b => !b.month);
+      if (monthlyBudget) {
         const totalSpent = transactions
-          .filter((t) => t.type === 'expense' && t.date.substring(0, 7) === tx.date.substring(0, 7))
+          .filter((t) => t.type === 'expense' && t.date.substring(0, 7) === txMonthKey)
           .reduce((sum, t) => sum + t.amount, 0) + tx.amount;
-        if (totalSpent > overallBudget.limit) {
+        if (totalSpent > monthlyBudget.limit) {
           showToast(`Warning: Monthly Expense Budget Exceeded!`, 'error');
         }
       }
@@ -695,28 +821,33 @@ export default function App() {
     });
   }, [transactions, settings.language, tc, formatAmount, t]);
 
-  const handleSaveBudget = React.useCallback((category: string, limit: number) => {
-    setBudgets([{ category: 'Total', limit }]);
-    showToast(t('budgetSavedSuccess'), 'success');
-  }, [t]);
+  const handleSaveBudget = React.useCallback((category: string, limit: number, monthKey?: string) => {
+    const targetMonth = monthKey || `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+    setBudgets(prev => {
+      const filtered = prev.filter(b => b.month !== targetMonth && (b.month || b.category !== category));
+      return [...filtered, { category: category || 'Total', limit, month: targetMonth }];
+    });
+    showToast(t('budgetSavedSuccess') || 'Budget saved successfully!', 'success');
+  }, [selectedYear, selectedMonth, t]);
 
-  const handleDeleteBudget = React.useCallback((category: string) => {
+  const handleDeleteBudget = React.useCallback((category: string, monthKey?: string) => {
+    const targetMonth = monthKey || `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
     setConfirmDialog({
       isOpen: true,
-      title: settings.language === 'my' ? "ဘတ်ဂျက်ပယ်ဖျက်မည်" : "Delete Budget Limit",
+      title: settings.language === 'my' ? "ဘတ်ဂျက်ပယ်ဖျက်မည်" : "Delete Monthly Budget Limit",
       message: settings.language === 'my'
-        ? "သတ်မှတ်ထားသော ဘတ်ဂျက်ကန့်သတ်ချက်ကို ပယ်ဖျက်ရန် သေချာပါသလား?"
-        : "Are you sure you want to remove your overall budget limit?",
+        ? "ဤလအတွက် သတ်မှတ်ထားသော ဘတ်ဂျက်ကန့်သတ်ချက်ကို ပယ်ဖျက်ရန် သေချာပါသလား?"
+        : "Are you sure you want to remove the budget limit for this month?",
       confirmText: settings.language === 'my' ? "ပယ်ဖျက်မည်" : "Remove",
       cancelText: settings.language === 'my' ? "မလုပ်တော့ပါ" : "Cancel",
       isDestructive: true,
       onConfirm: () => {
-        setBudgets([]);
-        showToast("Budget limit removed.", 'info');
+        setBudgets(prev => prev.filter(b => b.month !== targetMonth && (b.month || b.category !== category)));
+        showToast(settings.language === 'my' ? 'ဘတ်ဂျက် ပယ်ဖျက်လိုက်ပါပြီ။' : "Monthly budget limit removed.", 'info');
         setConfirmDialog(null);
       }
     });
-  }, [settings.language]);
+  }, [settings.language, selectedYear, selectedMonth]);
 
   const handleRestoreBackup = React.useCallback((importedData: any) => {
     setConfirmDialog({
@@ -1449,6 +1580,7 @@ export default function App() {
                             onClick={() => setShowMonthMenu(false)}
                           />
                           <motion.div
+                            ref={monthMenuRef}
                             initial={{ opacity: 0, y: 8, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -1458,6 +1590,7 @@ export default function App() {
                             {monthOptions.map((opt) => (
                               <button
                                 key={opt.value}
+                                data-value={opt.value}
                                 type="button"
                                 onClick={() => {
                                   setSelectedMonth(opt.value);
@@ -1500,6 +1633,7 @@ export default function App() {
                             onClick={() => setShowYearMenu(false)}
                           />
                           <motion.div
+                            ref={yearMenuRef}
                             initial={{ opacity: 0, y: 8, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -1509,6 +1643,7 @@ export default function App() {
                             {availableYears.map((yr) => (
                               <button
                                 key={yr}
+                                data-value={yr}
                                 type="button"
                                 onClick={() => {
                                   setSelectedYear(yr);
@@ -1525,6 +1660,7 @@ export default function App() {
                             ))}
                             <button
                               type="button"
+                              data-value="all"
                               onClick={() => {
                                 setSelectedYear('all');
                                 setShowYearMenu(false);
@@ -1673,17 +1809,23 @@ export default function App() {
                       {/* Budgets Summary Mini Card - Moved to Top & Extensively Polished */}
                       <div className="p-6 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-5 shadow-xs">
                         {(() => {
-                          const activeBudget = budgets[0];
+                          const targetMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+                          const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
                           if (!activeBudget) {
+                            const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                            const mIdx = parseInt(selectedMonth) - 1;
+                            const mName = isNaN(mIdx) ? selectedMonth : t(monthNames[mIdx]);
+                            const monthLabel = `${mName} ${selectedYear}`;
+
                             return (
                               <div className="text-center py-8">
-                                <p className="text-xs text-[#8e8e93] mb-2">{t('noBudgetsSet')}</p>
+                                <p className="text-xs text-[#8e8e93] mb-2">{t('noBudgetConfigured')} ({monthLabel})</p>
                                 <button
                                   id="set-initial-budget"
                                   onClick={() => setActiveTab('budgets')}
                                   className="h-9 px-4 inline-flex items-center justify-center bg-[#34c759] text-white rounded-full text-xs font-bold transition-all hover:opacity-90 shadow-xs cursor-pointer border-0"
                                 >
-                                  {settings.language === 'my' ? "ဘတ်ဂျက်သတ်မှတ်ရန်" : "Set Budget Limit"}
+                                  {settings.language === 'my' ? `ဘတ်ဂျက် သတ်မှတ်ရန် (${monthLabel})` : `Set Budget Limit (${monthLabel})`}
                                 </button>
                               </div>
                             );
@@ -1994,7 +2136,14 @@ export default function App() {
                       onExportPDF={handleExportPDF}
                       incomeCategories={incomeCategories}
                       expenseCategories={expenseCategories}
+                      inactiveIncomeCategories={inactiveIncomeCategories}
+                      inactiveExpenseCategories={inactiveExpenseCategories}
+                      categoryColors={categoryColors}
                       onAddCategory={handleAddCategory}
+                      onDeactivateCategory={handleDeactivateCategory}
+                      onReactivateCategory={handleReactivateCategory}
+                      onDeleteCategoryPermanently={handleDeleteCategoryPermanently}
+                      onUpdateCategoryColor={handleUpdateCategoryColor}
                       onDeleteCategory={handleDeleteCategory}
                       onLoadDemoData={handleLoadDemoData}
                       onClearAllData={handleClearAllData}

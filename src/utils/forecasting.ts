@@ -35,9 +35,6 @@ export function generateForecastReport(
   selectedYear: string,
   formatAmount: (amount: number) => string
 ): ForecastReport {
-  const activeBudget = budgets[0] || null;
-  const budgetLimit = activeBudget ? activeBudget.limit : 0;
-
   // Resolve active month and year for calculations (fallback to current today if 'all' is selected)
   const today = new Date();
   const currentYearNum = today.getFullYear();
@@ -45,6 +42,10 @@ export function generateForecastReport(
 
   const targetYear = selectedYear === 'all' ? currentYearNum : (parseInt(selectedYear) || currentYearNum);
   const targetMonth = selectedMonth === 'all' ? currentMonthNum : (parseInt(selectedMonth) || currentMonthNum);
+
+  const targetMonthKey = `${targetYear}-${targetMonth.toString().padStart(2, '0')}`;
+  const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
+  const budgetLimit = activeBudget ? activeBudget.limit : 0;
 
   const getDaysInMonth = (y: number, m: number) => {
     return new Date(y, m, 0).getDate();

@@ -47,8 +47,8 @@ interface BudgetSectionProps {
   transactions: Transaction[];
   currencySymbol: string;
   language: Language;
-  onSaveBudget: (category: string, limit: number) => void;
-  onDeleteBudget: (category: string) => void;
+  onSaveBudget: (category: string, limit: number, monthKey?: string) => void;
+  onDeleteBudget: (category: string, monthKey?: string) => void;
   formatAmount: (amount: number) => string;
   selectedMonth: string;
   selectedYear: string;
@@ -112,11 +112,33 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
 
-  const activeBudget = budgets[0] || null;
+  const currentMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+
+  const activeBudget = React.useMemo(() => {
+    return budgets.find(b => b.month === currentMonthKey) || budgets.find(b => !b.month) || null;
+  }, [budgets, currentMonthKey]);
+
+  // Find previous month budget if available for 1-click copying
+  const previousMonthBudget = React.useMemo(() => {
+    if (activeBudget && activeBudget.month === currentMonthKey) return null;
+    const monthBudgets = budgets.filter(b => b.month && b.month !== currentMonthKey);
+    if (monthBudgets.length > 0) {
+      return monthBudgets[monthBudgets.length - 1];
+    }
+    return budgets.find(b => !b.month) || null;
+  }, [budgets, activeBudget, currentMonthKey]);
+
   const [budgetLimit, setBudgetLimit] = useState<string>(activeBudget ? activeBudget.limit.toString() : '');
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [bentoTab, setBentoTab] = useState<'burn' | 'projection'>('burn');
+
+  // Keep input synchronized when month selection or active budget changes
+  React.useEffect(() => {
+    if (!isEditing) {
+      setBudgetLimit(activeBudget ? activeBudget.limit.toString() : '');
+    }
+  }, [activeBudget, isEditing, currentMonthKey]);
 
   const forecast = React.useMemo(() => {
     return generateForecastReport(
@@ -154,7 +176,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
       return;
     }
     setError(undefined);
-    onSaveBudget('Total', limit);
+    onSaveBudget('Total', limit, currentMonthKey);
     setIsEditing(false);
   };
 
@@ -294,19 +316,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
             {t('budgetUsage')} • {t('calculatedDynamically')} {getRangeLabel()}
           </p>
         </div>
-        {!activeBudget && (
-          <button
-            id="toggle-budget-form-btn"
-            onClick={() => {
-              setIsEditing(!isEditing);
-              if (!isEditing) setBudgetLimit('');
-            }}
-            className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            {isEditing ? t('cancel') : t('setBudget')}
-          </button>
-        )}
       </div>
 
       {/* Set/Edit Budget Form */}
@@ -436,22 +445,39 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
       {/* Main Budget Dashboard Display */}
       <div className="grid grid-cols-1 gap-6">
         {!activeBudget ? (
-          <div className="py-20 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
+          <div className="py-16 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
             <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
               <ShieldAlert className="w-8 h-8" />
             </div>
-            <h3 className="text-base font-black text-[#1c1c1e] dark:text-[#f2f2f7] mb-1.5">{t('noBudgetConfigured')}</h3>
+            <h3 className="text-base font-black text-[#1c1c1e] dark:text-[#f2f2f7] mb-1.5">
+              {t('noBudgetConfigured')} ({getRangeLabel()})
+            </h3>
             <p className="text-xs text-[#8e8e93] max-w-sm mx-auto mb-6 leading-relaxed">
               {t('keepFinancesInCheck')}
             </p>
-            <button
-              id="set-budget-empty-btn"
-              onClick={() => setIsEditing(true)}
-              className="px-6 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md inline-flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Plus className="w-4 h-4" />
-              {t('setBudgetLimitNow')}
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                id="set-budget-empty-btn"
+                onClick={() => setIsEditing(true)}
+                className="px-6 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md inline-flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Plus className="w-4 h-4" />
+                {t('setBudgetLimitNow')} ({getRangeLabel()})
+              </button>
+
+              {previousMonthBudget && (
+                <button
+                  id="copy-previous-budget-btn"
+                  onClick={() => {
+                    onSaveBudget('Total', previousMonthBudget.limit, currentMonthKey);
+                  }}
+                  className="px-5 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border-0 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {t('copyPreviousBudget')} ({formatAmount(previousMonthBudget.limit)})
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -488,7 +514,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                       </button>
                       <button
                         id="delete-overall-budget"
-                        onClick={() => onDeleteBudget('Total')}
+                        onClick={() => onDeleteBudget('Total', currentMonthKey)}
                         className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-full transition-all cursor-pointer"
                         title={t('delete')}
                       >

@@ -28,11 +28,18 @@ interface SettingsSectionProps {
   budgets: Budget[];
   incomeCategories: string[];
   expenseCategories: string[];
+  inactiveIncomeCategories?: string[];
+  inactiveExpenseCategories?: string[];
+  categoryColors?: Record<string, string>;
   readAlertIds: string[];
   onUpdateLanguage: (lang: Language) => void;
   onUpdateCurrency: (code: string, symbol: string, name: string) => void;
   onUpdateTheme: (theme: 'light' | 'dark') => void;
-  onAddCategory: (type: 'expense' | 'income', category: string) => void;
+  onAddCategory: (type: 'expense' | 'income', category: string, color?: string) => void;
+  onDeactivateCategory?: (type: 'expense' | 'income', category: string) => void;
+  onReactivateCategory?: (type: 'expense' | 'income', category: string) => void;
+  onDeleteCategoryPermanently?: (type: 'expense' | 'income', category: string) => void;
+  onUpdateCategoryColor?: (category: string, color: string) => void;
   onDeleteCategory: (type: 'expense' | 'income', category: string) => void;
   onEditProfileClick: () => void;
   onExportCSV: () => void;
@@ -40,6 +47,7 @@ interface SettingsSectionProps {
   onLoadDemoData: () => void;
   onClearAllData: () => void;
   onRestoreBackup: (backupData: any) => boolean;
+  onUpdateRawKey?: (key: string, value: any) => void;
 }
 
 const PRESET_CURRENCIES: Currency[] = [
@@ -63,11 +71,18 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   budgets,
   incomeCategories,
   expenseCategories,
+  inactiveIncomeCategories = [],
+  inactiveExpenseCategories = [],
+  categoryColors = {},
   readAlertIds,
   onUpdateLanguage,
   onUpdateCurrency,
   onUpdateTheme,
   onAddCategory,
+  onDeactivateCategory,
+  onReactivateCategory,
+  onDeleteCategoryPermanently,
+  onUpdateCategoryColor,
   onDeleteCategory,
   onEditProfileClick,
   onExportCSV,
@@ -94,7 +109,14 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
         settings={settings}
         incomeCategories={incomeCategories}
         expenseCategories={expenseCategories}
+        inactiveIncomeCategories={inactiveIncomeCategories}
+        inactiveExpenseCategories={inactiveExpenseCategories}
+        categoryColors={categoryColors}
         onAddCategory={onAddCategory}
+        onDeactivateCategory={onDeactivateCategory}
+        onReactivateCategory={onReactivateCategory}
+        onDeleteCategoryPermanently={onDeleteCategoryPermanently}
+        onUpdateCategoryColor={onUpdateCategoryColor}
         onDeleteCategory={onDeleteCategory}
         onClose={() => {
           setShowManageCategories(false);

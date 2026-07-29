@@ -116,6 +116,31 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   onExportPDF,
   setEditingTxInAddPage,
 }) => {
+  const monthMenuRef = React.useRef<HTMLDivElement>(null);
+  const yearMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (showMonthMenu && monthMenuRef.current) {
+      const currentMonthVal = new Date().toISOString().substring(5, 7);
+      const targetVal = selectedMonth !== 'all' ? selectedMonth : currentMonthVal;
+      const targetBtn = monthMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
+      if (targetBtn) {
+        monthMenuRef.current.scrollTop = targetBtn.offsetTop - 6;
+      }
+    }
+  }, [showMonthMenu, selectedMonth]);
+
+  React.useLayoutEffect(() => {
+    if (showYearMenu && yearMenuRef.current) {
+      const currentYearVal = new Date().getFullYear().toString();
+      const targetVal = selectedYear !== 'all' ? selectedYear : currentYearVal;
+      const targetBtn = yearMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
+      if (targetBtn) {
+        yearMenuRef.current.scrollTop = targetBtn.offsetTop - 6;
+      }
+    }
+  }, [showYearMenu, selectedYear]);
+
   return (
     <div className="space-y-6" id="view-dashboard">
       {/* Global Date Range Switcher */}
@@ -152,6 +177,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                     onClick={() => setShowMonthMenu(false)}
                   />
                   <motion.div
+                    ref={monthMenuRef}
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -161,6 +187,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                     {monthOptions.map((opt) => (
                       <button
                         key={opt.value}
+                        data-value={opt.value}
                         type="button"
                         onClick={() => {
                           setSelectedMonth(opt.value);
@@ -203,6 +230,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                     onClick={() => setShowYearMenu(false)}
                   />
                   <motion.div
+                    ref={yearMenuRef}
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -212,6 +240,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                     {availableYears.map((yr) => (
                       <button
                         key={yr}
+                        data-value={yr}
                         type="button"
                         onClick={() => {
                           setSelectedYear(yr);
@@ -228,6 +257,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                     ))}
                     <button
                       type="button"
+                      data-value="all"
                       onClick={() => {
                         setSelectedYear('all');
                         setShowYearMenu(false);
@@ -371,17 +401,23 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
         {/* Budgets Summary Mini Card */}
         <div className="p-6 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-5 shadow-xs">
           {(() => {
-            const activeBudget = budgets[0];
+            const targetMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
+            const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
             if (!activeBudget) {
+              const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+              const mIdx = parseInt(selectedMonth) - 1;
+              const mName = isNaN(mIdx) ? selectedMonth : t(monthNames[mIdx]);
+              const monthLabel = `${mName} ${selectedYear}`;
+
               return (
                 <div className="text-center py-8">
-                  <p className="text-xs text-[#8e8e93] mb-2">{t('noBudgetsSet')}</p>
+                  <p className="text-xs text-[#8e8e93] mb-2">{t('noBudgetConfigured')} ({monthLabel})</p>
                   <button
                     id="set-initial-budget"
                     onClick={() => onSelectTab('budgets')}
                     className="h-9 px-4 inline-flex items-center justify-center bg-[#34c759] text-white rounded-full text-xs font-bold transition-all hover:opacity-90 shadow-xs cursor-pointer border-0"
                   >
-                    {settings.language === 'my' ? "ဘတ်ဂျက်သတ်မှတ်ရန်" : "Set Budget Limit"}
+                    {settings.language === 'my' ? `ဘတ်ဂျက် သတ်မှတ်ရန် (${monthLabel})` : `Set Budget Limit (${monthLabel})`}
                   </button>
                 </div>
               );
