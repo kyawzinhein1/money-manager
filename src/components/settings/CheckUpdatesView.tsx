@@ -10,9 +10,18 @@ import {
   Info,
   Layers,
   Clock,
-  DownloadCloud
+  DownloadCloud,
+  ArrowUpCircle
 } from 'lucide-react';
 import { Language, Settings } from '../../types';
+import {
+  APP_VERSION,
+  LOCAL_VERSION_INFO,
+  fetchServerVersionInfo,
+  forceApplyAppUpdate,
+  AppVersionInfo,
+  ReleaseNote
+} from '../../version';
 
 interface CheckUpdatesViewProps {
   t: (key: string) => string;
@@ -20,94 +29,79 @@ interface CheckUpdatesViewProps {
   onClose: () => void;
 }
 
-interface ReleaseNote {
-  version: string;
-  date: string;
-  titleEn: string;
-  titleMy: string;
-  itemsEn: string[];
-  itemsMy: string[];
-}
-
-const RELEASE_HISTORY: ReleaseNote[] = [
-  {
-    version: 'v1.2.5',
-    date: '2026-07-27',
-    titleEn: 'iOS Graphical Calendar & Onboarding Method Setup',
-    titleMy: 'iOS စတိုင် ပြက္ခဒိန်နှင့် စတင်အသုံးပြုမှု ပြင်ဆင်မှုများ',
-    itemsEn: [
-      'Added native iOS-style graphical calendar date picker with month/year navigation',
-      'Configured financial goal methods at Onboarding Step 3 to auto-setup budgets and opening balance',
-      'Enhanced real-time total calculation and multi-currency support (MMK, USD, THB, EUR)',
-      'Optimized performance for ledger database console and export features'
-    ],
-    itemsMy: [
-      'ငွေစာရင်းထည့်သွင်းမှုတွင် iOS စတိုင် ရုပ်ထွက်မြင့် ပြက္ခဒိန်စနစ် ထည့်သွင်းပေးခဲ့ပါသည်။',
-      'အသုံးပြုမှုစတင်ချိန် Step 3 တွင် ရွေးချယ်လိုက်သော နည်းလမ်းများအတိုင်း စတင် လက်ကျန်ငွေနှင့် ဘတ်ဂျက်များ တိုက်ရိုက်သတ်မှတ်ပေးပါသည်။',
-      'ငွေကြေးအမျိုးအစားများ (MMK, USD, THB) အတွက် အချိန်ကိုက် တွက်ချက်မှုများ ပိုမိုမြန်ဆန်လာပါသည်။'
-    ]
-  },
-  {
-    version: 'v1.2.0',
-    date: '2026-07-15',
-    titleEn: 'Financial Analytics & Intelligent Ledger Forecasting',
-    titleMy: 'ဘဏ္ဍာရေး သုံးသပ်ချက်များနှင့် ခန့်မှန်းချက်စနစ်',
-    itemsEn: [
-      'Interactive income vs expense bar charts & category distribution pie charts',
-      '30-day spending trends and intelligent balance projection algorithms',
-      'Custom budget alerts with progress indicators and threshold notifications'
-    ],
-    itemsMy: [
-      'ဝင်ငွေ ထွက်ငွေ နှိုင်းယှဉ်ချက် ဇယားများနှင့် ကဏ္ဍအလိုက် သုံးစွဲမှု ရာခိုင်နှုန်းများ',
-      'ရက်ပေါင်း ၃၀ စာ သုံးစွဲမှု ပုံစံများနှင့် အနာဂတ် လက်ကျန်ငွေ ခန့်မှန်းတွက်ချက်မှုများ'
-    ]
-  }
-];
-
 export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
   settings,
   onClose
 }) => {
   const language: Language = settings.language || 'en';
-  const currentVersion = 'v1.2.5';
+  const currentVersion = APP_VERSION;
   
   const [checking, setChecking] = useState<boolean>(false);
   const [lastChecked, setLastChecked] = useState<string>(() => {
     return localStorage.getItem('mm_last_update_check') || new Date().toLocaleString();
   });
   const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
+  const [serverInfo, setServerInfo] = useState<AppVersionInfo | null>(null);
   const [autoCheck, setAutoCheck] = useState<boolean>(() => {
     return localStorage.getItem('mm_auto_check_updates') !== 'false';
   });
   const [statusMessage, setStatusMessage] = useState<string>('');
 
-  const handleCheckForUpdates = () => {
-    setChecking(true);
-    setStatusMessage(language === 'my' ? 'နောက်ဆုံးထွက် ဗားရှင်း စစ်ဆေးနေပါသည်...' : 'Checking server for latest build...');
-
-    setTimeout(() => {
-      // Simulate real cache & service worker update check
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          for (let reg of registrations) {
-            reg.update();
-          }
-        });
+  useEffect(() => {
+    // Automatically fetch server version info on mount
+    fetchServerVersionInfo().then(data => {
+      if (data) {
+        setServerInfo(data);
+        if (data.buildHash !== LOCAL_VERSION_INFO.buildHash || data.version !== LOCAL_VERSION_INFO.version) {
+          setUpdateAvailable(true);
+        }
       }
+    });
+  }, []);
 
-      const now = new Date().toLocaleString();
-      setLastChecked(now);
-      localStorage.setItem('mm_last_update_check', now);
-      setChecking(false);
+  const handleCheckForUpdates = async () => {
+    setChecking(true);
+    setStatusMessage(language === 'my' ? 'ဆာဗာရှိ အပ်ဒိတ်အသစ်များအား စစ်ဆေးနေပါသည်...' : 'Checking server for latest build...');
 
-      // Deterministic check simulation: report up to date with fresh cache confirmation
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let reg of registrations) {
+          reg.update();
+        }
+      });
+    }
+
+    const serverData = await fetchServerVersionInfo();
+    const now = new Date().toLocaleString();
+    setLastChecked(now);
+    localStorage.setItem('mm_last_update_check', now);
+    setChecking(false);
+
+    if (serverData) {
+      setServerInfo(serverData);
+      if (serverData.buildHash !== LOCAL_VERSION_INFO.buildHash || serverData.version !== LOCAL_VERSION_INFO.version) {
+        setUpdateAvailable(true);
+        setStatusMessage(
+          language === 'my'
+            ? `ဗားရှင်းအသစ် (${serverData.version}) ရရှိနိုင်ပါပြီ!`
+            : `New update available: ${serverData.version}!`
+        );
+      } else {
+        setUpdateAvailable(false);
+        setStatusMessage(
+          language === 'my'
+            ? `သင့်အပလီကေးရှင်းသည် နောက်ဆုံးထွက် ဗားရှင်း (${LOCAL_VERSION_INFO.version}) ဖြစ်ပါသည်။`
+            : `Your application is running the latest published version (${LOCAL_VERSION_INFO.version})!`
+        );
+      }
+    } else {
       setUpdateAvailable(false);
       setStatusMessage(
         language === 'my'
-          ? 'သင့်အပလီကေးရှင်းသည် နောက်ဆုံးထွက် ဗားရှင်းဖြစ်ပါသည်။'
-          : 'Your application is running the latest published version!'
+          ? `သင့်အပလီကေးရှင်းသည် နောက်ဆုံးထွက် ဗားရှင်း (${LOCAL_VERSION_INFO.version}) ဖြစ်ပါသည်။`
+          : `Your application is running the latest published version (${LOCAL_VERSION_INFO.version})!`
       );
-    }, 1200);
+    }
   };
 
   const handleForceRefreshCache = () => {
@@ -116,16 +110,11 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         ? 'အပလီကေးရှင်း ကက်ချ် (Cache) များကို ရှင်းလင်းပြီး နောက်ဆုံးပြင်ဆင်ချက်များကို ရယူရန် စာမျက်နှာကို ပြန်လည်စတင်မည်လား?'
         : 'Clear web application cache and hard reload to fetch the latest published bundle?'
     )) {
-      if ('caches' in window) {
-        caches.keys().then(names => {
-          for (let name of names) {
-            caches.delete(name);
-          }
-        });
-      }
-      window.location.reload();
+      forceApplyAppUpdate();
     }
   };
+
+  const releaseHistory: ReleaseNote[] = serverInfo?.releaseHistory || LOCAL_VERSION_INFO.releaseHistory || [];
 
   return (
     <div className="space-y-6">
@@ -153,6 +142,33 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         </button>
       </div>
 
+      {/* Update Available Banner Card (if newer version detected) */}
+      {updateAvailable && (
+        <div className="p-5 rounded-[2rem] bg-gradient-to-r from-[#007aff] to-[#af52de] text-white shadow-lg space-y-3 border border-white/20 animate-pulse-subtle">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <ArrowUpCircle className="w-6 h-6 text-white shrink-0" />
+              <div>
+                <h3 className="text-sm font-black tracking-wide">
+                  {language === 'my' ? `အက်ပ် ဗားရှင်းအသစ် (${serverInfo?.version || 'v1.2.6'}) ထွက်ရှိပါပြီ!` : `New Version Available: ${serverInfo?.version || 'v1.2.6'}!`}
+                </h3>
+                <p className="text-xs text-white/80">
+                  {language === 'my' ? serverInfo?.titleMy || 'နောက်ဆုံးပြင်ဆင်ချက်များကို ရယူနိုင်ပါပြီ' : serverInfo?.titleEn || 'Latest fixes and improvements are ready'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => forceApplyAppUpdate()}
+              className="px-5 py-2.5 bg-white text-[#007aff] hover:bg-white/95 rounded-full text-xs font-black transition-all shadow-md active:scale-95 cursor-pointer border-0 shrink-0 flex items-center gap-1.5"
+            >
+              <DownloadCloud className="w-4 h-4" />
+              <span>{language === 'my' ? 'ယခု အဆင့်မြှင့်မည်' : 'Update Now'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Status Banner Card */}
       <div className="p-6 ios-glass rounded-[2rem] border border-black/[0.05] dark:border-white/[0.08] space-y-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -165,8 +181,14 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
                 <span className="text-lg font-black text-[#1c1c1e] dark:text-white font-mono">
                   {currentVersion}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  {language === 'my' ? 'နောက်ဆုံး ဗားရှင်း' : 'Up to date'}
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                  updateAvailable
+                    ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                }`}>
+                  {updateAvailable
+                    ? (language === 'my' ? 'အဆင့်မြှင့်ရန်ရှိပါသည်' : 'Update Available')
+                    : (language === 'my' ? 'နောက်ဆုံး ဗားရှင်း' : 'Up to date')}
                 </span>
               </div>
               <p className="text-xs text-[#8e8e93] mt-0.5 font-medium flex items-center gap-1.5">
@@ -242,7 +264,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
       <div className="p-5 ios-glass rounded-[2rem] space-y-3">
         <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
           <Globe className="w-4 h-4 text-[#007aff]" />
-          {language === 'my' ? 'GitHub & Custom Domain ထုတ်လွှင့်မှု သတင်းအချက်အလက်' : 'Deployment & GitHub Integration Info'}
+          {language === 'my' ? 'GitHub & Custom Domain ထုတ်လွှင့်မှု သတင်းအချက်အလုပ်' : 'Deployment & GitHub Integration Info'}
         </h3>
         <p className="text-xs text-[#8e8e93] leading-relaxed">
           {language === 'my'
@@ -291,7 +313,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         </h3>
 
         <div className="space-y-4">
-          {RELEASE_HISTORY.map((rel) => (
+          {releaseHistory.map((rel) => (
             <div
               key={rel.version}
               className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06] space-y-2"

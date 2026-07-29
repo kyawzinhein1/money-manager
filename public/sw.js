@@ -1,12 +1,24 @@
-const CACHE_NAME = 'money-manager-v2';
+const CACHE_NAME = 'money-manager-v3';
 const ASSETS = [
   '/',
   '/index.html',
+  '/version.json',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png'
 ];
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((key) => caches.delete(key)));
+    });
+  }
+});
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -49,6 +61,31 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Always fetch version.json directly from network to detect dynamic updates
+  if (url.pathname === '/version.json') {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' }).catch(() => caches.match('/version.json'))
+    );
+    return;
+  }
+
+  // Network-first for navigation/HTML requests so new deployments are served immediately
+  if (e.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-cache' })
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request).then((res) => res || caches.match('/index.html')))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for static assets
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       if (cachedResponse) {

@@ -28,13 +28,22 @@ import {
   Bell,
   Info,
   TrendingDown,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  DownloadCloud
 } from 'lucide-react';
 
 import { Transaction, Budget, Language, Currency, Settings, UserProfile } from './types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from './translations';
 import { DEFAULT_TRANSACTIONS, DEFAULT_BUDGETS } from './defaultData';
 import { generateForecastReport } from './utils/forecasting';
+import {
+  APP_VERSION,
+  LOCAL_VERSION_INFO,
+  fetchServerVersionInfo,
+  forceApplyAppUpdate,
+  AppVersionInfo
+} from './version';
 
 // Component Imports
 import { TransactionsSection } from './components/TransactionsSection';
@@ -297,6 +306,25 @@ export default function App() {
     const saved = localStorage.getItem('read_alert_ids');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Dynamic Server Version & Update Check state
+  const [newVersionAvailable, setNewVersionAvailable] = useState<AppVersionInfo | null>(null);
+
+  useEffect(() => {
+    const isAutoCheckOn = localStorage.getItem('mm_auto_check_updates') !== 'false';
+    if (isAutoCheckOn) {
+      const timer = setTimeout(() => {
+        fetchServerVersionInfo().then(serverData => {
+          if (serverData) {
+            if (serverData.buildHash !== LOCAL_VERSION_INFO.buildHash || serverData.version !== LOCAL_VERSION_INFO.version) {
+              setNewVersionAvailable(serverData);
+            }
+          }
+        });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const toggleReadAlert = React.useCallback((id: string) => {
     setReadAlertIds((prev) => {
@@ -1274,6 +1302,36 @@ export default function App() {
           <span>
             {t('overBudget')}: {categoriesExceeded.map((c) => tc(c.category)).join(', ')}
           </span>
+        </div>
+      )}
+
+      {/* Dynamic App Update Notification Banner */}
+      {newVersionAvailable && (
+        <div className="bg-gradient-to-r from-[#007aff] to-[#af52de] text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-xs font-bold no-print sticky top-0 z-[99999]">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 animate-bounce text-amber-300 shrink-0" />
+            <span>
+              {settings.language === 'my'
+                ? `အက်ပ် ဗားရှင်းအသစ် (${newVersionAvailable.version}) ထွက်ရှိပါပြီ။`
+                : `New app version ${newVersionAvailable.version} is available!`}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => forceApplyAppUpdate()}
+              className="px-3.5 py-1 bg-white text-[#007aff] hover:bg-white/95 rounded-full text-xs font-black shadow-xs active:scale-95 cursor-pointer border-0 flex items-center gap-1"
+            >
+              <DownloadCloud className="w-3.5 h-3.5" />
+              <span>{settings.language === 'my' ? 'ယခု အဆင့်မြှင့်မည်' : 'Update Now'}</span>
+            </button>
+            <button
+              onClick={() => setNewVersionAvailable(null)}
+              className="p-1 text-white/80 hover:text-white rounded-full transition-all cursor-pointer border-0"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

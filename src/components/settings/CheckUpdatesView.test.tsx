@@ -24,7 +24,7 @@ describe('CheckUpdatesView', () => {
     );
 
     expect(screen.getByText('App Updates & Deployment')).toBeInTheDocument();
-    expect(screen.getAllByText('v1.2.5')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('v1.2.6')[0]).toBeInTheDocument();
 
     const closeBtn = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeBtn);

@@ -1,1 +1,145 @@
+export interface ReleaseNote {
+  version: string;
+  date: string;
+  titleEn: string;
+  titleMy: string;
+  itemsEn: string[];
+  itemsMy: string[];
+}
+
+export interface AppVersionInfo {
+  version: string;
+  buildHash: string;
+  buildTime: string;
+  titleEn: string;
+  titleMy: string;
+  changelogEn: string[];
+  changelogMy: string[];
+  releaseHistory?: ReleaseNote[];
+}
+
 export const APP_VERSION = 'v1.2.6';
+export const BUILD_HASH = 'v1.2.6-20260728';
+
+export const LOCAL_VERSION_INFO: AppVersionInfo = {
+  version: 'v1.2.6',
+  buildHash: 'v1.2.6-20260728',
+  buildTime: '2026-07-28 20:10:00',
+  titleEn: 'Dynamic Server Updates & Multi-Month Budget Control',
+  titleMy: 'အလိုအလျောက် ဗားရှင်းစစ်ဆေးမှုနှင့် လအလိုက် ဘတ်ဂျက်စနစ်',
+  changelogEn: [
+    'Dynamic server build version detection & automatic Service Worker cache bypass',
+    'One-click application update button with instant cache invalidation',
+    'Dedicated monthly budget limits with automatic previous month budget copying'
+  ],
+  changelogMy: [
+    'ဆာဗာရှိ နောက်ဆုံးထွက် ဗားရှင်းအသစ်ကို အလိုအလျောက် စစ်ဆေးပြီး Cache ကျော်လွန် ရယူနိုင်ခြင်း',
+    'ကလစ်တစ်ချက်နှိပ်ရုံဖြင့် အက်ပ်အား ဗားရှင်းအသစ်သို့ ချက်ချင်း အဆင့်မြှင့်တင်နိုင်ခြင်း',
+    'လအလိုက် ဘတ်ဂျက်ကန့်သတ်ချက် သတ်မှတ်နိုင်ခြင်းနှင့် လွန်ခဲ့သောလမှ ဘတ်ဂျက် ကူးယူနိုင်ခြင်း'
+  ],
+  releaseHistory: [
+    {
+      version: 'v1.2.6',
+      date: '2026-07-28',
+      titleEn: 'Dynamic Server Updates & Multi-Month Budget Control',
+      titleMy: 'အလိုအလျောက် ဗားရှင်းစစ်ဆေးမှုနှင့် လအလိုက် ဘတ်ဂျက်စနစ်',
+      itemsEn: [
+        'Dynamic server build version detection & automatic Service Worker cache bypass',
+        'One-click application update button with instant cache invalidation',
+        'Dedicated monthly budget limits with automatic previous month budget copying'
+      ],
+      itemsMy: [
+        'ဆာဗာရှိ နောက်ဆုံးထွက် ဗားရှင်းအသစ်ကို အလိုအလျောက် စစ်ဆေးပြီး Cache ကျော်လွန် ရယူနိုင်ခြင်း',
+        'ကလစ်တစ်ချက်နှိပ်ရုံဖြင့် အက်ပ်အား ဗားရှင်းအသစ်သို့ ချက်ချင်း အဆင့်မြှင့်တင်နိုင်ခြင်း',
+        'လအလိုက် ဘတ်ဂျက်ကန့်သတ်ချက် သတ်မှတ်နိုင်ခြင်းနှင့် လွန်ခဲ့သောလမှ ဘတ်ဂျက် ကူးယူနိုင်ခြင်း'
+      ]
+    },
+    {
+      version: 'v1.2.5',
+      date: '2026-07-27',
+      titleEn: 'iOS Graphical Calendar & Onboarding Method Setup',
+      titleMy: 'iOS စတိုင် ပြက္ခဒိန်နှင့် စတင်အသုံးပြုမှု ပြင်ဆင်မှုများ',
+      itemsEn: [
+        'Added native iOS-style graphical calendar date picker with month/year navigation',
+        'Configured financial goal methods at Onboarding Step 3 to auto-setup budgets and opening balance',
+        'Enhanced real-time total calculation and multi-currency support (MMK, USD, THB, EUR)',
+        'Optimized performance for ledger database console and export features'
+      ],
+      itemsMy: [
+        'ငွေစာရင်းထည့်သွင်းမှုတွင် iOS စတိုင် ရုပ်ထွက်မြင့် ပြက္ခဒိန်စနစ် ထည့်သွင်းပေးခဲ့ပါသည်။',
+        'အသုံးပြုမှုစတင်ချိန် Step 3 တွင် ရွေးချယ်လိုက်သော နည်းလမ်းများအတိုင်း စတင် လက်ကျန်ငွေနှင့် ဘတ်ဂျက်များ တိုက်ရိုက်သတ်မှတ်ပေးပါသည်။',
+        'ငွေကြေးအမျိုးအစားများ (MMK, USD, THB) အတွက် အချိန်ကိုက် တွက်ချက်မှုများ ပိုမိုမြန်ဆန်လာပါသည်။'
+      ]
+    },
+    {
+      version: 'v1.2.0',
+      date: '2026-07-15',
+      titleEn: 'Financial Analytics & Intelligent Ledger Forecasting',
+      titleMy: 'ဘဏ္ဍာရေး သုံးသပ်ချက်များနှင့် ခန့်မှန်းချက်စနစ်',
+      itemsEn: [
+        'Interactive income vs expense bar charts & category distribution pie charts',
+        '30-day spending trends and intelligent balance projection algorithms',
+        'Custom budget alerts with progress indicators and threshold notifications'
+      ],
+      itemsMy: [
+        'ဝင်ငွေ ထွက်ငွေ နှိုင်းယှဉ်ချက် ဇယားများနှင့် ကဏ္ဍအလိုက် သုံးစွဲမှု ရာခိုင်နှုန်းများ',
+        'ရက်ပေါင်း ၃၀ စာ သုံးစွဲမှု ပုံစံများနှင့် အနာဂတ် လက်ကျန်ငွေ ခန့်မှန်းတွက်ချက်မှုများ'
+      ]
+    }
+  ]
+};
+
+/**
+ * Fetch latest version metadata from server directly with cache-busting
+ */
+export async function fetchServerVersionInfo(): Promise<AppVersionInfo | null> {
+  try {
+    let requestUrl = `/version.json?t=${Date.now()}`;
+    if (typeof window !== 'undefined' && window.location) {
+      const base = window.location.origin && window.location.origin !== 'null'
+        ? window.location.origin
+        : (window.location.href || 'http://localhost:3000');
+      requestUrl = new URL(`/version.json?t=${Date.now()}`, base).toString();
+    }
+    const res = await fetch(requestUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data as AppVersionInfo;
+  } catch (err) {
+    console.warn('Failed to fetch server version info:', err);
+    return null;
+  }
+}
+
+/**
+ * Force clear all web caches and Service Workers then reload
+ */
+export async function forceApplyAppUpdate(): Promise<void> {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        if (reg.active) {
+          reg.active.postMessage({ type: 'SKIP_WAITING' });
+          reg.active.postMessage({ type: 'CLEAR_CACHE' });
+        }
+        await reg.unregister();
+      }
+    }
+    if ('caches' in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map(name => caches.delete(name)));
+    }
+  } catch (err) {
+    console.error('Error clearing caches during update:', err);
+  }
+
+  // Reload page bypassing cache
+  window.location.href = window.location.pathname + '?v=' + Date.now();
+}
