@@ -30,13 +30,16 @@ import {
   TrendingDown,
   AlertCircle,
   Sparkles,
-  DownloadCloud
+  DownloadCloud,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 import { Transaction, Budget, Language, Currency, Settings, UserProfile } from './types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from './translations';
 import { DEFAULT_TRANSACTIONS, DEFAULT_BUDGETS } from './defaultData';
 import { generateForecastReport } from './utils/forecasting';
+import { getCategoryStyle } from './utils/categoryStyle';
 import {
   APP_VERSION,
   LOCAL_VERSION_INFO,
@@ -61,116 +64,6 @@ const SectionLoadingFallback = () => (
     <p className="text-xs font-bold text-[#8e8e93]">Loading...</p>
   </div>
 );
-
-
-
-const getCategoryStyle = (categoryName: string) => {
-  const norm = categoryName.trim().toLowerCase();
-  switch (norm) {
-    case 'food':
-    case 'food':
-    case 'စားသောက်စရိတ်':
-      return {
-        bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-        text: 'text-amber-600 dark:text-amber-400',
-        border: 'border-amber-500/10 dark:border-amber-500/20'
-      };
-    case 'transportation':
-    case 'transportation':
-    case 'သယ်ယူပို့ဆောင်ရေး':
-      return {
-        bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-        text: 'text-blue-600 dark:text-blue-400',
-        border: 'border-blue-500/10 dark:border-blue-500/20'
-      };
-    case 'shopping':
-    case 'shopping':
-    case 'ဈေးဝယ်ခြင်း':
-      return {
-        bg: 'bg-pink-500/10 dark:bg-pink-500/20',
-        text: 'text-pink-600 dark:text-pink-400',
-        border: 'border-pink-500/10 dark:border-pink-500/20'
-      };
-    case 'entertainment':
-    case 'entertainment':
-    case 'ဖျော်ဖြေရေး':
-      return {
-        bg: 'bg-purple-500/10 dark:bg-purple-500/20',
-        text: 'text-purple-600 dark:text-purple-400',
-        border: 'border-purple-500/10 dark:border-purple-500/20'
-      };
-    case 'housing':
-    case 'housing':
-    case 'အိမ်လခ/အိမ်စရိတ်':
-      return {
-        bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
-        text: 'text-indigo-600 dark:text-indigo-400',
-        border: 'border-indigo-500/10 dark:border-indigo-500/20'
-      };
-    case 'utilities':
-    case 'utilities':
-    case 'မီတာ/ရေဖိုး/ဖုန်းဘေလ်':
-      return {
-        bg: 'bg-teal-500/10 dark:bg-teal-500/20',
-        text: 'text-teal-600 dark:text-teal-400',
-        border: 'border-teal-500/10 dark:border-teal-500/20'
-      };
-    case 'healthcare':
-    case 'healthcare':
-    case 'ကျန်းမာရေး':
-      return {
-        bg: 'bg-red-500/10 dark:bg-red-500/20',
-        text: 'text-red-600 dark:text-red-400',
-        border: 'border-red-500/10 dark:border-red-500/20'
-      };
-    case 'education':
-    case 'education':
-    case 'ပညာရေး':
-      return {
-        bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
-        text: 'text-cyan-600 dark:text-cyan-400',
-        border: 'border-cyan-500/10 dark:border-cyan-500/20'
-      };
-    case 'salary':
-    case 'salary':
-    case 'လစာဝင်ငွေ':
-      return {
-        bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-        text: 'text-emerald-600 dark:text-emerald-400',
-        border: 'border-emerald-500/10 dark:border-emerald-500/20'
-      };
-    case 'freelance':
-    case 'freelance':
-    case 'လွတ်လပ်သောလုပ်ငန်း':
-      return {
-        bg: 'bg-sky-500/10 dark:bg-sky-500/20',
-        text: 'text-sky-600 dark:text-sky-400',
-        border: 'border-sky-500/10 dark:border-sky-500/20'
-      };
-    case 'investment':
-    case 'investment':
-    case 'ရင်းနှီးမြှုပ်နှံမှု':
-      return {
-        bg: 'bg-violet-500/10 dark:bg-violet-500/20',
-        text: 'text-violet-600 dark:text-violet-400',
-        border: 'border-violet-500/10 dark:border-violet-500/20'
-      };
-    case 'gift':
-    case 'gift':
-    case 'လက်ဆောင်ရရှိမှု':
-      return {
-        bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-        text: 'text-rose-600 dark:text-rose-400',
-        border: 'border-rose-500/10 dark:border-rose-500/20'
-      };
-    default:
-      return {
-        bg: 'bg-slate-500/10 dark:bg-slate-500/20',
-        text: 'text-slate-600 dark:text-slate-400',
-        border: 'border-slate-500/10 dark:border-slate-500/20'
-      };
-  }
-};
 
 export default function App() {
   // State Initialization from LocalStorage or Defaults with a one-time clean-up of old mock data
@@ -275,6 +168,23 @@ export default function App() {
   const [showMonthMenu, setShowMonthMenu] = useState<boolean>(false);
   const [showYearMenu, setShowYearMenu] = useState<boolean>(false);
   const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
+
+  const [showBalance, setShowBalance] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('mm_show_balance') !== 'false';
+    }
+    return true;
+  });
+
+  const toggleShowBalance = () => {
+    setShowBalance((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mm_show_balance', String(next));
+      }
+      return next;
+    });
+  };
 
   const monthMenuRef = React.useRef<HTMLDivElement>(null);
   const yearMenuRef = React.useRef<HTMLDivElement>(null);
@@ -1770,13 +1680,22 @@ export default function App() {
                             <span className="text-[#8e8e93] text-[10px] md:text-xs font-black uppercase tracking-widest font-sans">
                               {t('totalBalance')}
                             </span>
-                            <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5">
+                            <button
+                              type="button"
+                              onClick={toggleShowBalance}
+                              className="p-1 rounded-lg text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer border-0 flex items-center justify-center"
+                              title={showBalance ? 'Hide Balance' : 'Show Balance'}
+                              aria-label={showBalance ? 'Hide Balance' : 'Show Balance'}
+                            >
+                              {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                            <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5 ml-auto">
                               {selectedMonth === 'all' ? t('allMonths') : selectedMonth}/{selectedYear === 'all' ? t('allYears') : selectedYear}
                             </span>
                           </div>
                           <div className="flex items-baseline gap-2.5 flex-wrap">
                             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
-                              {formatAmount(totals.balance)}
+                              {showBalance ? formatAmount(totals.balance) : '••••••••'}
                             </h2>
                             <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
                               totals.balance >= 0 
@@ -1798,7 +1717,7 @@ export default function App() {
                             <div className="min-w-0">
                               <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('income')}</span>
                               <span className="font-black text-xs md:text-sm text-[#34c759] font-mono truncate block mt-0.5">
-                                {formatAmount(totals.income)}
+                                {showBalance ? formatAmount(totals.income) : '••••••••'}
                               </span>
                             </div>
                           </div>
@@ -1811,7 +1730,7 @@ export default function App() {
                             <div className="min-w-0">
                               <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('expense')}</span>
                               <span className="font-black text-xs md:text-sm text-[#ff3b30] font-mono truncate block mt-0.5">
-                                {formatAmount(totals.expense)}
+                                {showBalance ? formatAmount(totals.expense) : '••••••••'}
                               </span>
                             </div>
                           </div>
@@ -1934,54 +1853,6 @@ export default function App() {
                                 </div>
                               </div>
 
-                              {/* Executive 3-Column Metrics Grid */}
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
-                                {/* Total Limit Box */}
-                                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0">
-                                    <Wallet className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                                      {t('overallMonthlyBudget') || 'Monthly Budget'}
-                                    </span>
-                                    <span className="font-extrabold text-xs md:text-sm text-[#1c1c1e] dark:text-white font-mono block mt-0.5 truncate">
-                                      {formatAmount(activeBudget.limit)}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Total Spent Box */}
-                                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-[#ff9500]/10 text-[#ff9500] flex items-center justify-center shrink-0">
-                                    <ArrowDownLeft className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                                      {t('totalExpenseSpent') || 'Spent'}
-                                    </span>
-                                    <span className="font-extrabold text-xs md:text-sm text-[#ff3b30] font-mono block mt-0.5 truncate">
-                                      {formatAmount(spent)}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Remaining / Over Budget Box */}
-                                <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isExceeded ? 'bg-[#ff3b30]/10 text-[#ff3b30]' : 'bg-[#34c759]/10 text-[#34c759]'}`}>
-                                    {isExceeded ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                                      {isExceeded ? (t('overBudgetLimit') || 'Over Budget') : (t('availableRemainingSpend') || 'Remaining')}
-                                    </span>
-                                    <span className={`font-extrabold text-xs md:text-sm font-mono block mt-0.5 truncate ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                                      {isExceeded ? formatAmount(overspentAmount) : formatAmount(remainingAmount)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
                               {/* Beautiful Progress Bar & Motivational text */}
                               <div className="space-y-2.5 pt-1">
                                 <div className="w-full h-3 bg-[#f2f2f7] dark:bg-white/10 rounded-full overflow-hidden p-[2px] border border-[#e5e5ea] dark:border-white/5 shadow-inner">
@@ -2058,7 +1929,7 @@ export default function App() {
 
                         <div className="space-y-2.5">
                           {dashboardFilteredTransactions.slice(0, 5).map((tx) => {
-                            const style = getCategoryStyle(tx.category);
+                            const style = getCategoryStyle(tx.category, categoryColors);
                             return (
                               <div
                                 key={tx.id}
@@ -2067,6 +1938,7 @@ export default function App() {
                                 <div className="flex items-center gap-3.5 min-w-0">
                                   <div
                                     className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 border ${style.bg} ${style.text} ${style.border}`}
+                                    style={style.style}
                                   >
                                     {tx.type === 'income' ? (
                                       <ArrowUpRight className="w-5 h-5" />
@@ -2118,6 +1990,7 @@ export default function App() {
                     formatAmount={formatAmount}
                     incomeCategories={incomeCategories}
                     expenseCategories={expenseCategories}
+                    categoryColors={categoryColors}
                     onAddTransactionTrigger={() => {
                       setEditingTxInAddPage(null);
                       setActiveTab('add-transaction');
@@ -2138,6 +2011,7 @@ export default function App() {
                       currencyCode={customCurrency.code}
                       incomeCategories={incomeCategories}
                       expenseCategories={expenseCategories}
+                      categoryColors={categoryColors}
                       onAddTransaction={handleAddTransaction}
                       onCancel={() => setActiveTab(lastMainTab)}
                       initialTransaction={editingTxInAddPage}

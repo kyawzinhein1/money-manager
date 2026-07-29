@@ -1,6 +1,41 @@
-export const getCategoryStyle = (categoryName: string) => {
-  const norm = categoryName.trim().toLowerCase();
-  switch (norm) {
+import React from 'react';
+
+export interface CategoryStyle {
+  bg: string;
+  text: string;
+  border: string;
+  style?: React.CSSProperties;
+  hex?: string;
+}
+
+export const getCategoryStyle = (categoryName: string, categoryColors?: Record<string, string>): CategoryStyle => {
+  if (!categoryName) {
+    return {
+      bg: 'bg-slate-500/10 dark:bg-slate-500/20',
+      text: 'text-slate-600 dark:text-slate-400',
+      border: 'border-slate-500/10 dark:border-slate-500/20'
+    };
+  }
+
+  const norm = categoryName.trim();
+  const customHex = categoryColors?.[norm] || categoryColors?.[norm.toLowerCase()];
+
+  if (customHex) {
+    return {
+      bg: '',
+      text: '',
+      border: '',
+      style: {
+        backgroundColor: `${customHex}1a`,
+        color: customHex,
+        borderColor: `${customHex}33`,
+      },
+      hex: customHex,
+    };
+  }
+
+  const lowerNorm = norm.toLowerCase();
+  switch (lowerNorm) {
     case 'food':
     case 'စားသောက်စရိတ်':
       return {

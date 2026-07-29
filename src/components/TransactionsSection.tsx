@@ -28,6 +28,7 @@ import {
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateLedgerPDF } from '../utils/pdfGenerator';
+import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -41,6 +42,7 @@ interface TransactionsSectionProps {
   expenseCategories?: string[];
   onAddTransactionTrigger?: () => void;
   onEditTransactionTrigger?: (tx: Transaction) => void;
+  categoryColors?: Record<string, string>;
 }
 
 const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Gift', 'Others'];
@@ -55,96 +57,6 @@ const EXPENSE_CATEGORIES = [
   'Education',
   'Others'
 ];
-
-// Aesthetic Category styles with specific backgrounds, borders, and text colors (cached for instant lookup)
-const categoryStyleCache = new Map<string, { bg: string; text: string; border: string }>();
-
-const getCategoryStyle = (categoryName: string) => {
-  if (categoryStyleCache.has(categoryName)) {
-    return categoryStyleCache.get(categoryName)!;
-  }
-  const norm = categoryName.trim().toLowerCase();
-  let style = {
-    bg: 'bg-slate-500/10 dark:bg-slate-500/20',
-    text: 'text-slate-600 dark:text-slate-400',
-    border: 'border-slate-500/10 dark:border-slate-500/20'
-  };
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
-    style = {
-      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
-      text: 'text-amber-600 dark:text-amber-400',
-      border: 'border-amber-500/10 dark:border-amber-500/20'
-    };
-  } else if (norm.includes('transport') || norm.includes('travel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
-    style = {
-      bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-      text: 'text-blue-600 dark:text-blue-400',
-      border: 'border-blue-500/10 dark:border-blue-500/20'
-    };
-  } else if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) {
-    style = {
-      bg: 'bg-pink-500/10 dark:bg-pink-500/20',
-      text: 'text-pink-600 dark:text-pink-400',
-      border: 'border-pink-500/10 dark:border-pink-500/20'
-    };
-  } else if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) {
-    style = {
-      bg: 'bg-purple-500/10 dark:bg-purple-500/20',
-      text: 'text-purple-600 dark:text-purple-400',
-      border: 'border-purple-500/10 dark:border-purple-500/20'
-    };
-  } else if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
-    style = {
-      bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
-      text: 'text-indigo-600 dark:text-indigo-400',
-      border: 'border-indigo-500/10 dark:border-indigo-500/20'
-    };
-  } else if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
-    style = {
-      bg: 'bg-teal-500/10 dark:bg-teal-500/20',
-      text: 'text-teal-600 dark:text-teal-400',
-      border: 'border-teal-500/10 dark:border-teal-500/20'
-    };
-  } else if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
-    style = {
-      bg: 'bg-red-500/10 dark:bg-red-500/20',
-      text: 'text-red-600 dark:text-red-400',
-      border: 'border-red-500/10 dark:border-red-500/20'
-    };
-  } else if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
-    style = {
-      bg: 'bg-cyan-500/10 dark:bg-cyan-500/20',
-      text: 'text-cyan-600 dark:text-cyan-400',
-      border: 'border-cyan-500/10 dark:border-cyan-500/20'
-    };
-  } else if (norm.includes('salar') || norm.includes('လစာ')) {
-    style = {
-      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-      text: 'text-emerald-600 dark:text-emerald-400',
-      border: 'border-emerald-500/10 dark:border-emerald-500/20'
-    };
-  } else if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
-    style = {
-      bg: 'bg-sky-500/10 dark:bg-sky-500/20',
-      text: 'text-sky-600 dark:text-sky-400',
-      border: 'border-sky-500/10 dark:border-sky-500/20'
-    };
-  } else if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
-    style = {
-      bg: 'bg-violet-500/10 dark:bg-violet-500/20',
-      text: 'text-violet-600 dark:text-violet-400',
-      border: 'border-violet-500/10 dark:border-violet-500/20'
-    };
-  } else if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
-    style = {
-      bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-      text: 'text-rose-600 dark:text-rose-400',
-      border: 'border-rose-500/10 dark:border-rose-500/20'
-    };
-  }
-  categoryStyleCache.set(categoryName, style);
-  return style;
-};
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(() => {
@@ -168,7 +80,7 @@ const useIsMobile = () => {
 interface TransactionRowProps {
   tx: Transaction;
   formattedDate: string;
-  categoryStyle: { bg: string; text: string; border: string };
+  categoryStyle: CategoryStyle;
   translatedCategory: string;
   formattedAmount: string;
   onEdit: (tx: Transaction) => void;
@@ -194,6 +106,7 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
       <td className="p-4.5 whitespace-nowrap">
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          style={categoryStyle.style}
         >
           {tx.type === 'income' ? (
             <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
@@ -253,6 +166,7 @@ const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
       <div className="flex items-center justify-between gap-2">
         <span
           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          style={categoryStyle.style}
         >
           {tx.type === 'income' ? (
             <ArrowUpRight className="w-3 h-3 shrink-0" />
@@ -315,6 +229,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   expenseCategories = EXPENSE_CATEGORIES,
   onAddTransactionTrigger,
   onEditTransactionTrigger,
+  categoryColors = {},
 }) => {
   const isMobile = useIsMobile();
   const t = useCallback((key: string) => TRANSLATIONS[language][key] || key, [language]);
@@ -754,7 +669,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   key={tx.id}
                   tx={tx}
                   formattedDate={formatDateDMY(tx.date)}
-                  categoryStyle={getCategoryStyle(tx.category)}
+                  categoryStyle={getCategoryStyle(tx.category, categoryColors)}
                   translatedCategory={tc(tx.category)}
                   formattedAmount={formatAmount(tx.amount)}
                   onEdit={handleOpenEdit}
@@ -809,7 +724,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                       key={tx.id}
                       tx={tx}
                       formattedDate={formatDateDMY(tx.date)}
-                      categoryStyle={getCategoryStyle(tx.category)}
+                      categoryStyle={getCategoryStyle(tx.category, categoryColors)}
                       translatedCategory={tc(tx.category)}
                       formattedAmount={formatAmount(tx.amount)}
                       onEdit={handleOpenEdit}

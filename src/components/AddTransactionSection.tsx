@@ -28,6 +28,7 @@ import {
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { IOSDatePicker } from './IOSDatePicker';
+import { getCategoryStyle } from '../utils/categoryStyle';
 
 interface AddTransactionSectionProps {
   language: Language;
@@ -40,6 +41,7 @@ interface AddTransactionSectionProps {
   initialTransaction?: Transaction | null;
   onEditTransaction?: (tx: Transaction) => void;
   formatAmount: (amount: number) => string;
+  categoryColors?: Record<string, string>;
 }
 
 const getCategoryIcon = (name: string): LucideIcon => {
@@ -202,6 +204,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
   initialTransaction = null,
   onEditTransaction,
   formatAmount,
+  categoryColors = {},
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
@@ -444,17 +447,26 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
               {currentCategories.map((cat) => {
                 const isSelected = category === cat;
                 const IconComponent = getCategoryIcon(cat);
-                const col = getCategoryColors(cat);
+                const catStyle = getCategoryStyle(cat, categoryColors);
 
                 return (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
+                    style={
+                      isSelected
+                        ? catStyle.style
+                          ? { backgroundColor: catStyle.hex, color: '#ffffff', borderColor: catStyle.hex }
+                          : undefined
+                        : catStyle.style
+                    }
                     className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? col.active
-                        : `${col.bg} border-transparent hover:scale-[1.02]`
+                        ? catStyle.style
+                          ? 'shadow-md scale-[1.02] border-2 font-black'
+                          : 'bg-[#007aff] text-white border-[#007aff] shadow-md scale-[1.02] font-black'
+                        : `${catStyle.bg} ${catStyle.text} ${catStyle.border} hover:scale-[1.02]`
                     }`}
                   >
                     <div className="shrink-0">

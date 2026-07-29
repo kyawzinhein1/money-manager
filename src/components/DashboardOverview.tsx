@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar,
@@ -11,10 +11,12 @@ import {
   Wallet,
   AlertTriangle,
   CheckCircle2,
-  History
+  History,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Transaction, Budget, Settings } from '../types';
-import { getCategoryStyle } from '../utils/categoryStyle';
+import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
 
 interface DashboardOverviewProps {
   t: (key: string) => string;
@@ -42,11 +44,12 @@ interface DashboardOverviewProps {
   onSelectTab: (tab: any) => void;
   onExportPDF: () => void;
   setEditingTxInAddPage: (tx: Transaction | null) => void;
+  categoryColors?: Record<string, string>;
 }
 
 interface DashboardRecentTxItemProps {
   tx: Transaction;
-  style: { bg: string; text: string; border: string };
+  style: CategoryStyle;
   translatedCategory: string;
   formattedDate: string;
   formattedAmount: string;
@@ -66,6 +69,7 @@ const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo((
       <div className="flex items-center gap-3.5 min-w-0">
         <div
           className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${style.bg} ${style.text} ${style.border}`}
+          style={style.style}
         >
           {tx.type === 'income' ? (
             <ArrowUpRight className="w-5 h-5" />
@@ -115,9 +119,27 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   onSelectTab,
   onExportPDF,
   setEditingTxInAddPage,
+  categoryColors = {},
 }) => {
   const monthMenuRef = React.useRef<HTMLDivElement>(null);
   const yearMenuRef = React.useRef<HTMLDivElement>(null);
+
+  const [showBalance, setShowBalance] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('mm_show_balance') !== 'false';
+    }
+    return true;
+  });
+
+  const toggleShowBalance = () => {
+    setShowBalance((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mm_show_balance', String(next));
+      }
+      return next;
+    });
+  };
 
   React.useLayoutEffect(() => {
     if (showMonthMenu && monthMenuRef.current) {
@@ -304,13 +326,22 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
               <span className="text-[#8e8e93] text-[10px] md:text-xs font-black uppercase tracking-widest font-sans">
                 {t('totalBalance')}
               </span>
-              <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5">
+              <button
+                type="button"
+                onClick={toggleShowBalance}
+                className="p-1 rounded-lg text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer border-0 flex items-center justify-center"
+                title={showBalance ? 'Hide Balance' : 'Show Balance'}
+                aria-label={showBalance ? 'Hide Balance' : 'Show Balance'}
+              >
+                {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5 ml-auto">
                 {selectedMonth === 'all' ? t('allMonths') : selectedMonth}/{selectedYear === 'all' ? t('allYears') : selectedYear}
               </span>
             </div>
             <div className="flex items-baseline gap-2.5 flex-wrap">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
-                {formatAmount(totals.balance)}
+                {showBalance ? formatAmount(totals.balance) : '••••••••'}
               </h2>
               <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
                 totals.balance >= 0 
@@ -332,7 +363,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
               <div className="min-w-0">
                 <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('income')}</span>
                 <span className="font-black text-xs md:text-sm text-[#34c759] font-mono truncate block mt-0.5">
-                  {formatAmount(totals.income)}
+                  {showBalance ? formatAmount(totals.income) : '••••••••'}
                 </span>
               </div>
             </div>
@@ -345,7 +376,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
               <div className="min-w-0">
                 <span className="text-[#8e8e93] text-[9px] uppercase font-black block tracking-wider">{t('expense')}</span>
                 <span className="font-black text-xs md:text-sm text-[#ff3b30] font-mono truncate block mt-0.5">
-                  {formatAmount(totals.expense)}
+                  {showBalance ? formatAmount(totals.expense) : '••••••••'}
                 </span>
               </div>
             </div>
@@ -467,51 +498,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                   </div>
                 </div>
 
-                {/* Executive 3-Column Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
-                  <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0">
-                      <Wallet className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                        {t('overallMonthlyBudget') || 'Monthly Budget'}
-                      </span>
-                      <span className="font-extrabold text-xs md:text-sm text-[#1c1c1e] dark:text-white font-mono block mt-0.5 truncate">
-                        {formatAmount(activeBudget.limit)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#ff9500]/10 text-[#ff9500] flex items-center justify-center shrink-0">
-                      <ArrowDownLeft className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                        {t('totalExpenseSpent') || 'Spent'}
-                      </span>
-                      <span className="font-extrabold text-xs md:text-sm text-[#ff3b30] font-mono block mt-0.5 truncate">
-                        {formatAmount(spent)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isExceeded ? 'bg-[#ff3b30]/10 text-[#ff3b30]' : 'bg-[#34c759]/10 text-[#34c759]'}`}>
-                      {isExceeded ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
-                        {isExceeded ? (t('overBudgetLimit') || 'Over Budget') : (t('availableRemainingSpend') || 'Remaining')}
-                      </span>
-                      <span className={`font-extrabold text-xs md:text-sm font-mono block mt-0.5 truncate ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                        {isExceeded ? formatAmount(overspentAmount) : formatAmount(remainingAmount)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="space-y-2.5 pt-1">
                   <div className="w-full h-3 bg-[#f2f2f7] dark:bg-white/10 rounded-full overflow-hidden p-[2px] border border-[#e5e5ea] dark:border-white/5 shadow-inner">
                     <div
@@ -589,7 +575,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
               <DashboardRecentTxItem
                 key={tx.id}
                 tx={tx}
-                style={getCategoryStyle(tx.category)}
+                style={getCategoryStyle(tx.category, categoryColors)}
                 translatedCategory={tc(tx.category)}
                 formattedDate={formatDateDMY(tx.date)}
                 formattedAmount={formatAmount(tx.amount)}
