@@ -160,7 +160,12 @@ export default function App() {
   });
 
   // Current Active Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('mm_open_updates_on_load') === 'true') {
+      return 'settings';
+    }
+    return 'dashboard';
+  });
   const [previousTab, setPreviousTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>('dashboard');
   const [editingTxInAddPage, setEditingTxInAddPage] = useState<Transaction | null>(null);
   const [lastMainTab, setLastMainTab] = useState<'dashboard' | 'transactions'>('dashboard');

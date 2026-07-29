@@ -11,7 +11,8 @@ import {
   Layers,
   Clock,
   DownloadCloud,
-  ArrowUpCircle
+  ArrowUpCircle,
+  Mail
 } from 'lucide-react';
 import { Language, Settings } from '../../types';
 import {
@@ -45,7 +46,14 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
   const [autoCheck, setAutoCheck] = useState<boolean>(() => {
     return localStorage.getItem('mm_auto_check_updates') !== 'false';
   });
-  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [statusMessage, setStatusMessage] = useState<string>(() => {
+    const msg = localStorage.getItem('mm_just_updated_msg');
+    if (msg) {
+      localStorage.removeItem('mm_just_updated_msg');
+      return msg;
+    }
+    return '';
+  });
 
   useEffect(() => {
     // Automatically fetch server version info on mount
@@ -79,13 +87,24 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
 
     if (serverData) {
       setServerInfo(serverData);
-      if (serverData.buildHash !== LOCAL_VERSION_INFO.buildHash || serverData.version !== LOCAL_VERSION_INFO.version) {
+      const isNewVersion = serverData.buildHash !== LOCAL_VERSION_INFO.buildHash || serverData.version !== LOCAL_VERSION_INFO.version;
+      if (isNewVersion) {
         setUpdateAvailable(true);
         setStatusMessage(
           language === 'my'
-            ? `ဗားရှင်းအသစ် (${serverData.version}) ရရှိနိုင်ပါပြီ!`
-            : `New update available: ${serverData.version}!`
+            ? `ဗားရှင်းအသစ် (${serverData.version}) တွေ့ရှိပါပြီ! အက်ပ်ကို ပြန်လည်စတင်ပြီး အပ်ဒိတ်လုပ်နေပါသည်...`
+            : `New update found (${serverData.version})! Reloading application to apply update...`
         );
+        localStorage.setItem('mm_open_updates_on_load', 'true');
+        localStorage.setItem(
+          'mm_just_updated_msg',
+          language === 'my'
+            ? `အက်ပ်ကို ဗားရှင်းအသစ် (${serverData.version}) သို့ အောင်မြင်စွာ အဆင့်မြှင့်တင်ပြီးပါပြီ။`
+            : `Application updated successfully to version ${serverData.version}!`
+        );
+        setTimeout(() => {
+          forceApplyAppUpdate();
+        }, 800);
       } else {
         setUpdateAvailable(false);
         setStatusMessage(
@@ -110,6 +129,13 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         ? 'အပလီကေးရှင်း ကက်ချ် (Cache) များကို ရှင်းလင်းပြီး နောက်ဆုံးပြင်ဆင်ချက်များကို ရယူရန် စာမျက်နှာကို ပြန်လည်စတင်မည်လား?'
         : 'Clear web application cache and hard reload to fetch the latest published bundle?'
     )) {
+      localStorage.setItem('mm_open_updates_on_load', 'true');
+      localStorage.setItem(
+        'mm_just_updated_msg',
+        language === 'my'
+          ? 'ကက်ချ် ရှင်းလင်းပြီး အက်ပ်ကို နောက်ဆုံး ဗားရှင်းသို့ ပြန်လည်ရယူပြီးပါပြီ။'
+          : 'Web cache cleared and reloaded latest published version.'
+      );
       forceApplyAppUpdate();
     }
   };
@@ -345,10 +371,19 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
       </div>
 
       {/* Developer & Copyright Footer */}
-      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06] text-center space-y-1">
+      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06] text-center space-y-1.5">
         <p className="text-xs font-bold text-[#1c1c1e] dark:text-white">
           Developed by <span className="text-[#007aff]">Kyaw Zin Hein</span>
         </p>
+        <div>
+          <a
+            href="mailto:kyawzinhein.developer@gmail.com"
+            className="inline-flex items-center gap-1.5 text-xs text-[#8e8e93] hover:text-[#007aff] transition-colors font-mono"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            kyawzinhein.developer@gmail.com
+          </a>
+        </div>
         <p className="text-[11px] text-[#8e8e93] font-medium">
           © {new Date().getFullYear()} Money Manager. All rights reserved.
         </p>

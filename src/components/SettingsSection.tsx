@@ -94,7 +94,13 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 }) => {
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [showDatabaseConsole, setShowDatabaseConsole] = useState(false);
-  const [showCheckUpdates, setShowCheckUpdates] = useState(false);
+  const [showCheckUpdates, setShowCheckUpdates] = useState(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('mm_open_updates_on_load') === 'true') {
+      localStorage.removeItem('mm_open_updates_on_load');
+      return true;
+    }
+    return false;
+  });
 
   const customCurrency: Currency = {
     code: settings.currency || 'MMK',
