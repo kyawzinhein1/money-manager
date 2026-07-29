@@ -343,6 +343,16 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Developer & Copyright Footer */}
+      <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.06] text-center space-y-1">
+        <p className="text-xs font-bold text-[#1c1c1e] dark:text-white">
+          Developed by <span className="text-[#007aff]">Kyaw Zin Hein</span>
+        </p>
+        <p className="text-[11px] text-[#8e8e93] font-medium">
+          © {new Date().getFullYear()} Money Manager. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,8 @@ import {
   Globe,
   FolderKanban,
   Database,
-  RefreshCw
+  RefreshCw,
+  Mail
 } from 'lucide-react';
 import {
   Language,
@@ -298,6 +299,33 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
               <RefreshCw className="w-4 h-4" />
               {settings.language === 'my' ? 'အပ်ဒိတ်များ စစ်ဆေးမည်' : 'Check for Updates & Release Notes'}
             </button>
+          </div>
+
+          {/* Developer & Copyright Card */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-3 border border-black/5 dark:border-white/5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-[10px] font-black uppercase tracking-wider text-[#8e8e93]">
+                  {settings.language === 'my' ? 'ဖန်တီးသူ မူပိုင်ခွင့်' : 'Developer & Rights'}
+                </h4>
+                <p className="text-sm font-bold text-[#1c1c1e] dark:text-white mt-0.5">
+                  Developed by <span className="text-[#007aff]">Kyaw Zin Hein</span>
+                </p>
+                <a
+                  href="mailto:kyawzinhein.developer@gmail.com"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#8e8e93] hover:text-[#007aff] transition-colors mt-1 font-mono"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  kyawzinhein.developer@gmail.com
+                </a>
+              </div>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#007aff]/10 text-[#007aff] font-mono whitespace-nowrap self-start sm:self-auto">
+                All Rights Reserved
+              </span>
+            </div>
+            <p className="text-[11px] text-[#8e8e93] border-t border-black/5 dark:border-white/5 pt-2.5 mt-1 font-medium">
+              © {new Date().getFullYear()} Money Manager. All rights reserved.
+            </p>
           </div>
         </div>
       </div>
