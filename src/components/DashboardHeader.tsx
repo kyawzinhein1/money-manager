@@ -70,7 +70,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({
         </div>
 
         {/* Quick toggle settings in top bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Language toggle quick button */}
           <button
             id="quick-lang-toggle"
@@ -256,8 +256,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({
           <button
             id="navbar-profile-btn"
             onClick={onSelectProfile}
-            className={`p-1.5 rounded-full transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'profile' ? 'ring-2 ring-[#007aff]' : ''
+            className={`p-1 rounded-full transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'profile' ? 'ring-2 ring-[#007aff] bg-[#007aff]/10' : ''
             }`}
             title={t('profile')}
           >
@@ -265,9 +265,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({
               src={profile.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
               alt={profile.name}
               referrerPolicy="no-referrer"
-              className="w-7 h-7 rounded-full object-cover"
+              className="w-8 h-8 rounded-full object-cover border border-black/10 dark:border-white/10 shadow-xs"
             />
-            <span className="hidden md:inline text-xs font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] pr-1 font-sans">
+            <span className="text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7] pr-1 font-sans max-w-[80px] sm:max-w-[120px] truncate">
               {profile.name.split(' ')[0]}
             </span>
           </button>

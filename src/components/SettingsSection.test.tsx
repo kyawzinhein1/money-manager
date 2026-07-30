@@ -13,10 +13,10 @@ describe('SettingsSection', () => {
 
   const mockProfile: UserProfile = {
     name: 'Alex Doe',
-    email: 'alex@example.com',
-    occupation: 'Engineer',
+    incomeSource: 'Monthly Salary',
+    savingsGoal: 'Save 20% of Monthly Income',
+    financialFocus: 'Strict Expense Control',
     photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
-    phone: '12345678',
     bio: 'Software engineer',
   };
 
@@ -48,7 +48,7 @@ describe('SettingsSection', () => {
     );
 
     expect(screen.getByText('Alex Doe')).toBeInTheDocument();
-    expect(screen.getByText(/alex@example.com/)).toBeInTheDocument();
+    expect(screen.getByText(/Monthly Salary/)).toBeInTheDocument();
   });
 
   it('navigates to manage categories view when button clicked', () => {

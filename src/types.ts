@@ -59,10 +59,14 @@ export const DEFAULT_NAVBAR_SETTINGS: NavbarSettings = {
 
 export interface UserProfile {
   name: string;
-  email: string;
   photoUrl: string;
-  phone: string;
-  occupation: string;
+  incomeSource?: string;
+  paydayCycle?: string;
+  savingsGoal?: string;
+  financialFocus?: string;
   bio: string;
+  email?: string;
+  phone?: string;
+  occupation?: string;
 }
 

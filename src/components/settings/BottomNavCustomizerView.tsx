@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ArrowLeft,
+  X,
   Smartphone,
   Monitor,
   Palette,
@@ -166,35 +166,29 @@ export const BottomNavCustomizerView: React.FC<BottomNavCustomizerViewProps> = (
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-[#1c1c1e] dark:text-[#f2f2f7] transition-all cursor-pointer border-0"
-            title={language === 'my' ? 'နောက်သို့' : 'Back'}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-[#007aff]" />
-              {language === 'my' ? 'မိုဘိုင်း Bottom Navbar ပြင်ဆင်ရန်' : 'Customize Bottom Navigation Bar'}
-            </h2>
-            <p className="text-xs text-[#8e8e93]">
-              {language === 'my'
-                ? 'မိုဘိုင်းဖုန်းစခရင်တွင် ပြသမည့် Bottom Navigation Bar ၏ အရောင်၊ ကြည်လင်မှု၊ ပုံစံများ စိတ်ကြိုက်ပြင်ဆင်ပါ'
-                : 'Personalize colors, transparency, backdrop blur, shapes, and active highlights for mobile screen size'}
-            </p>
-          </div>
+      <div className="flex items-center justify-between border-b border-black/[0.05] dark:border-white/[0.05] pb-5 gap-4">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-[#007aff]" />
+            {language === 'my' ? 'မိုဘိုင်း Bottom Navbar ပြင်ဆင်ရန်' : 'Customize Bottom Navigation Bar'}
+          </h2>
+          <p className="text-xs text-[#8e8e93]">
+            {language === 'my'
+              ? 'မိုဘိုင်းဖုန်းစခရင်တွင် ပြသမည့် Bottom Navigation Bar ၏ အရောင်၊ ကြည်လင်မှု၊ ပုံစံများ စိတ်ကြိုက်ပြင်ဆင်ပါ'
+              : 'Personalize colors, transparency, backdrop blur, shapes, and active highlights for mobile screen size'}
+          </p>
         </div>
 
-        <button
-          onClick={handleResetDefaults}
-          className="px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-xs font-bold text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all flex items-center gap-1.5 cursor-pointer border-0"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          {language === 'my' ? 'မူလအတိုင်းပြန်ထားမည်' : 'Reset Default'}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            id="close-bottom-nav-customizer-btn"
+            onClick={onClose}
+            className="w-11 h-11 flex items-center justify-center bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full hover:opacity-80 transition-all cursor-pointer border-0 shrink-0"
+            title={language === 'my' ? 'ပိတ်ရန်' : 'Close'}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Screen Size Device Notice Banner */}
@@ -559,6 +553,18 @@ export const BottomNavCustomizerView: React.FC<BottomNavCustomizerViewProps> = (
                   navState.showLabels ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
+            </button>
+          </div>
+
+          {/* Reset Defaults Full-Width Button */}
+          <div className="pt-4 border-t border-black/5 dark:border-white/5">
+            <button
+              id="reset-bottom-nav-customizer-btn"
+              onClick={handleResetDefaults}
+              className="w-full py-3.5 px-4 rounded-2xl bg-red-500/10 hover:bg-red-500/15 text-red-600 dark:text-red-400 font-bold text-xs md:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer border border-red-500/20 shadow-xs active:scale-[0.99]"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>{language === 'my' ? 'မူလအတိုင်း ပြန်လည်သတ်မှတ်မည်' : 'Reset Navigation Defaults'}</span>
             </button>
           </div>
         </div>

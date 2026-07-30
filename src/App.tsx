@@ -50,13 +50,15 @@ import {
 
 // Component Imports
 import { TransactionsSection } from './components/TransactionsSection';
-import { OnboardingModal } from './components/OnboardingModal';
 import { BottomNav } from './components/BottomNav';
-import { BudgetSection } from './components/BudgetSection';
-import { AnalyticsSection } from './components/AnalyticsSection';
-import { SettingsSection } from './components/SettingsSection';
-import { ProfileSection } from './components/ProfileSection';
-import { AddTransactionSection } from './components/AddTransactionSection';
+
+// Lazy Loaded Sections for Faster App Startup & Reload
+const OnboardingModal = lazy(() => import('./components/OnboardingModal').then(m => ({ default: m.OnboardingModal })));
+const BudgetSection = lazy(() => import('./components/BudgetSection').then(m => ({ default: m.BudgetSection })));
+const AnalyticsSection = lazy(() => import('./components/AnalyticsSection').then(m => ({ default: m.AnalyticsSection })));
+const SettingsSection = lazy(() => import('./components/SettingsSection').then(m => ({ default: m.SettingsSection })));
+const ProfileSection = lazy(() => import('./components/ProfileSection').then(m => ({ default: m.ProfileSection })));
+const AddTransactionSection = lazy(() => import('./components/AddTransactionSection').then(m => ({ default: m.AddTransactionSection })));
 
 const SectionLoadingFallback = () => (
   <div className="w-full py-16 flex flex-col items-center justify-center space-y-3 animate-fade-in">
@@ -143,10 +145,11 @@ export default function App() {
     const saved = localStorage.getItem('mm_profile');
     return saved ? JSON.parse(saved) : {
       name: 'Kyaw Zin Hein',
-      email: 'kyawzinhein162@gmail.com',
       photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      phone: '+95 9 123456789',
-      occupation: 'Software Engineer',
+      incomeSource: 'Monthly Salary',
+      paydayCycle: 'Monthly (1st)',
+      savingsGoal: 'Save 20% of Monthly Income',
+      financialFocus: 'Strict Expense Control',
       bio: 'Managing daily expenses with custom currency views.'
     };
   });
@@ -1273,7 +1276,7 @@ export default function App() {
           </div>
 
           {/* Quick toggle settings in top bar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Language toggle quick button */}
             <button
               id="quick-lang-toggle"
@@ -2271,7 +2274,9 @@ export default function App() {
       </AnimatePresence>
 
       {/* Welcome Onboarding Screen */}
-      <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+      <Suspense fallback={null}>
+        <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+      </Suspense>
     </div>
   );
 }

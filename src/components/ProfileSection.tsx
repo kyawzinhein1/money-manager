@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Phone, Briefcase, AlignLeft, Camera, Check, X, Edit3, Image, AlertCircle } from 'lucide-react';
+import { 
+  User, 
+  Wallet, 
+  Calendar, 
+  PiggyBank, 
+  Target, 
+  AlignLeft, 
+  Camera, 
+  Check, 
+  X, 
+  Edit3, 
+  AlertCircle 
+} from 'lucide-react';
 import { UserProfile, Language } from '../types';
 import { TRANSLATIONS } from '../translations';
 
@@ -34,6 +46,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
   useEffect(() => {
     setIsEditing(initialEdit);
   }, [initialEdit]);
+
   const [formData, setFormData] = useState<UserProfile>({ ...profile });
   const [tempPhotoUrl, setTempPhotoUrl] = useState(profile.photoUrl);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -77,7 +90,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
     setErrors({});
   }, [profile]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
@@ -103,23 +116,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
     } else if (formData.name.trim().length < 2) {
       newErrors.name = language === 'my' ? "အမည်သည် အနည်းဆုံး စာလုံး ၂ လုံး ရှိရပါမည်။" : "Name must be at least 2 characters.";
     }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = language === 'my' ? "အီးမေးလ် ဖြည့်စွက်ရန် လိုအပ်ပါသည်။" : "Email is required.";
-    } else if (!emailRegex.test(formData.email.trim())) {
-      newErrors.email = language === 'my' ? "မှန်ကန်သော အီးမေးလ်လိပ်စာ ဖြစ်ရပါမည်။" : "Please enter a valid email address.";
-    }
-    
-    
-    // Phone validation (if set)
-    if (formData.phone && formData.phone.trim()) {
-      const phoneRegex = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/;
-      if (!phoneRegex.test(formData.phone.trim())) {
-        newErrors.phone = language === 'my' ? "မှန်ကန်သော ဖုန်းနံပါတ် ဖြစ်ရပါမည်။" : "Please enter a valid phone number.";
-      }
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -142,6 +138,12 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
     setIsEditing(false);
   };
 
+  // Practical Financial Defaults for display
+  const displayIncomeSource = profile.incomeSource || (language === 'my' ? 'လစဉ် လစာဝင်ငွေ' : 'Monthly Salary');
+  const displayPaydayCycle = profile.paydayCycle || (language === 'my' ? 'လစဉ် (၁ ရက်နေ့)' : 'Monthly (1st of Month)');
+  const displaySavingsGoal = profile.savingsGoal || (language === 'my' ? 'ဝင်ငွေ၏ ၂၀% စုဆောင်းရန်' : 'Save 20% of Monthly Income');
+  const displayFinancialFocus = profile.financialFocus || (language === 'my' ? 'သုံးစွဲမှု ထိန်းချုပ်ခြင်း' : 'Strict Expense Control');
+
   return (
     <div className="max-w-2xl mx-auto space-y-6" id="profile-section">
       {/* Title */}
@@ -152,7 +154,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
             {t('profile')}
           </h2>
           <p className="text-xs text-[#8e8e93]">
-            Manage your personal identity and public information
+            {language === 'my' ? 'သင့်ငွေကြေး စီမံခန့်ခွဲမှု ဆိုင်ရာ ကိုယ်ရေးအချက်အလက်များ' : 'Manage your financial profile and personal preferences'}
           </p>
         </div>
         {onClose && (
@@ -169,7 +171,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
       {/* Main Profile Card */}
       <div className="ios-glass rounded-[2rem] overflow-hidden shadow-xs">
         {/* Banner Accent */}
-        <div className="h-28 bg-gradient-to-r from-[#007aff] to-[#5856d6] relative" />
+        <div className="h-28 bg-gradient-to-r from-[#007aff] via-[#5856d6] to-[#34c759] relative" />
 
         <div className="px-6 pb-6 relative z-10">
           {/* Profile Photo Placement */}
@@ -197,43 +199,84 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
                 <h3 className="text-lg font-bold text-[#1c1c1e] dark:text-[#f2f2f7]" id="profile-display-name">
                   {profile.name}
                 </h3>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#007aff]/10 text-[#007aff] mt-1">
-                  {profile.occupation || 'N/A'}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#007aff]/10 text-[#007aff] mt-1.5 border border-[#007aff]/20">
+                  <Target className="w-3.5 h-3.5" />
+                  {displayFinancialFocus}
                 </span>
               </div>
 
-              {/* Bio block */}
+              {/* Bio / Financial Motto block */}
               {profile.bio && (
                 <div className="p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
-                  <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
-                    <AlignLeft className="w-3 h-3" />
+                  <p className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <AlignLeft className="w-3 h-3 text-[#007aff]" />
                     {t('bioLabel')}
                   </p>
-                  <p className="text-sm text-[#1c1c1e] dark:text-[#f2f2f7] italic">
+                  <p className="text-xs sm:text-sm text-[#1c1c1e] dark:text-[#f2f2f7] italic font-medium">
                     "{profile.bio}"
                   </p>
                 </div>
               )}
 
-              {/* Information Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="flex items-center gap-3 p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
-                  <div className="w-9 h-9 bg-white dark:bg-[#1c1c1e] rounded-full flex items-center justify-center text-[#8e8e93] shrink-0 shadow-xs">
-                    <Mail className="w-4.5 h-4.5" />
+              {/* Practical Financial Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                {/* Income Source */}
+                <div className="flex items-center gap-3.5 p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
+                  <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
+                    <Wallet className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold block">{t('emailLabel')}</span>
-                    <span className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">{profile.email}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold tracking-wider block">
+                      {t('incomeSourceLabel')}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">
+                      {displayIncomeSource}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
-                  <div className="w-9 h-9 bg-white dark:bg-[#1c1c1e] rounded-full flex items-center justify-center text-[#8e8e93] shrink-0 shadow-xs">
-                    <Phone className="w-4.5 h-4.5" />
+                {/* Income Cycle / Payday */}
+                <div className="flex items-center gap-3.5 p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
+                  <div className="w-10 h-10 bg-[#007aff]/10 dark:bg-[#007aff]/20 text-[#007aff] rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
+                    <Calendar className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold block">{t('phoneLabel')}</span>
-                    <span className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">{profile.phone || 'N/A'}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold tracking-wider block">
+                      {t('paydayCycleLabel')}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">
+                      {displayPaydayCycle}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Monthly Savings Target */}
+                <div className="flex items-center gap-3.5 p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
+                  <div className="w-10 h-10 bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
+                    <PiggyBank className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold tracking-wider block">
+                      {t('savingsGoalLabel')}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">
+                      {displaySavingsGoal}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Financial Focus Area */}
+                <div className="flex items-center gap-3.5 p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e]/60 rounded-2xl border-0">
+                  <div className="w-10 h-10 bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-[#8e8e93] uppercase font-bold tracking-wider block">
+                      {t('financialFocusLabel')}
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">
+                      {displayFinancialFocus}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -334,109 +377,134 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
                 )}
               </div>
 
-              {/* Name & Occupation Grid */}
+              {/* Name Field */}
+              <div>
+                <label htmlFor="name" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
+                  {t('nameLabel')}
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={`w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none transition-all duration-200 ${
+                    errors.name
+                      ? 'border-red-500/70 focus:ring-2 focus:ring-red-500/20'
+                      : 'border-transparent focus:ring-2 focus:ring-[#007aff]/35'
+                  }`}
+                />
+                {errors.name && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] text-red-500 font-bold mt-1.5 flex items-center gap-1.5"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    {errors.name}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Practical Financial Fields Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Income Source */}
                 <div>
-                  <label htmlFor="name" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
-                    {t('nameLabel')}
+                  <label htmlFor="incomeSource" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
+                    {t('incomeSourceLabel')}
                   </label>
                   <input
-                    id="name"
+                    id="incomeSource"
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="incomeSource"
+                    list="income-source-suggestions"
+                    value={formData.incomeSource || ''}
                     onChange={handleInputChange}
-                    className={`w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none transition-all duration-200 ${
-                      errors.name
-                        ? 'border-red-500/70 focus:ring-2 focus:ring-red-500/20'
-                        : 'border-transparent focus:ring-2 focus:ring-[#007aff]/35'
-                    }`}
-                  />
-                  {errors.name && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] text-red-500 font-bold mt-1.5 flex items-center gap-1.5"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {errors.name}
-                    </motion.p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="occupation" className="block text-xs font-[#8e8e93] font-bold uppercase tracking-wider mb-1.5">
-                    {t('occupationLabel')}
-                  </label>
-                  <input
-                    id="occupation"
-                    type="text"
-                    name="occupation"
-                    value={formData.occupation || ''}
-                    onChange={handleInputChange}
+                    placeholder={language === 'my' ? 'ဥပမာ - လစဉ် လစာဝင်ငွေ' : 'e.g., Monthly Salary'}
                     className="w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-transparent rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 transition-all duration-200"
                   />
+                  <datalist id="income-source-suggestions">
+                    <option value={language === 'my' ? 'လစဉ် လစာဝင်ငွေ' : 'Monthly Salary'} />
+                    <option value={language === 'my' ? 'စီးပွားရေး / ဆိုင်ဝင်ငွေ' : 'Business / Shop Income'} />
+                    <option value={language === 'my' ? 'အလွတ်တန်းနှင့် ပရောဂျက်' : 'Freelance & Projects'} />
+                    <option value={language === 'my' ? 'ရင်းနှီးမြှုပ်နှံမှုနှင့် အမြတ်ငွေ' : 'Investments & Dividends'} />
+                    <option value={language === 'my' ? 'နေ့စား/ရက်တွက် ဝင်ငွေ' : 'Daily Wages'} />
+                    <option value={language === 'my' ? 'ထောက်ပံ့ကြေး / ကျောင်းသား' : 'Allowance / Student'} />
+                  </datalist>
+                </div>
+
+                {/* Payday Cycle */}
+                <div>
+                  <label htmlFor="paydayCycle" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
+                    {t('paydayCycleLabel')}
+                  </label>
+                  <input
+                    id="paydayCycle"
+                    type="text"
+                    name="paydayCycle"
+                    list="payday-cycle-suggestions"
+                    value={formData.paydayCycle || ''}
+                    onChange={handleInputChange}
+                    placeholder={language === 'my' ? 'ဥပမာ - လစဉ် (၁ ရက်နေ့)' : 'e.g., Monthly (1st)'}
+                    className="w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-transparent rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 transition-all duration-200"
+                  />
+                  <datalist id="payday-cycle-suggestions">
+                    <option value={language === 'my' ? 'လစဉ် (၁ ရက်နေ့)' : 'Monthly (1st of Month)'} />
+                    <option value={language === 'my' ? 'လစဉ် (လလယ်/လဆန်း)' : 'Monthly (Mid/End Month)'} />
+                    <option value={language === 'my' ? 'နှစ်ပတ်တစ်ကြိမ်' : 'Bi-Weekly (Every 2 Weeks)'} />
+                    <option value={language === 'my' ? 'အပတ်စဉ်' : 'Weekly'} />
+                    <option value={language === 'my' ? 'ပုံသေမရှိ / စီမံရလွယ်ကူသော' : 'Flexible / Irregular'} />
+                  </datalist>
+                </div>
+
+                {/* Savings Goal */}
+                <div>
+                  <label htmlFor="savingsGoal" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
+                    {t('savingsGoalLabel')}
+                  </label>
+                  <input
+                    id="savingsGoal"
+                    type="text"
+                    name="savingsGoal"
+                    list="savings-goal-suggestions"
+                    value={formData.savingsGoal || ''}
+                    onChange={handleInputChange}
+                    placeholder={language === 'my' ? 'ဥပမာ - ဝင်ငွေ၏ ၂၀% စုဆောင်းရန်' : 'e.g., Save 20% of Monthly Income'}
+                    className="w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-transparent rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 transition-all duration-200"
+                  />
+                  <datalist id="savings-goal-suggestions">
+                    <option value={language === 'my' ? 'လစဉ်ဝင်ငွေ၏ ၂၀% စုဆောင်းရန်' : 'Save 20% of Monthly Income'} />
+                    <option value={language === 'my' ? 'အရေးပေါ်ရန်ပုံငွေ စုဆောင်းရန်' : 'Build Emergency Fund (3-6 Months)'} />
+                    <option value={language === 'my' ? 'ရင်းနှီးမြှုပ်နှံမှု မတည်ငွေ စုရန်' : 'Capital / Investment Building'} />
+                    <option value={language === 'my' ? 'ကြွေးမြီနှင့် ကတိကဝတ်များ ဆေဆပ်ရန်' : 'Debt Payoff & Bill Clearance'} />
+                  </datalist>
+                </div>
+
+                {/* Financial Focus Area */}
+                <div>
+                  <label htmlFor="financialFocus" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
+                    {t('financialFocusLabel')}
+                  </label>
+                  <input
+                    id="financialFocus"
+                    type="text"
+                    name="financialFocus"
+                    list="financial-focus-suggestions"
+                    value={formData.financialFocus || ''}
+                    onChange={handleInputChange}
+                    placeholder={language === 'my' ? 'ဥပမာ - သုံးစွဲမှု ထိန်းချုပ်ခြင်း' : 'e.g., Strict Expense Control'}
+                    className="w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-transparent rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 transition-all duration-200"
+                  />
+                  <datalist id="financial-focus-suggestions">
+                    <option value={language === 'my' ? 'သုံးစွဲမှု ထိန်းချုပ်ခြင်း' : 'Strict Expense Control'} />
+                    <option value={language === 'my' ? 'စုဆောင်းငွေ တိုးပွားစေခြင်း' : 'Wealth Building & Savings'} />
+                    <option value={language === 'my' ? 'ကြွေးမြီ ကင်းရှင်းရေး' : 'Debt Reduction & Freedom'} />
+                    <option value={language === 'my' ? 'ဝင်ငွေ/ထွက်ငွေ မျှတရေး' : 'Balanced Cash Flow'} />
+                  </datalist>
                 </div>
               </div>
 
-              {/* Email & Phone Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="email" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
-                    {t('emailLabel')}
-                  </label>
-                  <input
-                    id="email"
-                    type="text"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={`w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none transition-all duration-200 ${
-                      errors.email
-                        ? 'border-red-500/70 focus:ring-2 focus:ring-red-500/20'
-                        : 'border-transparent focus:ring-2 focus:ring-[#007aff]/35'
-                    }`}
-                  />
-                  {errors.email && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] text-red-500 font-bold mt-1.5 flex items-center gap-1.5"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {errors.email}
-                    </motion.p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="phone" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
-                    {t('phoneLabel')}
-                  </label>
-                  <input
-                    id="phone"
-                    type="text"
-                    name="phone"
-                    value={formData.phone || ''}
-                    onChange={handleInputChange}
-                    className={`w-full h-11 px-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] border rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none transition-all duration-200 ${
-                      errors.phone
-                        ? 'border-red-500/70 focus:ring-2 focus:ring-red-500/20'
-                        : 'border-transparent focus:ring-2 focus:ring-[#007aff]/35'
-                    }`}
-                  />
-                  {errors.phone && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] text-red-500 font-bold mt-1.5 flex items-center gap-1.5"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      {errors.phone}
-                    </motion.p>
-                  )}
-                </div>
-              </div>
-
-              {/* Bio Area */}
+              {/* Bio / Financial Motto Area */}
               <div>
                 <label htmlFor="bio" className="block text-xs font-bold text-[#8e8e93] uppercase tracking-wider mb-1.5">
                   {t('bioLabel')}
@@ -444,9 +512,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
                 <textarea
                   id="bio"
                   name="bio"
-                  rows={3}
+                  rows={2}
                   value={formData.bio}
                   onChange={handleInputChange}
+                  placeholder={language === 'my' ? 'သင့်ငွေကြေး စီမံခန့်ခွဲမှု ဆောင်ပုဒ် သို့မဟုတ် ရည်မှန်းချက်...' : 'Your financial Motto or personal targets...'}
                   className="w-full px-3.5 py-3 bg-[#f2f2f7] dark:bg-[#2c2c2e] border-0 rounded-2xl text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none resize-none"
                 />
               </div>

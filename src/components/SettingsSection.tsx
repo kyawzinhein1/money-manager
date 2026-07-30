@@ -205,26 +205,32 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
       </div>
 
       {/* iOS Style Profile Card */}
-      <div className="p-5 ios-glass rounded-[2rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+      <div 
+        onClick={onEditProfileClick}
+        className="p-5 ios-glass rounded-[2rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs cursor-pointer hover:border-[#007aff]/30 transition-all border border-black/5 dark:border-white/5 group"
+      >
         <div className="flex items-center gap-3.5">
           <img
             src={profile.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
             alt={profile.name}
             referrerPolicy="no-referrer"
-            className="w-12 h-12 rounded-2xl object-cover border-2 border-white dark:border-[#2c2c2e] shadow-sm bg-slate-100"
+            className="w-12 h-12 rounded-2xl object-cover border-2 border-white dark:border-[#2c2c2e] shadow-sm bg-slate-100 group-hover:scale-105 transition-transform"
           />
           <div>
-            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white">
+            <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white group-hover:text-[#007aff] transition-colors">
               {profile.name}
             </h3>
             <p className="text-xs text-[#8e8e93] font-medium">
-              {profile.email} {profile.occupation ? `• ${profile.occupation}` : ''}
+              {profile.incomeSource || 'Personal Finance'} {profile.savingsGoal ? `• ${profile.savingsGoal}` : ''}
             </p>
           </div>
         </div>
         <button
           id="settings-edit-profile-btn"
-          onClick={onEditProfileClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditProfileClick();
+          }}
           className="self-start sm:self-auto shrink-0 whitespace-nowrap flex items-center gap-1 px-3.5 py-1.5 bg-[#007aff]/10 hover:bg-[#007aff]/15 text-[#007aff] rounded-xl text-xs font-bold transition-all cursor-pointer border-0"
         >
           {t('editProfile')}
