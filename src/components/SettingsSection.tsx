@@ -4,7 +4,8 @@ import {
   FolderKanban,
   Database,
   RefreshCw,
-  Mail
+  Mail,
+  Smartphone
 } from 'lucide-react';
 import {
   Language,
@@ -12,7 +13,8 @@ import {
   UserProfile,
   Transaction,
   Budget,
-  Currency
+  Currency,
+  NavbarSettings
 } from '../types';
 import { ManageCategoriesView } from './settings/ManageCategoriesView';
 import { DatabaseConsoleView } from './settings/DatabaseConsoleView';
@@ -20,6 +22,7 @@ import { GeneralPreferencesView } from './settings/GeneralPreferencesView';
 import { CurrencySettingsView } from './settings/CurrencySettingsView';
 import { ExportDataView } from './settings/ExportDataView';
 import { CheckUpdatesView } from './settings/CheckUpdatesView';
+import { BottomNavCustomizerView } from './settings/BottomNavCustomizerView';
 
 interface SettingsSectionProps {
   t: (key: string) => string;
@@ -36,6 +39,7 @@ interface SettingsSectionProps {
   onUpdateLanguage: (lang: Language) => void;
   onUpdateCurrency: (code: string, symbol: string, name: string) => void;
   onUpdateTheme: (theme: 'light' | 'dark') => void;
+  onUpdateNavbarSettings?: (navbarSettings: NavbarSettings) => void;
   onAddCategory: (type: 'expense' | 'income', category: string, color?: string) => void;
   onDeactivateCategory?: (type: 'expense' | 'income', category: string) => void;
   onReactivateCategory?: (type: 'expense' | 'income', category: string) => void;
@@ -79,6 +83,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   onUpdateLanguage,
   onUpdateCurrency,
   onUpdateTheme,
+  onUpdateNavbarSettings = () => {},
   onAddCategory,
   onDeactivateCategory,
   onReactivateCategory,
@@ -94,6 +99,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
 }) => {
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [showDatabaseConsole, setShowDatabaseConsole] = useState(false);
+  const [showCustomizerNav, setShowCustomizerNav] = useState(false);
   const [showCheckUpdates, setShowCheckUpdates] = useState(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('mm_open_updates_on_load') === 'true') {
       localStorage.removeItem('mm_open_updates_on_load');
@@ -170,6 +176,21 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
     );
   }
 
+  // Sub-view: Customize Bottom Navbar
+  if (showCustomizerNav) {
+    return (
+      <BottomNavCustomizerView
+        t={t}
+        settings={settings}
+        onUpdateNavbarSettings={onUpdateNavbarSettings}
+        onClose={() => {
+          setShowCustomizerNav(false);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6" id="settings-section">
       {/* Settings Header */}
@@ -227,6 +248,35 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             presetCurrencies={PRESET_CURRENCIES}
             onUpdateCurrency={onUpdateCurrency}
           />
+
+          {/* Mobile Bottom Navbar Customizer Card */}
+          <div className="p-5 ios-glass rounded-[2rem] space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-[#007aff]" />
+                {settings.language === 'my' ? 'မိုဘိုင်း Bottom Navbar ပြင်ဆင်ရန်' : 'Customize Bottom Navigation'}
+              </h3>
+              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#007aff]/10 text-[#007aff] uppercase">
+                {settings.language === 'my' ? 'မိုဘိုင်း' : 'Mobile'}
+              </span>
+            </div>
+            <p className="text-xs text-[#8e8e93] leading-relaxed">
+              {settings.language === 'my'
+                ? 'မိုဘိုင်းဖုန်းစခရင်တွင် ပြသမည့် Bottom Navigation Bar ၏ အရောင်၊ ကြည်လင်မှု၊ အိုင်ကွန်များနှင့် ပုံစံများ စိတ်ကြိုက် ပြင်ဆင်ပါ။ (PC စခရင်တွင် ပိတ်ထားပါသည်)'
+                : 'Customize bottom navigation bar colors, transparency, blur, active icons, shapes, and borders for mobile screens (Disabled on PC screens).'}
+            </p>
+            <button
+              id="open-customize-navbar-btn"
+              onClick={() => {
+                setShowCustomizerNav(true);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/15 text-[#007aff] rounded-2xl text-xs font-bold transition-all cursor-pointer border-0"
+            >
+              <Smartphone className="w-4 h-4" />
+              {settings.language === 'my' ? 'Navbar စိတ်ကြိုက် ပြင်ဆင်ရန်' : 'Customize Mobile Navbar'}
+            </button>
+          </div>
 
           {/* Manage Categories Tile */}
           <div className="p-5 ios-glass rounded-[2rem] space-y-4">

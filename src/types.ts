@@ -30,7 +30,32 @@ export interface Settings {
   reminderEnabled?: boolean;
   reminderTime?: string; // e.g., "20:00"
   reminderMessage?: string;
+  navbarSettings?: NavbarSettings;
 }
+
+export interface NavbarSettings {
+  bgType: 'glass' | 'solid' | 'gradient' | 'accent';
+  bgColor: string;
+  opacity: number; // 10 to 100
+  blur: 'none' | 'low' | 'medium' | 'high';
+  activeColor: string;
+  inactiveColor: string;
+  shape: 'floating' | 'full' | 'pill';
+  showLabels: boolean;
+  borderColor: 'default' | 'glow' | 'solid' | 'none';
+}
+
+export const DEFAULT_NAVBAR_SETTINGS: NavbarSettings = {
+  bgType: 'glass',
+  bgColor: '#1c1c1e',
+  opacity: 85,
+  blur: 'high',
+  activeColor: '#007aff',
+  inactiveColor: '#8e8e93',
+  shape: 'floating',
+  showLabels: true,
+  borderColor: 'default',
+};
 
 export interface UserProfile {
   name: string;

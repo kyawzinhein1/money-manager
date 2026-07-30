@@ -35,7 +35,7 @@ import {
   EyeOff
 } from 'lucide-react';
 
-import { Transaction, Budget, Language, Currency, Settings, UserProfile } from './types';
+import { Transaction, Budget, Language, Currency, Settings, UserProfile, NavbarSettings } from './types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from './translations';
 import { DEFAULT_TRANSACTIONS, DEFAULT_BUDGETS } from './defaultData';
 import { generateForecastReport } from './utils/forecasting';
@@ -869,6 +869,10 @@ export default function App() {
   const handleUpdateCurrency = React.useCallback((code: string, symbol: string, name: string) => {
     setCustomCurrency({ code, symbol, name });
     setSettings((prev) => ({ ...prev, currency: code }));
+  }, []);
+
+  const handleUpdateNavbarSettings = React.useCallback((navbarSettings: NavbarSettings) => {
+    setSettings((prev) => ({ ...prev, navbarSettings }));
   }, []);
 
   const handleAddTransactionTrigger = React.useCallback(() => {
@@ -2069,6 +2073,7 @@ export default function App() {
                       onUpdateLanguage={handleUpdateLanguage}
                       onUpdateTheme={handleUpdateTheme}
                       onUpdateCurrency={handleUpdateCurrency}
+                      onUpdateNavbarSettings={handleUpdateNavbarSettings}
                       onExportCSV={handleExportCSV}
                       onExportPDF={handleExportPDF}
                       incomeCategories={incomeCategories}
@@ -2128,6 +2133,8 @@ export default function App() {
         lastMainTab={lastMainTab}
         onTabChange={setActiveTab}
         t={t}
+        navbarSettings={settings.navbarSettings}
+        theme={settings.theme}
       />
 
       {/* iOS Liquid Glass PWA Install guidance overlay */}
