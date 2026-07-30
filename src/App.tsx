@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Wallet,
@@ -51,21 +51,12 @@ import {
 // Component Imports
 import { TransactionsSection } from './components/TransactionsSection';
 import { BottomNav } from './components/BottomNav';
-
-// Lazy Loaded Sections for Faster App Startup & Reload
-const OnboardingModal = lazy(() => import('./components/OnboardingModal').then(m => ({ default: m.OnboardingModal })));
-const BudgetSection = lazy(() => import('./components/BudgetSection').then(m => ({ default: m.BudgetSection })));
-const AnalyticsSection = lazy(() => import('./components/AnalyticsSection').then(m => ({ default: m.AnalyticsSection })));
-const SettingsSection = lazy(() => import('./components/SettingsSection').then(m => ({ default: m.SettingsSection })));
-const ProfileSection = lazy(() => import('./components/ProfileSection').then(m => ({ default: m.ProfileSection })));
-const AddTransactionSection = lazy(() => import('./components/AddTransactionSection').then(m => ({ default: m.AddTransactionSection })));
-
-const SectionLoadingFallback = () => (
-  <div className="w-full py-16 flex flex-col items-center justify-center space-y-3 animate-fade-in">
-    <div className="w-9 h-9 border-2 border-[#007aff]/20 border-t-[#007aff] rounded-full animate-spin" />
-    <p className="text-xs font-bold text-[#8e8e93]">Loading...</p>
-  </div>
-);
+import { OnboardingModal } from './components/OnboardingModal';
+import { BudgetSection } from './components/BudgetSection';
+import { AnalyticsSection } from './components/AnalyticsSection';
+import { SettingsSection } from './components/SettingsSection';
+import { ProfileSection } from './components/ProfileSection';
+import { AddTransactionSection } from './components/AddTransactionSection';
 
 export default function App() {
   // State Initialization from LocalStorage or Defaults with a one-time clean-up of old mock data
@@ -2016,114 +2007,104 @@ export default function App() {
 
                 {/* 7. Add/Edit Transaction Section */}
                 {activeTab === 'add-transaction' && (
-                  <Suspense fallback={<SectionLoadingFallback />}>
-                    <AddTransactionSection
-                      language={settings.language}
-                      currencySymbol={customCurrency.symbol}
-                      currencyCode={customCurrency.code}
-                      incomeCategories={incomeCategories}
-                      expenseCategories={expenseCategories}
-                      categoryColors={categoryColors}
-                      onAddTransaction={handleAddTransaction}
-                      onCancel={() => setActiveTab(lastMainTab)}
-                      initialTransaction={editingTxInAddPage}
-                      onEditTransaction={handleEditTransaction}
-                      formatAmount={formatAmount}
-                    />
-                  </Suspense>
+                  <AddTransactionSection
+                    language={settings.language}
+                    currencySymbol={customCurrency.symbol}
+                    currencyCode={customCurrency.code}
+                    incomeCategories={incomeCategories}
+                    expenseCategories={expenseCategories}
+                    categoryColors={categoryColors}
+                    onAddTransaction={handleAddTransaction}
+                    onCancel={() => setActiveTab(lastMainTab)}
+                    initialTransaction={editingTxInAddPage}
+                    onEditTransaction={handleEditTransaction}
+                    formatAmount={formatAmount}
+                  />
                 )}
 
                 {/* 3. Budgets Section */}
                 {activeTab === 'budgets' && (
-                  <Suspense fallback={<SectionLoadingFallback />}>
-                    <BudgetSection
-                      budgets={budgets}
-                      transactions={dashboardFilteredTransactions}
-                      currencySymbol={customCurrency.symbol}
-                      language={settings.language}
-                      onSaveBudget={handleSaveBudget}
-                      onDeleteBudget={handleDeleteBudget}
-                      formatAmount={formatAmount}
-                      selectedMonth={selectedMonth}
-                      selectedYear={selectedYear}
-                    />
-                  </Suspense>
+                  <BudgetSection
+                    budgets={budgets}
+                    transactions={dashboardFilteredTransactions}
+                    currencySymbol={customCurrency.symbol}
+                    language={settings.language}
+                    onSaveBudget={handleSaveBudget}
+                    onDeleteBudget={handleDeleteBudget}
+                    formatAmount={formatAmount}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                  />
                 )}
 
                 {/* 4. Analytics Section */}
                 {activeTab === 'analytics' && (
-                  <Suspense fallback={<SectionLoadingFallback />}>
-                    <AnalyticsSection
-                      transactions={dashboardFilteredTransactions}
-                      currencySymbol={customCurrency.symbol}
-                      language={settings.language}
-                      formatAmount={formatAmount}
-                      budgets={budgets}
-                      selectedMonth={selectedMonth}
-                      selectedYear={selectedYear}
-                      readAlertIds={readAlertIds}
-                      toggleReadAlert={toggleReadAlert}
-                    />
-                  </Suspense>
+                  <AnalyticsSection
+                    transactions={dashboardFilteredTransactions}
+                    currencySymbol={customCurrency.symbol}
+                    language={settings.language}
+                    formatAmount={formatAmount}
+                    budgets={budgets}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    readAlertIds={readAlertIds}
+                    toggleReadAlert={toggleReadAlert}
+                  />
                 )}
 
                 {/* 5. Settings Section */}
                 {activeTab === 'settings' && (
-                  <Suspense fallback={<SectionLoadingFallback />}>
-                    <SettingsSection
-                      t={t}
-                      settings={settings}
-                      onUpdateLanguage={handleUpdateLanguage}
-                      onUpdateTheme={handleUpdateTheme}
-                      onUpdateCurrency={handleUpdateCurrency}
-                      onUpdateNavbarSettings={handleUpdateNavbarSettings}
-                      onExportCSV={handleExportCSV}
-                      onExportPDF={handleExportPDF}
-                      incomeCategories={incomeCategories}
-                      expenseCategories={expenseCategories}
-                      inactiveIncomeCategories={inactiveIncomeCategories}
-                      inactiveExpenseCategories={inactiveExpenseCategories}
-                      categoryColors={categoryColors}
-                      onAddCategory={handleAddCategory}
-                      onDeactivateCategory={handleDeactivateCategory}
-                      onReactivateCategory={handleReactivateCategory}
-                      onDeleteCategoryPermanently={handleDeleteCategoryPermanently}
-                      onUpdateCategoryColor={handleUpdateCategoryColor}
-                      onDeleteCategory={handleDeleteCategory}
-                      onLoadDemoData={handleLoadDemoData}
-                      onClearAllData={handleClearAllData}
-                      profile={profile}
-                      onEditProfileClick={() => {
-                        setActiveTab('profile');
-                        setIsProfileEditing(true);
-                      }}
-                      onRestoreBackup={handleRestoreBackup}
-                      transactions={transactions}
-                      budgets={budgets}
-                      readAlertIds={readAlertIds}
-                      onUpdateRawKey={handleUpdateRawKey}
-                    />
-                  </Suspense>
+                  <SettingsSection
+                    t={t}
+                    settings={settings}
+                    onUpdateLanguage={handleUpdateLanguage}
+                    onUpdateTheme={handleUpdateTheme}
+                    onUpdateCurrency={handleUpdateCurrency}
+                    onUpdateNavbarSettings={handleUpdateNavbarSettings}
+                    onExportCSV={handleExportCSV}
+                    onExportPDF={handleExportPDF}
+                    incomeCategories={incomeCategories}
+                    expenseCategories={expenseCategories}
+                    inactiveIncomeCategories={inactiveIncomeCategories}
+                    inactiveExpenseCategories={inactiveExpenseCategories}
+                    categoryColors={categoryColors}
+                    onAddCategory={handleAddCategory}
+                    onDeactivateCategory={handleDeactivateCategory}
+                    onReactivateCategory={handleReactivateCategory}
+                    onDeleteCategoryPermanently={handleDeleteCategoryPermanently}
+                    onUpdateCategoryColor={handleUpdateCategoryColor}
+                    onDeleteCategory={handleDeleteCategory}
+                    onLoadDemoData={handleLoadDemoData}
+                    onClearAllData={handleClearAllData}
+                    profile={profile}
+                    onEditProfileClick={() => {
+                      setActiveTab('profile');
+                      setIsProfileEditing(true);
+                    }}
+                    onRestoreBackup={handleRestoreBackup}
+                    transactions={transactions}
+                    budgets={budgets}
+                    readAlertIds={readAlertIds}
+                    onUpdateRawKey={handleUpdateRawKey}
+                  />
                 )}
 
                 {/* 6. Profile Section */}
                 {activeTab === 'profile' && (
-                  <Suspense fallback={<SectionLoadingFallback />}>
-                    <ProfileSection
-                      profile={profile}
-                      onSaveProfile={(updatedProfile) => {
-                        setProfile(updatedProfile);
-                        showToast(t('updateProfileSuccess') || 'Profile updated successfully!', 'success');
-                        setIsProfileEditing(false);
-                      }}
-                      language={settings.language}
-                      onClose={() => {
-                        setActiveTab(previousTab);
-                        setIsProfileEditing(false);
-                      }}
-                      initialEdit={isProfileEditing}
-                    />
-                  </Suspense>
+                  <ProfileSection
+                    profile={profile}
+                    onSaveProfile={(updatedProfile) => {
+                      setProfile(updatedProfile);
+                      showToast(t('updateProfileSuccess') || 'Profile updated successfully!', 'success');
+                      setIsProfileEditing(false);
+                    }}
+                    language={settings.language}
+                    onClose={() => {
+                      setActiveTab(previousTab);
+                      setIsProfileEditing(false);
+                    }}
+                    initialEdit={isProfileEditing}
+                  />
                 )}
             </div>
           </div>
@@ -2274,9 +2255,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Welcome Onboarding Screen */}
-      <Suspense fallback={null}>
-        <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
-      </Suspense>
+      <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
     </div>
   );
 }

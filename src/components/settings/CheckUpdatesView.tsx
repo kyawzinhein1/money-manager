@@ -4,11 +4,7 @@ import {
   CheckCircle2,
   Sparkles,
   X,
-  Github,
-  Globe,
-  Zap,
   Info,
-  Layers,
   Clock,
   DownloadCloud,
   ArrowUpCircle,
@@ -283,51 +279,6 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
               }}
               className="w-4 h-4 accent-[#007aff] rounded cursor-pointer"
             />
-          </div>
-        </div>
-      </div>
-
-      {/* GitHub & Custom Domain Deployment Guide */}
-      <div className="p-5 ios-glass rounded-[2rem] space-y-3">
-        <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-          <Globe className="w-4 h-4 text-[#007aff]" />
-          {language === 'my' ? 'GitHub & Custom Domain ထုတ်လွှင့်မှု သတင်းအချက်အလုပ်' : 'Deployment & GitHub Integration Info'}
-        </h3>
-        <p className="text-xs text-[#8e8e93] leading-relaxed">
-          {language === 'my'
-            ? 'အက်ပ်ကို GitHub Repository မှတစ်ဆင့် Custom Domain / Web Server (GitHub Pages / Cloud Run) သို့ ထုတ်လွှင့်ထားပါက၊ "အပ်ဒိတ်အသစ် စစ်ဆေးမည်" သို့မဟုတ် "Force Refresh Web Cache" ကိုနှိပ်ခြင်းဖြင့် မိုဘိုင်းလ်နှင့် ကွန်ပျူတာပေါ်ရှိ သုံးစွဲသူများအားလုံး နောက်ဆုံးရရှိသော ပြင်ဆင်ချက်များကို ချက်ချင်းရရှိနိုင်မည်ဖြစ်ပါသည်။'
-            : 'When published to a custom domain or hosted via GitHub Pages, checking for updates revalidates static bundle assets and clears Service Worker client caches so users instantly receive all newly deployed fixes.'}
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.05]">
-            <div className="flex items-center gap-2 text-[#007aff]">
-              <Github className="w-4 h-4" />
-              <span className="text-xs font-bold">{language === 'my' ? 'GitHub ဆင့်ပွားမှု' : 'GitHub Sync'}</span>
-            </div>
-            <span className="text-[10.5px] text-[#8e8e93] mt-1 block">
-              {language === 'my' ? 'အလိုအလျောက် ဗားရှင်းစီမံမှု' : 'Auto CI/CD branch build'}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.05]">
-            <div className="flex items-center gap-2 text-[#007aff]">
-              <Layers className="w-4 h-4" />
-              <span className="text-xs font-bold">{language === 'my' ? 'ကက်ချ် ထိန်းချုပ်မှု' : 'Cache Invalidation'}</span>
-            </div>
-            <span className="text-[10.5px] text-[#8e8e93] mt-1 block">
-              {language === 'my' ? 'စာရင်းဇယား မပျက်ဘဲ အဆင့်မြှင့်မည်' : 'Zero data loss on update'}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.05]">
-            <div className="flex items-center gap-2 text-[#007aff]">
-              <Zap className="w-4 h-4" />
-              <span className="text-xs font-bold">{language === 'my' ? 'လိုင်းမဲ့စနစ်' : 'PWA Offline Ready'}</span>
-            </div>
-            <span className="text-[10.5px] text-[#8e8e93] mt-1 block">
-              {language === 'my' ? 'အမြန်နှုန်းမြင့်မားစွာ အလုပ်လုပ်ခြင်း' : 'Local storage persistence'}
-            </span>
           </div>
         </div>
       </div>

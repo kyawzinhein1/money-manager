@@ -339,16 +339,16 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             </button>
           </div>
 
-          {/* App Updates & GitHub Deployment Tile */}
+          {/* App Updates Tile */}
           <div className="p-5 ios-glass rounded-[2rem] space-y-4">
             <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
               <RefreshCw className="w-4 h-4 text-[#007aff]" />
-              {settings.language === 'my' ? 'ဗားရှင်းနှင့် အပ်ဒိတ် စစ်ဆေးရန်' : 'App Updates & Deployment'}
+              {settings.language === 'my' ? 'ဗားရှင်းနှင့် အပ်ဒိတ် စစ်ဆေးရန်' : 'App Updates & Version Info'}
             </h3>
             <p className="text-xs text-[#8e8e93] leading-relaxed">
               {settings.language === 'my'
-                ? 'GitHub မှတစ်ဆင့် Domain တွင် ထုတ်လွှင့်ပြီးနောက် နောက်ဆုံးထွက် ပြင်ဆင်ချက်များနှင့် လုပ်ဆောင်ချက်အသစ်များကို ရယူရန် ဤနေရာတွင် စစ်ဆေးပါ။'
-                : 'Check for newly published features, revalidate web bundle cache, and view release notes after deploying from GitHub.'}
+                ? 'အက်ပ်၏ နောက်ဆုံးထွက် ဗားရှင်းနှင့် ပြင်ဆင်ချက်များ၊ လုပ်ဆောင်ချက်အသစ်များကို စစ်ဆေးရန် ဤနေရာတွင် နှိပ်ပါ။'
+                : 'Check for the latest application version, new features, and recent release notes.'}
             </p>
             <button
               id="open-check-updates-btn"
