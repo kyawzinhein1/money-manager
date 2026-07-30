@@ -67,6 +67,17 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
     });
   }, []);
 
+  const handleApplyUpdate = () => {
+    localStorage.setItem('mm_open_updates_on_load', 'true');
+    localStorage.setItem(
+      'mm_just_updated_msg',
+      language === 'my'
+        ? `အက်ပ်ကို ဗားရှင်းအသစ် (${serverInfo?.version || 'v1.2.6'}) သို့ အောင်မြင်စွာ အဆင့်မြှင့်တင်ပြီးပါပြီ။`
+        : `Application updated successfully to version ${serverInfo?.version || 'v1.2.6'}!`
+    );
+    forceApplyAppUpdate();
+  };
+
   const handleCheckForUpdates = async () => {
     setChecking(true);
     setStatusMessage(language === 'my' ? 'ဆာဗာရှိ အပ်ဒိတ်အသစ်များအား စစ်ဆေးနေပါသည်...' : 'Checking server for latest build...');
@@ -92,19 +103,9 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         setUpdateAvailable(true);
         setStatusMessage(
           language === 'my'
-            ? `ဗားရှင်းအသစ် (${serverData.version}) တွေ့ရှိပါပြီ! အက်ပ်ကို ပြန်လည်စတင်ပြီး အပ်ဒိတ်လုပ်နေပါသည်...`
-            : `New update found (${serverData.version})! Reloading application to apply update...`
+            ? `ဗားရှင်းအသစ် (${serverData.version}) တွေ့ရှိပါပြီ။ အဆင့်မြှင့်တင်ရန် အောက်ပါ "ယခု အဆင့်မြှင့်မည်" ခလုတ်ကို နှိပ်ပါ။`
+            : `New update found (${serverData.version})! Click "Update Now" below to apply the update.`
         );
-        localStorage.setItem('mm_open_updates_on_load', 'true');
-        localStorage.setItem(
-          'mm_just_updated_msg',
-          language === 'my'
-            ? `အက်ပ်ကို ဗားရှင်းအသစ် (${serverData.version}) သို့ အောင်မြင်စွာ အဆင့်မြှင့်တင်ပြီးပါပြီ။`
-            : `Application updated successfully to version ${serverData.version}!`
-        );
-        setTimeout(() => {
-          forceApplyAppUpdate();
-        }, 800);
       } else {
         setUpdateAvailable(false);
         setStatusMessage(
