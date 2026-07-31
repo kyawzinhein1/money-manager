@@ -520,41 +520,43 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
       {/* Main Budget Dashboard Display */}
       <div className="grid grid-cols-1 gap-6">
-        {(!activeBudget && !isEditing) ? (
-          <div className="py-16 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
-            <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
-              <ShieldAlert className="w-8 h-8" />
-            </div>
-            <h3 className="text-base font-black text-[#1c1c1e] dark:text-[#f2f2f7] mb-1.5">
-              {t('noBudgetConfigured')} ({getRangeLabel()})
-            </h3>
-            <p className="text-xs text-[#8e8e93] max-w-sm mx-auto mb-6 leading-relaxed">
-              {t('keepFinancesInCheck')}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                id="set-budget-empty-btn"
-                onClick={() => setIsEditing(true)}
-                className="px-6 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md inline-flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <Plus className="w-4 h-4" />
-                {t('setBudgetLimitNow')} ({getRangeLabel()})
-              </button>
-
-              {previousMonthBudget && (
+        {!activeBudget ? (
+          !isEditing ? (
+            <div className="py-16 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
+                <ShieldAlert className="w-8 h-8" />
+              </div>
+              <h3 className="text-base font-black text-[#1c1c1e] dark:text-[#f2f2f7] mb-1.5">
+                {t('noBudgetConfigured')} ({getRangeLabel()})
+              </h3>
+              <p className="text-xs text-[#8e8e93] max-w-sm mx-auto mb-6 leading-relaxed">
+                {t('keepFinancesInCheck')}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
-                  id="copy-previous-budget-btn"
-                  onClick={() => {
-                    onSaveBudget('Total', previousMonthBudget.limit, currentMonthKey);
-                  }}
-                  className="px-5 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border-0 hover:scale-[1.02] active:scale-[0.98]"
+                  id="set-budget-empty-btn"
+                  onClick={() => setIsEditing(true)}
+                  className="px-6 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md inline-flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  {t('copyPreviousBudget')} ({formatAmount(previousMonthBudget.limit)})
+                  <Plus className="w-4 h-4" />
+                  {t('setBudgetLimitNow')} ({getRangeLabel()})
                 </button>
-              )}
+
+                {previousMonthBudget && (
+                  <button
+                    id="copy-previous-budget-btn"
+                    onClick={() => {
+                      onSaveBudget('Total', previousMonthBudget.limit, currentMonthKey);
+                    }}
+                    className="px-5 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border-0 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {t('copyPreviousBudget')} ({formatAmount(previousMonthBudget.limit)})
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          ) : null
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Primary overall status column (7 cols) */}
@@ -603,7 +605,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                   <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 mt-4 mb-6">
                     <div className="text-center sm:text-left space-y-1">
                       <div className="text-4xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight">
-                        {formatAmount(activeBudget.limit)}
+                        {formatAmount(activeBudget?.limit || 0)}
                       </div>
                       <div className="text-xs text-[#8e8e93] font-medium">
                         {language === 'en' ? 'Limit target setup' : 'သတ်မှတ်ဘတ်ဂျက် ပမာဏ'}
@@ -804,7 +806,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                           <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                             {language === 'en' ? 'Projected EOM Spend' : 'လကုန်ခန့်မှန်းခြေ'}
                           </span>
-                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                             {formatAmount(forecast.projectedSpent)}
                           </span>
                         </div>
@@ -814,8 +816,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                           <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                             {language === 'en' ? 'Pacing Outcome' : 'ခန့်မှန်းရလဒ်'}
                           </span>
-                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                            {forecast.projectedSpent > activeBudget.limit 
+                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                            {forecast.projectedSpent > (activeBudget?.limit || 0) 
                               ? (language === 'en' ? 'Overspent' : 'ဘတ်ဂျက်ကျော်နိုင်') 
                               : (language === 'en' ? 'On Track' : 'ပုံမှန်အဆင့်ရှိ')
                             }
@@ -861,8 +863,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                                   return null;
                                 }}
                               />
-                              {activeBudget.limit > 0 && (
-                                <ReferenceLine y={activeBudget.limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'Ceiling', fill: '#ff3b30', fontSize: 8, position: 'insideTopLeft' }} />
+                              {(activeBudget?.limit || 0) > 0 && (
+                                <ReferenceLine y={activeBudget?.limit || 0} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'Ceiling', fill: '#ff3b30', fontSize: 8, position: 'insideTopLeft' }} />
                               )}
                               <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls style={{ outline: 'none' }} isAnimationActive={false} />
                               <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} style={{ outline: 'none' }} isAnimationActive={false} />
@@ -873,13 +875,13 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
                       {/* Detail pacing message */}
                       <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] text-[11px] leading-relaxed">
-                        {forecast.projectedSpent > activeBudget.limit ? (
+                        {forecast.projectedSpent > (activeBudget?.limit || 0) ? (
                           <p className="text-red-500 font-bold flex items-center gap-1.5">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>
                               {language === 'en' 
-                                ? `You are pacing to breach your budget on Day ${forecast.estimatedBreachDay}. Try saving ${formatAmount(forecast.projectedSpent - activeBudget.limit)} to stay safe.`
-                                : `လက်ရှိအရှိန်အတိုင်းဆိုပါက ရက်စွဲ (${forecast.estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်နိုင်ပါသည်။ ပုံမှန်အခြေအနေရောက်ရန် ${formatAmount(forecast.projectedSpent - activeBudget.limit)} လျှော့ချပါ။`
+                                ? `You are pacing to breach your budget on Day ${forecast.estimatedBreachDay}. Try saving ${formatAmount(forecast.projectedSpent - (activeBudget?.limit || 0))} to stay safe.`
+                                : `လက်ရှိအရှိန်အတိုင်းဆိုပါက ရက်စွဲ (${forecast.estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်နိုင်ပါသည်။ ပုံမှန်အခြေအနေရောက်ရန် ${formatAmount(forecast.projectedSpent - (activeBudget?.limit || 0))} လျှော့ချပါ။`
                               }
                             </span>
                           </p>
@@ -888,8 +890,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                             <CheckCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>
                               {language === 'en'
-                                ? `You are pacing excellently! You are projected to finish the month with ${formatAmount(activeBudget.limit - forecast.projectedSpent)} remaining.`
-                                : `စည်းကမ်းအလွန်ကောင်းမွန်ပါသည်။ လကုန်ပါက ဘတ်ဂျက်မှ ${formatAmount(activeBudget.limit - forecast.projectedSpent)} ပိုလျှံစုဆောင်းနိုင်မည်ဖြစ်သည်။`
+                                ? `You are pacing excellently! You are projected to finish the month with ${formatAmount((activeBudget?.limit || 0) - forecast.projectedSpent)} remaining.`
+                                : `စည်းကမ်းအလွန်ကောင်းမွန်ပါသည်။ လကုန်ပါက ဘတ်ဂျက်မှ ${formatAmount((activeBudget?.limit || 0) - forecast.projectedSpent)} ပိုလျှံစုဆောင်းနိုင်မည်ဖြစ်သည်။`
                               }
                             </span>
                           </p>
@@ -914,7 +916,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                     </div>
                   ) : (
                     categorySpentList.map(({ category, spent }) => {
-                      const relativePercent = activeBudget.limit > 0 ? (spent / activeBudget.limit) * 100 : 0;
+                      const relativePercent = (activeBudget?.limit || 0) > 0 ? (spent / (activeBudget?.limit || 0)) * 100 : 0;
                       const catStyle = getCategoryColorClasses(category);
                       const isHighWarn = relativePercent > (100 / (categorySpentList.length || 1)) * 1.5;
 
