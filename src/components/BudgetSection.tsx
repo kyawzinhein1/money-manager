@@ -28,6 +28,8 @@ import {
 import { Budget, Transaction, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateForecastReport } from '../utils/forecasting';
+import { IOSDatePicker } from './IOSDatePicker';
+import { IOSDateRangePicker } from './IOSDateRangePicker';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -47,7 +49,7 @@ interface BudgetSectionProps {
   transactions: Transaction[];
   currencySymbol: string;
   language: Language;
-  onSaveBudget: (category: string, limit: number, monthKey?: string) => void;
+  onSaveBudget: (category: string, limit: number, monthKey?: string, startDate?: string, endDate?: string) => void;
   onDeleteBudget: (category: string, monthKey?: string) => void;
   formatAmount: (amount: number) => string;
   selectedMonth: string;
@@ -129,6 +131,15 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   }, [budgets, activeBudget, currentMonthKey]);
 
   const [budgetLimit, setBudgetLimit] = useState<string>(activeBudget ? activeBudget.limit.toString() : '');
+  const [budgetType, setBudgetType] = useState<'monthly' | 'custom'>(
+    activeBudget?.startDate && activeBudget?.endDate ? 'custom' : 'monthly'
+  );
+  const [customStartDate, setCustomStartDate] = useState<string>(
+    activeBudget?.startDate || `${selectedYear}-${selectedMonth.padStart(2, '0')}-01`
+  );
+  const [customEndDate, setCustomEndDate] = useState<string>(
+    activeBudget?.endDate || `${selectedYear}-${selectedMonth.padStart(2, '0')}-28`
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [bentoTab, setBentoTab] = useState<'burn' | 'projection'>('burn');
@@ -137,6 +148,9 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   React.useEffect(() => {
     if (!isEditing) {
       setBudgetLimit(activeBudget ? activeBudget.limit.toString() : '');
+      setBudgetType(activeBudget?.startDate && activeBudget?.endDate ? 'custom' : 'monthly');
+      if (activeBudget?.startDate) setCustomStartDate(activeBudget.startDate);
+      if (activeBudget?.endDate) setCustomEndDate(activeBudget.endDate);
     }
   }, [activeBudget, isEditing, currentMonthKey]);
 
@@ -154,10 +168,19 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   const totalSpent = React.useMemo(() => {
     return transactions
       .filter(tx => tx.type === 'expense')
+      .filter(tx => {
+        if (activeBudget?.startDate && activeBudget?.endDate) {
+          return tx.date >= activeBudget.startDate && tx.date <= activeBudget.endDate;
+        }
+        return true;
+      })
       .reduce((sum, tx) => sum + tx.amount, 0);
-  }, [transactions]);
+  }, [transactions, activeBudget]);
 
   const getRangeLabel = () => {
+    if (activeBudget?.startDate && activeBudget?.endDate) {
+      return `${activeBudget.startDate} ~ ${activeBudget.endDate}`;
+    }
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     const mIdx = parseInt(selectedMonth) - 1;
     const mName = isNaN(mIdx) ? selectedMonth : t(monthNames[mIdx]);
@@ -175,8 +198,16 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
       setError(t('validationBudgetPositive'));
       return;
     }
+    if (budgetType === 'custom' && (!customStartDate || !customEndDate)) {
+      setError(language === 'my' ? 'ရက်စွဲ ပမာဏ အပြည့်အစုံ ရွေးချယ်ပါ' : 'Please select both start and end dates');
+      return;
+    }
     setError(undefined);
-    onSaveBudget('Total', limit, currentMonthKey);
+    if (budgetType === 'custom') {
+      onSaveBudget('Total', limit, currentMonthKey, customStartDate, customEndDate);
+    } else {
+      onSaveBudget('Total', limit, currentMonthKey, undefined, undefined);
+    }
     setIsEditing(false);
   };
 
@@ -420,6 +451,51 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                     ))}
                   </div>
                 </div>
+
+                {/* Budget Period Selection (Monthly vs Custom Range) */}
+                <div className="ios-glass p-4 rounded-2xl space-y-3 border border-black/5 dark:border-white/5">
+                  <span className="block text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
+                    {t('budgetPeriod')}
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBudgetType('monthly')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                        budgetType === 'monthly'
+                          ? 'bg-[#007aff] text-white border-transparent shadow-xs'
+                          : 'bg-black/5 dark:bg-white/5 text-[#8e8e93] border-transparent hover:text-[#1c1c1e] dark:hover:text-white'
+                      }`}
+                    >
+                      {t('budgetMonthly')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBudgetType('custom')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                        budgetType === 'custom'
+                          ? 'bg-[#007aff] text-white border-transparent shadow-xs'
+                          : 'bg-black/5 dark:bg-white/5 text-[#8e8e93] border-transparent hover:text-[#1c1c1e] dark:hover:text-white'
+                      }`}
+                    >
+                      {t('budgetCustomRange')}
+                    </button>
+                  </div>
+
+                  {budgetType === 'custom' && (
+                    <div className="pt-2">
+                      <IOSDateRangePicker
+                        startDate={customStartDate}
+                        endDate={customEndDate}
+                        onChange={(s, e) => {
+                          setCustomStartDate(s);
+                          setCustomEndDate(e);
+                        }}
+                        language={language}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-2 border-t border-black/5 dark:border-white/5">
@@ -434,7 +510,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                   type="submit"
                   className="px-6 py-2.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
                 >
-                  {t('save')}
+                  {activeBudget ? t('save') : (language === 'my' ? 'ဘတ်ဂျက် သတ်မှတ်မည်' : 'Set Budget Limit')}
                 </button>
               </div>
             </form>
@@ -444,7 +520,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
       {/* Main Budget Dashboard Display */}
       <div className="grid grid-cols-1 gap-6">
-        {!activeBudget ? (
+        {(!activeBudget && !isEditing) ? (
           <div className="py-16 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
             <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
               <ShieldAlert className="w-8 h-8" />

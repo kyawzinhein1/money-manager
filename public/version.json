@@ -1,20 +1,40 @@
 {
-  "version": "v1.2.6",
-  "buildHash": "v1.2.6-20260728",
-  "buildTime": "2026-07-28 20:10:00",
-  "titleEn": "Dynamic Server Updates & Multi-Month Budget Control",
-  "titleMy": "အလိုအလျောက် ဗားရှင်းစစ်ဆေးမှုနှင့် လအလိုက် ဘတ်ဂျက်စနစ်",
+  "version": "v1.2.7",
+  "buildHash": "v1.2.7-20260730",
+  "buildTime": "2026-07-30 17:35:00",
+  "titleEn": "Structured Settings UX & Calendar Optimization",
+  "titleMy": "ပြင်ဆင်ပြီး ဆက်တင် စနစ်နှင့် ရုပ်ထွက်မြင့် ပြက္ခဒိန် မြှင့်တင်မှု",
   "changelogEn": [
-    "Dynamic server build version detection & automatic Service Worker cache bypass",
-    "One-click application update button with instant cache invalidation",
-    "Dedicated monthly budget limits with automatic previous month budget copying"
+    "Reorganized Settings interface into grouped categories with quick navigation filter tabs",
+    "Added Reset Application Settings action while preserving offline transaction ledgers",
+    "Optimized calendar cell aspect-ratio sizing and streamlined day transaction detail popups",
+    "Performance and render optimizations across settings views"
   ],
   "changelogMy": [
-    "ဆာဗာရှိ နောက်ဆုံးထွက် ဗားရှင်းအသစ်ကို အလိုအလျောက် စစ်ဆေးပြီး Cache ကျော်လွန် ရယူနိုင်ခြင်း",
-    "ကလစ်တစ်ချက်နှိပ်ရုံဖြင့် အက်ပ်အား ဗားရှင်းအသစ်သို့ ချက်ချင်း အဆင့်မြှင့်တင်နိုင်ခြင်း",
-    "လအလိုက် ဘတ်ဂျက်ကန့်သတ်ချက် သတ်မှတ်နိုင်ခြင်းနှင့် လွန်ခဲ့သောလမှ ဘတ်ဂျက် ကူးယူနိုင်ခြင်း"
+    "ဆက်တင်စနစ်၏ ရုပ်ထွက်နှင့် ခွဲခြားအသုံးပြုမှုကို စနစ်တကျ ကဏ္ဍအလိုက် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်",
+    "ဝင်ငွေ/ထွက်ငွေ မှတ်တမ်းများမပျက်စေဘဲ အက်ပ် ဆက်တင်များကို သီးသန့် မူလအတိုင်း ပြန်လည်သတ်မှတ်နိုင်သည့် စနစ် ထည့်သွင်းပေးခဲ့ပါသည်",
+    "ပြက္ခဒိန် အကွက် အရွယ်အစားနှင့် သီးသန့် အသေးစိတ်ကြည့်ရှုသည့် စခရင်ကို ပိုမိုရှင်းလင်းအောင် ပြင်ဆင်ခဲ့ပါသည်",
+    "အက်ပ်၏ မြန်နှုန်းနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုကောင်းမွန်အောင် မြှင့်တင်ထားပါသည်"
   ],
   "releaseHistory": [
+    {
+      "version": "v1.2.7",
+      "date": "2026-07-30",
+      "titleEn": "Structured Settings UX & Calendar Optimization",
+      "titleMy": "ပြင်ဆင်ပြီး ဆက်တင် စနစ်နှင့် ရုပ်ထွက်မြင့် ပြက္ခဒိန် မြှင့်တင်မှု",
+      "itemsEn": [
+        "Reorganized Settings interface into grouped categories with quick navigation filter tabs",
+        "Added Reset Application Settings action while preserving offline transaction ledgers",
+        "Optimized calendar cell aspect-ratio sizing and streamlined day transaction detail popups",
+        "Performance and render optimizations across settings views"
+      ],
+      "itemsMy": [
+        "ဆက်တင်စနစ်၏ ရုပ်ထွက်နှင့် ခွဲခြားအသုံးပြုမှုကို စနစ်တကျ ကဏ္ဍအလိုက် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်",
+        "ဝင်ငွေ/ထွက်ငွေ မှတ်တမ်းများမပျက်စေဘဲ အက်ပ် ဆက်တင်များကို သီးသန့် မူလအတိုင်း ပြန်လည်သတ်မှတ်နိုင်သည့် စနစ် ထည့်သွင်းပေးခဲ့ပါသည်",
+        "ပြက္ခဒိန် အကွက် အရွယ်အစားနှင့် သီးသန့် အသေးစိတ်ကြည့်ရှုသည့် စခရင်ကို ပိုမိုရှင်းလင်းအောင် ပြင်ဆင်ခဲ့ပါသည်",
+        "အက်ပ်၏ မြန်နှုန်းနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုကောင်းမွန်အောင် မြှင့်တင်ထားပါသည်"
+      ]
+    },
     {
       "version": "v1.2.6",
       "date": "2026-07-28",

@@ -588,19 +588,42 @@ export default function App() {
   const handleClearAllData = React.useCallback(() => {
     setConfirmDialog({
       isOpen: true,
-      title: settings.language === 'my' ? "ဒေတာအားလုံး ဖျက်မည်" : "Clear All Data",
-      message: t('confirmClear') || "Are you absolutely sure you want to clear all transactions and budgets? This action is permanent and cannot be undone.",
-      confirmText: settings.language === 'my' ? "ဖျက်မည်" : "Clear All",
+      title: settings.language === 'my' ? "မှတ်တမ်းများသာ ဖျက်မည်" : "Clear All Records",
+      message: t('confirmClear') || "Are you sure you want to clear all transactions and budgets? Your app settings will be preserved.",
+      confirmText: settings.language === 'my' ? "မှတ်တမ်းများ ဖျက်မည်" : "Clear Records",
       cancelText: settings.language === 'my' ? "မလုပ်တော့ပါ" : "Cancel",
       isDestructive: true,
       onConfirm: () => {
         setTransactions([]);
         setBudgets([]);
+        showToast(t('clearSuccess') || 'All transactions and budgets cleared!', 'success');
+        setConfirmDialog(null);
+      }
+    });
+  }, [settings.language, t]);
+
+  const handleResetAppSettings = React.useCallback(() => {
+    setConfirmDialog({
+      isOpen: true,
+      title: settings.language === 'my' ? "အက်ပ် ဆက်တင်များ ပြန်စမည်" : "Reset App Settings",
+      message: t('confirmResetSettings') || "Are you sure you want to reset all application settings to default? (This will not delete your transaction records).",
+      confirmText: settings.language === 'my' ? "ပြန်စမည်" : "Reset Settings",
+      cancelText: settings.language === 'my' ? "မလုပ်တော့ပါ" : "Cancel",
+      isDestructive: true,
+      onConfirm: () => {
+        localStorage.removeItem('money_manager_settings');
+        localStorage.removeItem('money_manager_currency');
         localStorage.removeItem('mm_onboarding_completed');
         localStorage.removeItem('mm_onboarding_goals');
-        setShowOnboarding(true);
-        setActiveTab('dashboard');
-        showToast(t('clearSuccess') || 'All transactions and budgets cleared!', 'success');
+        setSettings({
+          language: 'en',
+          theme: 'light',
+          currency: 'USD',
+          notificationsEnabled: true,
+          balanceMethod: 'all_time',
+        });
+        setCustomCurrency({ code: 'USD', symbol: '$', name: 'US Dollar' });
+        showToast(t('resetSettingsSuccess') || 'App settings reset to default!', 'success');
         setConfirmDialog(null);
       }
     });
@@ -689,6 +712,16 @@ export default function App() {
     });
   }, [transactions, selectedMonth, selectedYear]);
 
+  const cumulativeTotals = React.useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    transactions.forEach((tx) => {
+      if (tx.type === 'income') income += tx.amount;
+      else expense += tx.amount;
+    });
+    return { income, expense, balance: income - expense };
+  }, [transactions]);
+
   const totals = React.useMemo(() => {
     let totalIncome = 0;
     let totalExpense = 0;
@@ -701,12 +734,16 @@ export default function App() {
       }
     });
 
+    const isCumulative = (settings.balanceMethod ?? 'all_time') === 'all_time';
+
     return {
       income: totalIncome,
       expense: totalExpense,
-      balance: totalIncome - totalExpense,
+      balance: isCumulative ? cumulativeTotals.balance : (totalIncome - totalExpense),
+      monthlyBalance: totalIncome - totalExpense,
+      isCumulative,
     };
-  }, [dashboardFilteredTransactions]);
+  }, [dashboardFilteredTransactions, cumulativeTotals, settings.balanceMethod]);
 
   // Handle Updates
   const handleAddTransaction = React.useCallback((newTx: Omit<Transaction, 'id'>) => {
@@ -758,11 +795,11 @@ export default function App() {
     });
   }, [transactions, settings.language, tc, formatAmount, t]);
 
-  const handleSaveBudget = React.useCallback((category: string, limit: number, monthKey?: string) => {
+  const handleSaveBudget = React.useCallback((category: string, limit: number, monthKey?: string, startDate?: string, endDate?: string) => {
     const targetMonth = monthKey || `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
     setBudgets(prev => {
       const filtered = prev.filter(b => b.month !== targetMonth && (b.month || b.category !== category));
-      return [...filtered, { category: category || 'Total', limit, month: targetMonth }];
+      return [...filtered, { category: category || 'Total', limit, month: targetMonth, startDate, endDate }];
     });
     showToast(t('budgetSavedSuccess') || 'Budget saved successfully!', 'success');
   }, [selectedYear, selectedMonth, t]);
@@ -859,6 +896,16 @@ export default function App() {
   const handleUpdateTheme = React.useCallback((theme: 'light' | 'dark') => {
     setSettings((prev) => ({ ...prev, theme }));
   }, []);
+
+  const handleUpdateBalanceMethod = React.useCallback((balanceMethod: 'all_time' | 'monthly') => {
+    setSettings((prev) => ({ ...prev, balanceMethod }));
+    showToast(
+      settings.language === 'my'
+        ? 'လက်ကျန်ငွေ တွက်ချက်မှု စနစ် ပြောင်းလဲပြီးပါပြီ'
+        : 'Balance calculation method updated!',
+      'info'
+    );
+  }, [settings.language]);
 
   const handleUpdateCurrency = React.useCallback((code: string, symbol: string, name: string) => {
     setCustomCurrency({ code, symbol, name });
@@ -2059,6 +2106,7 @@ export default function App() {
                     settings={settings}
                     onUpdateLanguage={handleUpdateLanguage}
                     onUpdateTheme={handleUpdateTheme}
+                    onUpdateBalanceMethod={handleUpdateBalanceMethod}
                     onUpdateCurrency={handleUpdateCurrency}
                     onUpdateNavbarSettings={handleUpdateNavbarSettings}
                     onExportCSV={handleExportCSV}
@@ -2076,6 +2124,7 @@ export default function App() {
                     onDeleteCategory={handleDeleteCategory}
                     onLoadDemoData={handleLoadDemoData}
                     onClearAllData={handleClearAllData}
+                    onResetSettings={handleResetAppSettings}
                     profile={profile}
                     onEditProfileClick={() => {
                       setActiveTab('profile');

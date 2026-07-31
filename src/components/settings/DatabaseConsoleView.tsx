@@ -31,6 +31,7 @@ interface DatabaseConsoleViewProps {
   onClose: () => void;
   onLoadDemoData: () => void;
   onClearAllData: () => void;
+  onResetSettings?: () => void;
   onRestoreBackup: (json: any) => void;
 }
 
@@ -46,6 +47,7 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
   onClose,
   onLoadDemoData,
   onClearAllData,
+  onResetSettings,
   onRestoreBackup,
 }) => {
   const [importError, setImportError] = useState<string | null>(null);
@@ -316,6 +318,16 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
                 <Trash2 className="w-4 h-4" />
                 {t('clearAllData')}
               </button>
+              {onResetSettings && (
+                <button
+                  id="reset-app-settings-btn"
+                  onClick={onResetSettings}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-[#ff9500]/10 hover:bg-[#ff9500]/20 text-[#ff9500] rounded-2xl text-xs font-bold transition-all cursor-pointer border-0"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  {t('resetAppSettings')}
+                </button>
+              )}
             </div>
           </div>
         </div>

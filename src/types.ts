@@ -9,10 +9,14 @@ export interface Transaction {
   description: string;
 }
 
+export type BalanceMethod = 'all_time' | 'monthly';
+
 export interface Budget {
   category: string;
   limit: number;
   month?: string; // YYYY-MM format, e.g. "2026-07"
+  startDate?: string; // YYYY-MM-DD format for custom date range budget
+  endDate?: string;   // YYYY-MM-DD format for custom date range budget
 }
 
 export type Language = 'en' | 'my';
@@ -31,6 +35,7 @@ export interface Settings {
   reminderTime?: string; // e.g., "20:00"
   reminderMessage?: string;
   navbarSettings?: NavbarSettings;
+  balanceMethod?: BalanceMethod;
 }
 
 export interface NavbarSettings {
