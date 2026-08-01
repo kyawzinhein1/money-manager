@@ -30,6 +30,7 @@ import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateForecastReport } from '../utils/forecasting';
 import { IOSDatePicker } from './IOSDatePicker';
 import { IOSDateRangePicker } from './IOSDateRangePicker';
+import { findActiveBudget } from '../utils/budgetUtils';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -117,8 +118,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   const currentMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
 
   const activeBudget = React.useMemo(() => {
-    return budgets.find(b => b.month === currentMonthKey) || budgets.find(b => !b.month) || null;
-  }, [budgets, currentMonthKey]);
+    return findActiveBudget(budgets, selectedMonth, selectedYear);
+  }, [budgets, selectedMonth, selectedYear]);
 
   // Find previous month budget if available for 1-click copying
   const previousMonthBudget = React.useMemo(() => {
@@ -149,10 +150,22 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
     if (!isEditing) {
       setBudgetLimit(activeBudget ? activeBudget.limit.toString() : '');
       setBudgetType(activeBudget?.startDate && activeBudget?.endDate ? 'custom' : 'monthly');
-      if (activeBudget?.startDate) setCustomStartDate(activeBudget.startDate);
-      if (activeBudget?.endDate) setCustomEndDate(activeBudget.endDate);
+      if (activeBudget?.startDate && activeBudget?.endDate) {
+        setCustomStartDate(activeBudget.startDate);
+        setCustomEndDate(activeBudget.endDate);
+      } else {
+        const mNum = parseInt(selectedMonth, 10);
+        const yNum = parseInt(selectedYear, 10);
+        if (!isNaN(mNum) && !isNaN(yNum)) {
+          const defaultStart = `${yNum}-${String(mNum).padStart(2, '0')}-01`;
+          const lastDay = new Date(yNum, mNum, 0).getDate();
+          const defaultEnd = `${yNum}-${String(mNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+          setCustomStartDate(defaultStart);
+          setCustomEndDate(defaultEnd);
+        }
+      }
     }
-  }, [activeBudget, isEditing, currentMonthKey]);
+  }, [activeBudget, isEditing, currentMonthKey, selectedMonth, selectedYear]);
 
   const forecast = React.useMemo(() => {
     return generateForecastReport(

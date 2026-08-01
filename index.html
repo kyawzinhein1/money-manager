@@ -12,11 +12,34 @@
     
     <!-- iOS Specific PWA Meta Tags (Crucial for Standalone Liquid Mode) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Personal Money Manager" />
+    <meta name="apple-mobile-web-app-title" content="Personal Money" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+
+    <!-- Prevent iOS Standalone Mode from exiting app on internal links -->
+    <script>
+      (function() {
+        if (('standalone' in window.navigator) && window.navigator.standalone) {
+          document.addEventListener('click', function(e) {
+            var node = e.target;
+            while (node && node.nodeName !== 'A') {
+              node = node.parentNode;
+            }
+            if (node && node.nodeName === 'A' && node.getAttribute('href')) {
+              var href = node.getAttribute('href');
+              if (href && href.indexOf('http') !== 0 && href.indexOf('mailto:') !== 0 && href.indexOf('tel:') !== 0) {
+                e.preventDefault();
+                window.location.href = href;
+              }
+            }
+          }, false);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

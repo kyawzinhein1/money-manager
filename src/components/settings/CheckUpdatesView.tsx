@@ -283,6 +283,40 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         </div>
       </div>
 
+      {/* iOS & Mobile PWA Installation Guide Card */}
+      <div className="p-5 ios-glass rounded-[2rem] border border-black/[0.05] dark:border-white/[0.08] space-y-3">
+        <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">
+          <ArrowUpCircle className="w-4 h-4 text-[#007aff]" />
+          {language === 'my' ? 'iOS (iPhone / iPad) တွင် အော့ဖ်လိုင်း အက်ပ်အဖြစ် ထည့်သွင်းနည်း' : 'iOS / Mobile Offline PWA Installation Guide'}
+        </h3>
+        <p className="text-xs text-[#8e8e93] leading-relaxed">
+          {language === 'my'
+            ? 'iPhone / iPad (Safari Browser) တွင် အပလီကေးရှင်းကို Android ကဲ့သို့ အော့ဖ်လိုင်း စက်တွင်းအက်ပ်အဖြစ် သွင်းယူရန် အောက်ပါအတိုင်း ပြုလုပ်ပါ:'
+            : 'To install on iOS Safari as a standalone offline application:'}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06] flex items-start gap-2.5">
+            <span className="w-5 h-5 rounded-full bg-[#007aff] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+            <div className="text-xs text-[#1c1c1e] dark:text-slate-200">
+              <span className="font-bold">{language === 'my' ? 'Safari ၏ Share ခလုတ်' : 'Safari Share Button'}</span>
+              <p className="text-[11px] text-[#8e8e93] mt-0.5">
+                {language === 'my' ? 'Safari မျက်နှာပြင် အောက်ခြေရှိ Share အိုင်ကွန်ကို နှိပ်ပါ' : 'Tap the Share icon at the bottom of Safari'}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06] flex items-start gap-2.5">
+            <span className="w-5 h-5 rounded-full bg-[#007aff] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+            <div className="text-xs text-[#1c1c1e] dark:text-slate-200">
+              <span className="font-bold">{language === 'my' ? 'Add to Home Screen' : 'Add to Home Screen'}</span>
+              <p className="text-[11px] text-[#8e8e93] mt-0.5">
+                {language === 'my' ? 'အောက်သို့ဆွဲပြီး "Add to Home Screen" (+) ကို ရွေးပါ' : 'Scroll down and select "Add to Home Screen" (+)'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Release Notes & Changelog */}
       <div className="p-5 ios-glass rounded-[2rem] space-y-4">
         <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check } from 'lucide-react';
 import { Language } from '../types';
+import { getLocalDateStr } from '../utils/dateUtils';
 
 interface IOSDatePickerProps {
   value: string; // 'YYYY-MM-DD'
@@ -67,8 +68,8 @@ export const IOSDatePicker: React.FC<IOSDatePickerProps> = ({
     }
   };
 
-  const todayStr = new Date().toISOString().substring(0, 10);
-  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().substring(0, 10);
+  const todayStr = getLocalDateStr();
+  const yesterdayStr = getLocalDateStr(new Date(Date.now() - 86400000));
 
   // Format date display
   const formatDateDisplay = (dateIso: string) => {

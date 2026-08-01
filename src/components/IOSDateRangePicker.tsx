@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { Language } from '../types';
+import { getLocalDateStr } from '../utils/dateUtils';
 
 interface IOSDateRangePickerProps {
   startDate: string; // 'YYYY-MM-DD'
@@ -39,14 +40,15 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
 
   // Sync viewing month if external dates change
   useEffect(() => {
-    if (startDate) {
-      const d = new Date(startDate + 'T00:00:00');
+    const targetDateStr = activeTab === 'end' && endDate ? endDate : startDate;
+    if (targetDateStr) {
+      const d = new Date(targetDateStr + 'T00:00:00');
       if (!isNaN(d.getTime())) {
         setViewYear(d.getFullYear());
         setViewMonth(d.getMonth());
       }
     }
-  }, [startDate]);
+  }, [startDate, endDate, activeTab]);
 
   const handlePrevMonth = () => {
     if (viewMonth === 0) {
@@ -108,6 +110,12 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
   }
 
   const handleSelectDay = (iso: string) => {
+    const clickedD = new Date(iso + 'T00:00:00');
+    if (!isNaN(clickedD.getTime())) {
+      setViewYear(clickedD.getFullYear());
+      setViewMonth(clickedD.getMonth());
+    }
+
     if (activeTab === 'start') {
       if (endDate && iso > endDate) {
         // If selecting a start date that is after current end date, push end date
@@ -126,30 +134,6 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
         setActiveTab('start');
       }
     }
-  };
-
-  // Preset helper
-  const setThisMonthPreset = () => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
-    const startIso = `${y}-${m}-01`;
-    const endIso = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
-    onChange(startIso, endIso);
-    setViewYear(y);
-    setViewMonth(now.getMonth());
-  };
-
-  const setNext30DaysPreset = () => {
-    const start = new Date();
-    const end = new Date();
-    end.setDate(end.getDate() + 30);
-    const startIso = start.toISOString().substring(0, 10);
-    const endIso = end.toISOString().substring(0, 10);
-    onChange(startIso, endIso);
-    setViewYear(start.getFullYear());
-    setViewMonth(start.getMonth());
   };
 
   const calculateDaysCount = () => {
@@ -223,24 +207,6 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
             </span>
           </button>
         </div>
-      </div>
-
-      {/* Preset range shortcuts */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={setThisMonthPreset}
-          className="flex-1 py-1.5 px-3 text-[11px] font-bold rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-[#1c1c1e] dark:text-[#f2f2f7] border-0 transition-all cursor-pointer"
-        >
-          {language === 'my' ? 'ယခုလ တစ်လလုံး' : 'This Whole Month'}
-        </button>
-        <button
-          type="button"
-          onClick={setNext30DaysPreset}
-          className="flex-1 py-1.5 px-3 text-[11px] font-bold rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-[#1c1c1e] dark:text-[#f2f2f7] border-0 transition-all cursor-pointer"
-        >
-          {language === 'my' ? 'ရက် (၃၀) စာ' : 'Next 30 Days'}
-        </button>
       </div>
 
       {/* Single Graphical Calendar UI for Date Range */}

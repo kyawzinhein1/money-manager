@@ -48,6 +48,7 @@ import {
 import { Transaction, Language, Budget } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateForecastReport } from '../utils/forecasting';
+import { findActiveBudget } from '../utils/budgetUtils';
 
 interface AnalyticsSectionProps {
   transactions: Transaction[];
@@ -169,9 +170,9 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
 
   const currentMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
   const activeBudgetLimit = useMemo(() => {
-    const found = budgets.find(b => b.month === currentMonthKey) || budgets.find(b => !b.month);
+    const found = findActiveBudget(budgets, selectedMonth, selectedYear);
     return found ? found.limit : 0;
-  }, [budgets, currentMonthKey]);
+  }, [budgets, selectedMonth, selectedYear]);
 
   const forecast = useMemo(() => {
     return generateForecastReport(
@@ -216,21 +217,21 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
     };
   }, [filteredData]);
 
-  // 1. Monthly History (Income vs Expense monthly bars for exactly previous 3 months)
+  // 1. Monthly History (Income vs Expense monthly bars for exactly previous 6 months)
   const monthlyData = useMemo(() => {
     const monthlyGroups: Record<string, { month: string; rawMonth: string; income: number; expense: number }> = {};
 
-    // Generate precisely the current month and previous two months YYYY-MM labels
+    // Generate precisely the current month and previous five months YYYY-MM labels
     const now = new Date();
     const targetMonths: string[] = [];
-    for (let i = 2; i >= 0; i--) {
+    for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       targetMonths.push(`${yyyy}-${mm}`);
     }
 
-    // Initialize monthlyGroups with the 3 target months to guarantee they appear on the chart
+    // Initialize monthlyGroups with the 6 target months to guarantee they appear on the chart
     targetMonths.forEach((mStr) => {
       const [y, m] = mStr.split('-');
       const d = new Date(parseInt(y), parseInt(m) - 1, 1);
@@ -243,7 +244,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       };
     });
 
-    // Populate transaction totals only if they fall within our target 3 months range
+    // Populate transaction totals only if they fall within our target 6 months range
     transactions.forEach((tx) => {
       const monthLabel = tx.date.substring(0, 7); // "YYYY-MM"
       if (monthlyGroups[monthLabel]) {
@@ -925,7 +926,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
         <div className="p-5 ios-glass rounded-[2rem] space-y-4 lg:col-span-2">
           <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">
             <Landmark className="w-4 h-4 text-[#007aff]" />
-            {t('incomeVsExpense')} ({language === 'en' ? 'Last 3 Months' : 'နောက်ဆုံး ၃ လ'})
+            {t('incomeVsExpense')} ({language === 'en' ? 'Last 6 Months' : 'နောက်ဆုံး ၆ လ'})
           </h3>
           <div className="h-60 w-full pt-1" id="monthly-bar-chart">
             {monthlyData.length === 0 ? (

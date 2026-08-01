@@ -18,28 +18,46 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v1.2.7';
-export const BUILD_HASH = 'v1.2.7-20260730';
+export const APP_VERSION = 'v1.2.8';
+export const BUILD_HASH = 'v1.2.8-20260801';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v1.2.7',
-  buildHash: 'v1.2.7-20260730',
-  buildTime: '2026-07-30 17:35:00',
-  titleEn: 'Structured Settings UX & Calendar Optimization',
-  titleMy: 'ပြင်ဆင်ပြီး ဆက်တင် စနစ်နှင့် ရုပ်ထွက်မြင့် ပြက္ခဒိန် မြှင့်တင်မှု',
+  version: 'v1.2.8',
+  buildHash: 'v1.2.8-20260801',
+  buildTime: '2026-08-01 03:00:00',
+  titleEn: '6-Month Analytics & iOS Offline PWA Enhancements',
+  titleMy: '၆ လစာ ဘဏ္ဍာရေး သုံးသပ်ချက် ဇယားနှင့် iOS အော့ဖ်လိုင်း PWA စနစ် မြှင့်တင်မှု',
   changelogEn: [
-    'Reorganized Settings interface into grouped categories with quick navigation filter tabs',
-    'Added Reset Application Settings action while preserving offline transaction ledgers',
-    'Optimized calendar cell aspect-ratio sizing and streamlined day transaction detail popups',
-    'Performance and render optimizations across settings views'
+    'Expanded Income vs Expense chart on Stats tab to show 6 months history',
+    'Enhanced iOS PWA installation guidance overlay & offline Service Worker cache support',
+    'Added dynamic date range labels to PDF financial statement exports',
+    'Optimized PWA meta tags and offline standalone execution for iOS devices'
   ],
   changelogMy: [
-    'ဆက်တင်စနစ်၏ ရုပ်ထွက်နှင့် ခွဲခြားအသုံးပြုမှုကို စနစ်တကျ ကဏ္ဍအလိုက် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်',
-    'ဝင်ငွေ/ထွက်ငွေ မှတ်တမ်းများမပျက်စေဘဲ အက်ပ် ဆက်တင်များကို သီးသန့် မူလအတိုင်း ပြန်လည်သတ်မှတ်နိုင်သည့် စနစ် ထည့်သွင်းပေးခဲ့ပါသည်',
-    'ပြက္ခဒိန် အကွက် အရွယ်အစားနှင့် သီးသန့် အသေးစိတ်ကြည့်ရှုသည့် စခရင်ကို ပိုမိုရှင်းလင်းအောင် ပြင်ဆင်ခဲ့ပါသည်',
-    'အက်ပ်၏ မြန်နှုန်းနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုကောင်းမွန်အောင် မြှင့်တင်ထားပါသည်'
+    'ဘဏ္ဍာရေး သုံးသပ်ချက်စခရင်တွင် ဝင်ငွေ/ထွက်ငွေ ဇယားအား နောက်ဆုံး ၆ လစာအထိ တိုးမြှင့်ပြသပေးခဲ့ပါသည်',
+    'iOS (iPhone) ဖုန်းများတွင် အပလီကေးရှင်းအား အော့ဖ်လိုင်း သွင်းယူအသုံးပြုနိုင်ရန် PWA စနစ်ကို ပိုမိုကောင်းမွန်အောင် ပြုလုပ်ခဲ့ပါသည်',
+    'PDF အစီရင်ခံစာ ထုတ်ယူမှုတွင် သက်ဆိုင်ရာ ရက်စွဲအပိုင်းအခြား ထည့်သွင်းပေးခဲ့ပါသည်',
+    'အော့ဖ်လိုင်း အသုံးပြုနိုင်ရေး Service Worker နှင့် အက်ပ်စွမ်းဆောင်ရည်များကို မြှင့်တင်ထားပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v1.2.8',
+      date: '2026-08-01',
+      titleEn: '6-Month Analytics & iOS Offline PWA Enhancements',
+      titleMy: '၆ လစာ ဘဏ္ဍာရေး သုံးသပ်ချက် ဇယားနှင့် iOS အော့ဖ်လိုင်း PWA စနစ် မြှင့်တင်မှု',
+      itemsEn: [
+        'Expanded Income vs Expense chart on Stats tab to show 6 months history',
+        'Enhanced iOS PWA installation guidance overlay & offline Service Worker cache support',
+        'Added dynamic date range labels to PDF financial statement exports',
+        'Optimized PWA meta tags and offline standalone execution for iOS devices'
+      ],
+      itemsMy: [
+        'ဘဏ္ဍာရေး သုံးသပ်ချက်စခရင်တွင် ဝင်ငွေ/ထွက်ငွေ ဇယားအား နောက်ဆုံး ၆ လစာအထိ တိုးမြှင့်ပြသပေးခဲ့ပါသည်',
+        'iOS (iPhone) ဖုန်းများတွင် အပလီကေးရှင်းအား အော့ဖ်လိုင်း သွင်းယူအသုံးပြုနိုင်ရန် PWA စနစ်ကို ပိုမိုကောင်းမွန်အောင် ပြုလုပ်ခဲ့ပါသည်',
+        'PDF အစီရင်ခံစာ ထုတ်ယူမှုတွင် သက်ဆိုင်ရာ ရက်စွဲအပိုင်းအခြား ထည့်သွင်းပေးခဲ့ပါသည်',
+        'အော့ဖ်လိုင်း အသုံးပြုနိုင်ရေး Service Worker နှင့် အက်ပ်စွမ်းဆောင်ရည်များကို မြှင့်တင်ထားပါသည်'
+      ]
+    },
     {
       version: 'v1.2.7',
       date: '2026-07-30',

@@ -38,6 +38,9 @@ import {
 import { Transaction, Budget, Language, Currency, Settings, UserProfile, NavbarSettings } from './types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from './translations';
 import { DEFAULT_TRANSACTIONS, DEFAULT_BUDGETS } from './defaultData';
+import { findActiveBudget } from './utils/budgetUtils';
+import { getLocalDateStr, getLocalMonthStr, getLocalYearStr, getLocalMonthYearKey } from './utils/dateUtils';
+import { DateFilterSwitcher } from './components/DateFilterSwitcher';
 import { generateForecastReport } from './utils/forecasting';
 import { getCategoryStyle } from './utils/categoryStyle';
 import {
@@ -55,6 +58,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { BudgetSection } from './components/BudgetSection';
 import { AnalyticsSection } from './components/AnalyticsSection';
 import { SettingsSection } from './components/SettingsSection';
+import { IOSInstallPrompt } from './components/IOSInstallPrompt';
 import { ProfileSection } from './components/ProfileSection';
 import { AddTransactionSection } from './components/AddTransactionSection';
 
@@ -145,13 +149,16 @@ export default function App() {
     };
   });
 
-  // Home Page (Dashboard) Date Selector Range State (Month and Year selector)
+  // Home Page (Dashboard) Date Selector Range State (Month and Year selector / Date Range)
+  const [dateFilterMode, setDateFilterMode] = useState<'monthYear' | 'dateRange'>('monthYear');
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
-    return new Date().toISOString().substring(5, 7); // current month e.g. "07"
+    return getLocalMonthStr(); // current month e.g. "08"
   });
   const [selectedYear, setSelectedYear] = useState<string>(() => {
-    return new Date().toISOString().substring(0, 4); // current year e.g. "2026"
+    return getLocalYearStr(); // current year e.g. "2026"
   });
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   // Current Active Tab
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction'>(() => {
@@ -190,7 +197,7 @@ export default function App() {
 
   React.useLayoutEffect(() => {
     if (showMonthMenu && monthMenuRef.current) {
-      const currentMonthVal = new Date().toISOString().substring(5, 7);
+      const currentMonthVal = getLocalMonthStr();
       const targetVal = selectedMonth !== 'all' ? selectedMonth : currentMonthVal;
       const targetBtn = monthMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
       if (targetBtn) {
@@ -334,7 +341,7 @@ export default function App() {
         type: 'income',
         category: data.language === 'my' ? 'စတင် လက်ကျန်ငွေ' : 'Opening Balance',
         amount: data.initialBalance,
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateStr(),
         description: data.language === 'my' ? 'စတင်အသုံးပြုချိန် လက်ကျန်ငွေ' : 'Initial Starting Balance'
       };
       newTxList = [initialTx];
@@ -698,19 +705,25 @@ export default function App() {
   ], [settings.language]);
 
   // Global calculations for current range
-  const currentMonthStr = new Date().toISOString().substring(0, 7); // "YYYY-MM"
+  const currentMonthStr = getLocalMonthYearKey(); // "YYYY-MM"
 
   const dashboardFilteredTransactions = React.useMemo(() => {
     return transactions.filter((tx) => {
-      const txYear = tx.date.substring(0, 4);
-      const txMonth = tx.date.substring(5, 7);
-      
-      const matchYear = selectedYear === 'all' || txYear === selectedYear;
-      const matchMonth = selectedMonth === 'all' || txMonth === selectedMonth;
-      
-      return matchYear && matchMonth;
+      if (dateFilterMode === 'dateRange' || startDate || endDate) {
+        const matchStart = !startDate || tx.date >= startDate;
+        const matchEnd = !endDate || tx.date <= endDate;
+        return matchStart && matchEnd;
+      } else {
+        const txYear = tx.date.substring(0, 4);
+        const txMonth = tx.date.substring(5, 7);
+        
+        const matchYear = selectedYear === 'all' || txYear === selectedYear;
+        const matchMonth = selectedMonth === 'all' || txMonth === selectedMonth;
+        
+        return matchYear && matchMonth;
+      }
     });
-  }, [transactions, selectedMonth, selectedYear]);
+  }, [transactions, dateFilterMode, selectedMonth, selectedYear, startDate, endDate]);
 
   const cumulativeTotals = React.useMemo(() => {
     let income = 0;
@@ -757,7 +770,9 @@ export default function App() {
     // Check if total monthly expense budget is exceeded with this new transaction
     if (tx.type === 'expense') {
       const txMonthKey = tx.date.substring(0, 7);
-      const monthlyBudget = budgets.find(b => b.month === txMonthKey) || budgets.find(b => !b.month);
+      const txMonth = tx.date.substring(5, 7);
+      const txYear = tx.date.substring(0, 4);
+      const monthlyBudget = findActiveBudget(budgets, txMonth, txYear);
       if (monthlyBudget) {
         const totalSpent = transactions
           .filter((t) => t.type === 'expense' && t.date.substring(0, 7) === txMonthKey)
@@ -1003,6 +1018,10 @@ export default function App() {
       return yearValue === 'all' ? (settings.language === 'en' ? 'All Years' : 'နှစ်အားလုံး') : yearValue;
     };
 
+    const pdfDateRangeText = (dateFilterMode === 'dateRange' || startDate || endDate)
+      ? (startDate || endDate ? `${startDate || '...'} → ${endDate || '...'}` : (settings.language === 'en' ? 'All Time' : 'အချိန်တိုင်း'))
+      : `${getMonthName(selectedMonth)} / ${getYearName(selectedYear)}`;
+
     const totalIncome = dashboardFilteredTransactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalExpense = dashboardFilteredTransactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const netSavings = totalIncome - totalExpense;
@@ -1156,7 +1175,7 @@ export default function App() {
                 <div class="title">${t('appName')}</div>
                 <div class="subtitle">Official Financial Report &amp; Balance Sheet</div>
                 <div style="font-size: 12px; color: #475569; margin-top: 5px; font-weight: 600;">
-                  Period: ${getMonthName(selectedMonth)} / ${getYearName(selectedYear)}
+                  Date Range / Period: ${pdfDateRangeText}
                 </div>
               </td>
               <td style="text-align: right; font-size: 12px; color: #64748b;">
@@ -1563,160 +1582,36 @@ export default function App() {
 
           {/* Main content body panel */}
           <div className="flex-1 min-w-0 space-y-6">
-            {/* Global Date Range Switcher */}
-            {activeTab === 'dashboard' && (
-              <div className="relative z-40 p-4 ios-glass rounded-[2rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-[#007aff]/10 dark:bg-[#007aff]/15 rounded-full flex items-center justify-center text-[#007aff] shrink-0">
-                    <Calendar className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-bold text-[#8e8e93] uppercase tracking-wider font-sans">
-                    Filter Range
-                  </span>
-                </div>
 
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
-                  {/* Month Dropdown Menu */}
-                  <div className={`relative font-sans flex-1 sm:flex-initial w-full sm:w-[100px] ${showMonthMenu ? 'z-50' : 'z-10'}`} id="month-dropdown-container">
-                    <button
-                      id="month-dropdown-btn"
-                      onClick={() => {
-                        setShowMonthMenu(!showMonthMenu);
-                        setShowYearMenu(false);
-                      }}
-                      className="w-full flex items-center justify-between gap-1.5 h-8 px-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full text-xs font-bold transition-all cursor-pointer border-0"
-                    >
-                      <span className="truncate">{monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93] shrink-0" />
-                    </button>
-
-                    <AnimatePresence>
-                      {showMonthMenu && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-30 bg-transparent"
-                            onClick={() => setShowMonthMenu(false)}
-                          />
-                          <motion.div
-                            ref={monthMenuRef}
-                            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
-                          >
-                            {monthOptions.map((opt) => (
-                              <button
-                                key={opt.value}
-                                data-value={opt.value}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedMonth(opt.value);
-                                  setShowMonthMenu(false);
-                                }}
-                                className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                                  selectedMonth === opt.value
-                                    ? 'bg-[#007aff] text-white'
-                                    : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                                }`}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Year Dropdown Menu */}
-                  <div className={`relative font-sans flex-1 sm:flex-initial w-full sm:w-[90px] ${showYearMenu ? 'z-50' : 'z-10'}`} id="year-dropdown-container">
-                    <button
-                      id="year-dropdown-btn"
-                      onClick={() => {
-                        setShowYearMenu(!showYearMenu);
-                        setShowMonthMenu(false);
-                      }}
-                      className="w-full flex items-center justify-between gap-1.5 h-8 px-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full text-xs font-bold transition-all cursor-pointer border-0"
-                    >
-                      <span className="truncate">{selectedYear === 'all' ? (settings.language === 'my' ? 'နှစ်အားလုံး' : 'All Years') : selectedYear}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93] shrink-0" />
-                    </button>
-
-                    <AnimatePresence>
-                      {showYearMenu && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-30 bg-transparent"
-                            onClick={() => setShowYearMenu(false)}
-                          />
-                          <motion.div
-                            ref={yearMenuRef}
-                            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin"
-                          >
-                            {availableYears.map((yr) => (
-                              <button
-                                key={yr}
-                                data-value={yr}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedYear(yr);
-                                  setShowYearMenu(false);
-                                }}
-                                className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                                  selectedYear === yr
-                                    ? 'bg-[#007aff] text-white'
-                                    : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                                }`}
-                              >
-                                {yr}
-                              </button>
-                            ))}
-                            <button
-                              type="button"
-                              data-value="all"
-                              onClick={() => {
-                                setSelectedYear('all');
-                                setShowYearMenu(false);
-                              }}
-                              className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                                selectedYear === 'all'
-                                  ? 'bg-[#007aff] text-white'
-                                  : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                              }`}
-                            >
-                              {settings.language === 'my' ? 'နှစ်အားလုံး' : 'All Years'}
-                            </button>
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Reset Button */}
-                  <button
-                    id="dashboard-date-reset-btn"
-                    onClick={() => {
-                      setSelectedMonth(new Date().toISOString().substring(5, 7));
-                      setSelectedYear(new Date().toISOString().substring(0, 4));
-                    }}
-                    className="flex-1 sm:flex-initial h-8 px-4 flex items-center justify-center bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-[80px]"
-                    title="Reset to current month"
-                  >
-                    <span className="truncate">{t('thisMonth')}</span>
-                  </button>
-                </div>
-              </div>
-            )}
 
             <div key={activeTab}>
                 {/* 1. Dashboard Tab */}
                 {activeTab === 'dashboard' && (
                   <div className="space-y-6" id="view-dashboard">
+                    {/* Date Filter Switcher with Month/Year and Start/End Date Range modes */}
+                    <DateFilterSwitcher
+                      t={t}
+                      settings={settings}
+                      dateFilterMode={dateFilterMode}
+                      setDateFilterMode={setDateFilterMode}
+                      selectedMonth={selectedMonth}
+                      setSelectedMonth={setSelectedMonth}
+                      selectedYear={selectedYear}
+                      setSelectedYear={setSelectedYear}
+                      startDate={startDate}
+                      setStartDate={setStartDate}
+                      endDate={endDate}
+                      setEndDate={setEndDate}
+                      monthOptions={monthOptions}
+                      availableYears={availableYears}
+                      showMonthMenu={showMonthMenu}
+                      setShowMonthMenu={setShowMonthMenu}
+                      showYearMenu={showYearMenu}
+                      setShowYearMenu={setShowYearMenu}
+                      monthMenuRef={monthMenuRef}
+                      yearMenuRef={yearMenuRef}
+                    />
+
                     {/* Welcome Grid - Apple Card Style with Gradient Accent */}
                     <div className="ios-glass text-[#1c1c1e] dark:text-[#f2f2f7] rounded-[2.25rem] p-6 relative overflow-hidden transition-all duration-300 border border-white/60 dark:border-white/10 shadow-lg shadow-black/[0.03]">
                       {/* Ambient lighting backdrop blob */}
@@ -1730,23 +1625,25 @@ export default function App() {
                             <span className="text-[#8e8e93] text-[10px] md:text-xs font-black uppercase tracking-widest font-sans">
                               {t('totalBalance')}
                             </span>
+                            <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5 ml-auto">
+                              {(dateFilterMode === 'dateRange' || startDate || endDate)
+                                ? (startDate || endDate ? `${startDate || '...'} → ${endDate || '...'}` : t('allTime'))
+                                : `${selectedMonth === 'all' ? t('allMonths') : selectedMonth}/${selectedYear === 'all' ? t('allYears') : selectedYear}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
+                              {showBalance ? formatAmount(totals.balance) : '••••••••'}
+                            </h2>
                             <button
                               type="button"
                               onClick={toggleShowBalance}
-                              className="p-1 rounded-lg text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer border-0 flex items-center justify-center"
+                              className="p-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 flex items-center justify-center shrink-0"
                               title={showBalance ? 'Hide Balance' : 'Show Balance'}
                               aria-label={showBalance ? 'Hide Balance' : 'Show Balance'}
                             >
                               {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
-                            <span className="text-[10px] px-3 py-0.5 rounded-full bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold border border-black/5 dark:border-white/5 ml-auto">
-                              {selectedMonth === 'all' ? t('allMonths') : selectedMonth}/{selectedYear === 'all' ? t('allYears') : selectedYear}
-                            </span>
-                          </div>
-                          <div className="flex items-baseline gap-2.5 flex-wrap">
-                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight leading-none">
-                              {showBalance ? formatAmount(totals.balance) : '••••••••'}
-                            </h2>
                             <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
                               totals.balance >= 0 
                                 ? 'bg-[#34c759]/10 text-[#34c759] border-[#34c759]/20' 
@@ -1836,8 +1733,7 @@ export default function App() {
                       {/* Budgets Summary Mini Card - Moved to Top & Extensively Polished */}
                       <div className="p-6 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-5 shadow-xs">
                         {(() => {
-                          const targetMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
-                          const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
+                          const activeBudget = findActiveBudget(budgets, selectedMonth, selectedYear);
                           if (!activeBudget) {
                             const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
                             const mIdx = parseInt(selectedMonth) - 1;
@@ -2171,65 +2067,14 @@ export default function App() {
       />
 
       {/* iOS Liquid Glass PWA Install guidance overlay */}
-      <AnimatePresence>
-        {showIOSPrompt && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="fixed bottom-24 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 p-5 ios-glass rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-white/20 dark:border-white/10 no-print"
-          >
-            <div className="flex items-start justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#007aff] to-[#5856d6] flex items-center justify-center text-white shadow-md shadow-[#007aff]/10 shrink-0">
-                  <span className="text-xl font-bold font-sans">$</span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
-                    Install Money Manager
-                  </h4>
-                  <p className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
-                    Native iOS App Experience
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowIOSPrompt(false);
-                  sessionStorage.setItem('mm_ios_pwa_dismissed', 'true');
-                }}
-                className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7] transition-colors cursor-pointer border-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <p className="text-xs text-[#1c1c1e]/80 dark:text-[#f2f2f7]/80 leading-relaxed mb-4">
-              Install this app on your device's home screen for seamless fullscreen execution, instant offline launch, and perfect liquid glass interface rendering.
-            </p>
-            
-            <div className="space-y-3 bg-black/[0.03] dark:bg-white/[0.03] p-3.5 rounded-2xl">
-              <div className="flex items-center gap-3 text-xs">
-                <div className="w-7 h-7 rounded-lg bg-white dark:bg-[#1c1c1e] flex items-center justify-center text-[#007aff] shadow-xs shrink-0">
-                  <Share className="w-4 h-4" />
-                </div>
-                <p className="text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold">
-                  1. Tap the <span className="font-bold">Share</span> button in Safari.
-                </p>
-              </div>
-              <div className="flex items-center gap-3 text-xs">
-                <div className="w-7 h-7 rounded-lg bg-white dark:bg-[#1c1c1e] flex items-center justify-center text-[#007aff] shadow-xs shrink-0">
-                  <Plus className="w-4 h-4" />
-                </div>
-                <p className="text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold">
-                  2. Scroll down and choose <span className="font-bold">Add to Home Screen</span>.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <IOSInstallPrompt
+        showPrompt={showIOSPrompt}
+        onDismiss={() => {
+          setShowIOSPrompt(false);
+          sessionStorage.setItem('mm_ios_pwa_dismissed', 'true');
+        }}
+        language={settings.language}
+      />
 
       {/* Custom Confirmation Dialog */}
       <AnimatePresence>

@@ -1,14 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Share, Plus } from 'lucide-react';
+import { X, Share, Plus, Smartphone } from 'lucide-react';
+import { Language } from '../types';
 
 interface IOSInstallPromptProps {
   showPrompt: boolean;
   onDismiss: () => void;
+  language?: Language;
 }
 
-export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ showPrompt, onDismiss }) => {
+export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ showPrompt, onDismiss, language = 'en' }) => {
   if (!showPrompt) return null;
+
+  const isMy = language === 'my';
 
   return (
     <AnimatePresence>
@@ -22,14 +26,14 @@ export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ s
         <div className="flex items-start justify-between gap-3 mb-2.5">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#007aff] to-[#5856d6] flex items-center justify-center text-white shadow-md shadow-[#007aff]/10 shrink-0">
-              <span className="text-xl font-bold font-sans">$</span>
+              <Smartphone className="w-6 h-6" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
-                Install Money Manager
+                {isMy ? 'iPhone / iOS တွင် အက်ပ်သွင်းရန်' : 'Install Money Manager'}
               </h4>
-              <p className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
-                Native iOS App Experience
+              <p className="text-[10px] text-[#007aff] font-bold uppercase tracking-wider">
+                {isMy ? 'စက်ထဲတွင် အော့ဖ်လိုင်း တိုက်ရိုက်အသုံးပြုပါ' : 'Native iOS Offline Experience'}
               </p>
             </div>
           </div>
@@ -42,7 +46,9 @@ export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ s
         </div>
 
         <p className="text-xs text-[#1c1c1e]/80 dark:text-[#f2f2f7]/80 leading-relaxed mb-4">
-          Install this app on your device's home screen for seamless fullscreen execution, instant offline launch, and perfect liquid glass interface rendering.
+          {isMy
+            ? 'အင်တာနက်မလိုဘဲ Android PWA ကဲ့သို့ ဖုန်း၏ Home Screen တွင် စက်တွင်း အော့ဖ်လိုင်းအက်ပ်အဖြစ် ထည့်သွင်း အသုံးပြုနိုင်ပါသည်။'
+            : 'Install this app on your iPhone home screen for seamless fullscreen execution, instant offline launch, and native iOS app functionality.'}
         </p>
 
         <div className="space-y-3 bg-black/[0.03] dark:bg-white/[0.03] p-3.5 rounded-2xl">
@@ -51,7 +57,11 @@ export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ s
               <Share className="w-4 h-4" />
             </div>
             <p className="text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold">
-              1. Tap the <span className="font-bold">Share</span> button in Safari.
+              {isMy ? (
+                <>1. Safari ၏ အောက်ဘက် <span className="font-bold text-[#007aff]">Share</span> ခလုတ်ကို နှိပ်ပါ</>
+              ) : (
+                <>1. Tap the <span className="font-bold text-[#007aff]">Share</span> button in Safari</>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-3 text-xs">
@@ -59,7 +69,11 @@ export const IOSInstallPrompt: React.FC<IOSInstallPromptProps> = React.memo(({ s
               <Plus className="w-4 h-4" />
             </div>
             <p className="text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold">
-              2. Scroll down and choose <span className="font-bold">Add to Home Screen</span>.
+              {isMy ? (
+                <>2. အောက်သို့ဆွဲပြီး <span className="font-bold text-[#007aff]">Add to Home Screen</span> ကို ရွေးပါ</>
+              ) : (
+                <>2. Scroll down and choose <span className="font-bold text-[#007aff]">Add to Home Screen</span></>
+              )}
             </p>
           </div>
         </div>

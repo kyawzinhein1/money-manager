@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { Transaction, Language } from '../types';
+import { getLocalDateStr } from './dateUtils';
 
 interface PDFGeneratorParams {
   transactions: Transaction[];
@@ -9,6 +10,7 @@ interface PDFGeneratorParams {
   currencySymbol: string;
   language: Language;
   formatAmount: (amount: number) => string;
+  dateRangeText?: string;
 }
 
 export function generateLedgerPDF({
@@ -18,8 +20,22 @@ export function generateLedgerPDF({
   netBalance,
   currencySymbol,
   language,
-  formatAmount
+  formatAmount,
+  dateRangeText
 }: PDFGeneratorParams) {
+  // Determine computed date range
+  let computedDateRange = dateRangeText;
+  if (!computedDateRange) {
+    if (transactions.length > 0) {
+      const dates = transactions.map((t) => t.date).filter(Boolean).sort();
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      computedDateRange = minDate === maxDate ? minDate : `${minDate} → ${maxDate}`;
+    } else {
+      computedDateRange = language === 'my' ? 'အချိန်တိုင်း' : 'All Time';
+    }
+  }
+
   // Initialize jsPDF (A4, portrait, mm)
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -75,7 +91,7 @@ export function generateLedgerPDF({
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.text(`Generated on: ${dateStr} | Ledger Summary Statement`, margin, 24);
+    doc.text(`Generated on: ${dateStr} | Period: ${computedDateRange}`, margin, 24);
 
     // Decorative right-side tag
     doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
@@ -104,6 +120,14 @@ export function generateLedgerPDF({
   doc.setFontSize(10);
   doc.setTextColor(colors.dark.r, colors.dark.g, colors.dark.b);
   doc.text('EXECUTIVE FINANCIAL ANALYSIS', margin, currentY);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
+  const rangeLabel = `Date Range: ${computedDateRange}`;
+  const labelWidth = doc.getTextWidth(rangeLabel);
+  doc.text(rangeLabel, pageWidth - margin - labelWidth, currentY);
+
   currentY += 4;
 
   // Draw 3 Summary columns/cards side-by-side
@@ -283,6 +307,6 @@ export function generateLedgerPDF({
   });
 
   // Save the PDF locally
-  const fileDate = new Date().toISOString().slice(0, 10);
+  const fileDate = getLocalDateStr();
   doc.save(`Ledger_Report_${fileDate}.pdf`);
 }

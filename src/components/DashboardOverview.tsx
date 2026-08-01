@@ -17,15 +17,24 @@ import {
 } from 'lucide-react';
 import { Transaction, Budget, Settings } from '../types';
 import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
+import { findActiveBudget } from '../utils/budgetUtils';
+import { getLocalMonthStr, getLocalYearStr } from '../utils/dateUtils';
+import { DateFilterSwitcher } from './DateFilterSwitcher';
 
 interface DashboardOverviewProps {
   t: (key: string) => string;
   tc: (key: string) => string;
   settings: Settings;
+  dateFilterMode: 'monthYear' | 'dateRange';
+  setDateFilterMode: (mode: 'monthYear' | 'dateRange') => void;
   selectedMonth: string;
   selectedYear: string;
   setSelectedMonth: (m: string) => void;
   setSelectedYear: (y: string) => void;
+  startDate: string;
+  setStartDate: (d: string) => void;
+  endDate: string;
+  setEndDate: (d: string) => void;
   monthOptions: Array<{ value: string; label: string }>;
   availableYears: string[];
   showMonthMenu: boolean;
@@ -101,10 +110,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   t,
   tc,
   settings,
+  dateFilterMode,
+  setDateFilterMode,
   selectedMonth,
   selectedYear,
   setSelectedMonth,
   setSelectedYear,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
   monthOptions,
   availableYears,
   showMonthMenu,
@@ -143,7 +158,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
 
   React.useLayoutEffect(() => {
     if (showMonthMenu && monthMenuRef.current) {
-      const currentMonthVal = new Date().toISOString().substring(5, 7);
+      const currentMonthVal = getLocalMonthStr();
       const targetVal = selectedMonth !== 'all' ? selectedMonth : currentMonthVal;
       const targetBtn = monthMenuRef.current.querySelector(`[data-value="${targetVal}"]`) as HTMLElement;
       if (targetBtn) {
@@ -165,155 +180,29 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
 
   return (
     <div className="space-y-6" id="view-dashboard">
-      {/* Global Date Range Switcher */}
-      <div className="relative z-40 p-4 ios-glass rounded-[2rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[#007aff]/10 dark:bg-[#007aff]/15 rounded-full flex items-center justify-center text-[#007aff] shrink-0">
-            <Calendar className="w-4 h-4" />
-          </div>
-          <span className="text-xs font-bold text-[#8e8e93] uppercase tracking-wider font-sans">
-            Filter Range
-          </span>
-        </div>
-
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
-          {/* Month Dropdown Menu */}
-          <div className={`relative font-sans flex-1 sm:flex-initial w-full sm:w-[100px] ${showMonthMenu ? 'z-50' : 'z-10'}`} id="month-dropdown-container">
-            <button
-              id="month-dropdown-btn"
-              onClick={() => {
-                setShowMonthMenu(!showMonthMenu);
-                setShowYearMenu(false);
-              }}
-              className="w-full flex items-center justify-between gap-1.5 h-8 px-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full text-xs font-bold transition-all cursor-pointer border-0"
-            >
-              <span className="truncate">{monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93] shrink-0" />
-            </button>
-
-            <AnimatePresence>
-              {showMonthMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30 bg-transparent"
-                    onClick={() => setShowMonthMenu(false)}
-                  />
-                  <motion.div
-                    ref={monthMenuRef}
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-1 w-full min-w-[100px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin gpu-layer"
-                  >
-                    {monthOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        data-value={opt.value}
-                        type="button"
-                        onClick={() => {
-                          setSelectedMonth(opt.value);
-                          setShowMonthMenu(false);
-                        }}
-                        className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                          selectedMonth === opt.value
-                            ? 'bg-[#007aff] text-white'
-                            : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Year Dropdown Menu */}
-          <div className={`relative font-sans flex-1 sm:flex-initial w-full sm:w-[90px] ${showYearMenu ? 'z-50' : 'z-10'}`} id="year-dropdown-container">
-            <button
-              id="year-dropdown-btn"
-              onClick={() => {
-                setShowYearMenu(!showYearMenu);
-                setShowMonthMenu(false);
-              }}
-              className="w-full flex items-center justify-between gap-1.5 h-8 px-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full text-xs font-bold transition-all cursor-pointer border-0"
-            >
-              <span className="truncate">{selectedYear === 'all' ? (settings.language === 'my' ? 'နှစ်အားလုံး' : 'All Years') : selectedYear}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93] shrink-0" />
-            </button>
-
-            <AnimatePresence>
-              {showYearMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30 bg-transparent"
-                    onClick={() => setShowYearMenu(false)}
-                  />
-                  <motion.div
-                    ref={yearMenuRef}
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-1 w-full min-w-[90px] max-h-48 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl border border-white/50 dark:border-white/12 shadow-2xl z-50 p-1.5 space-y-0.5 scrollbar-thin gpu-layer"
-                  >
-                    {availableYears.map((yr) => (
-                      <button
-                        key={yr}
-                        data-value={yr}
-                        type="button"
-                        onClick={() => {
-                          setSelectedYear(yr);
-                          setShowYearMenu(false);
-                        }}
-                        className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                          selectedYear === yr
-                            ? 'bg-[#007aff] text-white'
-                            : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                        }`}
-                      >
-                        {yr}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      data-value="all"
-                      onClick={() => {
-                        setSelectedYear('all');
-                        setShowYearMenu(false);
-                      }}
-                      className={`w-full text-left px-2 py-1.5 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
-                        selectedYear === 'all'
-                          ? 'bg-[#007aff] text-white'
-                          : 'bg-transparent text-[#1c1c1e] dark:text-[#f2f2f7] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                      }`}
-                    >
-                      {settings.language === 'my' ? 'နှစ်အားလုံး' : 'All Years'}
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Reset Button */}
-          <button
-            id="dashboard-date-reset-btn"
-            onClick={() => {
-              setSelectedMonth(new Date().toISOString().substring(5, 7));
-              setSelectedYear(new Date().toISOString().substring(0, 4));
-            }}
-            className="flex-1 sm:flex-initial h-8 px-4 flex items-center justify-center bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-[80px]"
-            title="Reset to current month"
-          >
-            <span className="truncate">{t('thisMonth')}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Welcome Grid - Apple Card Style with Gradient Accent */}
+      {/* Date Filter Switcher */}
+      <DateFilterSwitcher
+        t={t}
+        settings={settings}
+        dateFilterMode={dateFilterMode}
+        setDateFilterMode={setDateFilterMode}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        monthOptions={monthOptions}
+        availableYears={availableYears}
+        showMonthMenu={showMonthMenu}
+        setShowMonthMenu={setShowMonthMenu}
+        showYearMenu={showYearMenu}
+        setShowYearMenu={setShowYearMenu}
+        monthMenuRef={monthMenuRef}
+        yearMenuRef={yearMenuRef}
+      />
       <div className="ios-glass text-[#1c1c1e] dark:text-[#f2f2f7] rounded-[2.25rem] p-6 relative overflow-hidden transition-all duration-300 border border-white/60 dark:border-white/10 shadow-lg shadow-black/[0.03]">
         {/* Ambient lighting backdrop blob */}
         <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#007aff]/10 dark:bg-[#007aff]/15 rounded-full blur-3xl pointer-events-none" />
@@ -432,8 +321,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
         {/* Budgets Summary Mini Card */}
         <div className="p-6 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-5 shadow-xs">
           {(() => {
-            const targetMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
-            const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
+            const activeBudget = findActiveBudget(budgets, selectedMonth, selectedYear);
             if (!activeBudget) {
               const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
               const mIdx = parseInt(selectedMonth) - 1;

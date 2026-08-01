@@ -29,6 +29,7 @@ import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { IOSDatePicker } from './IOSDatePicker';
 import { getCategoryStyle } from '../utils/categoryStyle';
+import { getLocalDateStr } from '../utils/dateUtils';
 
 interface AddTransactionSectionProps {
   language: Language;
@@ -218,7 +219,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
       : (expenseCategories.length > 0 ? expenseCategories[0] : 'Food')
   );
   const [date, setDate] = useState<string>(
-    initialTransaction ? initialTransaction.date : new Date().toISOString().substring(0, 10)
+    initialTransaction ? initialTransaction.date : getLocalDateStr()
   );
   const [description, setDescription] = useState<string>(initialTransaction ? initialTransaction.description : '');
 
@@ -316,7 +317,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
   const setQuickDate = (daysAgo: number) => {
     const d = new Date();
     d.setDate(d.getDate() - daysAgo);
-    setDate(d.toISOString().substring(0, 10));
+    setDate(getLocalDateStr(d));
   };
 
   // Quick preset options based on currency

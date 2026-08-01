@@ -30,6 +30,7 @@ import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateLedgerPDF } from '../utils/pdfGenerator';
 import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
+import { getLocalDateStr } from '../utils/dateUtils';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -267,7 +268,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   const [formType, setFormType] = useState<TransactionType>('expense');
   const [formCategory, setFormCategory] = useState(EXPENSE_CATEGORIES[0]);
   const [formAmount, setFormAmount] = useState('');
-  const [formDate, setFormDate] = useState(new Date().toISOString().substring(0, 10));
+  const [formDate, setFormDate] = useState(getLocalDateStr());
   const [formDescription, setFormDescription] = useState('');
 
   // Validation Error State
@@ -288,7 +289,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     setFormType('expense');
     setFormCategory(expenseCategories[0]);
     setFormAmount('');
-    setFormDate(new Date().toISOString().substring(0, 10));
+    setFormDate(getLocalDateStr());
     setFormDescription('');
     setErrors({});
     setIsOpenForm(true);
@@ -703,7 +704,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   else dayExpense += tx.amount;
                 });
 
-                const isToday = dateKey === new Date().toISOString().substring(0, 10);
+                const isToday = dateKey === getLocalDateStr();
 
                 return (
                   <button

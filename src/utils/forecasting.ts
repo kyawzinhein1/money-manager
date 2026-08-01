@@ -1,4 +1,5 @@
 import { Transaction, Budget } from '../types';
+import { findActiveBudget } from './budgetUtils';
 
 export interface SmartAlert {
   id: string;
@@ -43,8 +44,7 @@ export function generateForecastReport(
   const targetYear = selectedYear === 'all' ? currentYearNum : (parseInt(selectedYear) || currentYearNum);
   const targetMonth = selectedMonth === 'all' ? currentMonthNum : (parseInt(selectedMonth) || currentMonthNum);
 
-  const targetMonthKey = `${targetYear}-${targetMonth.toString().padStart(2, '0')}`;
-  const activeBudget = budgets.find(b => b.month === targetMonthKey) || budgets.find(b => !b.month) || null;
+  const activeBudget = findActiveBudget(budgets, targetMonth.toString(), targetYear.toString());
   const budgetLimit = activeBudget ? activeBudget.limit : 0;
 
   const getDaysInMonth = (y: number, m: number) => {
