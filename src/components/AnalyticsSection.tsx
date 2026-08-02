@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -58,6 +56,10 @@ interface AnalyticsSectionProps {
   budgets: Budget[];
   selectedMonth: string;
   selectedYear: string;
+  dateFilterMode?: 'monthYear' | 'dateRange';
+  startDate?: string;
+  endDate?: string;
+  allTransactions?: Transaction[];
   readAlertIds: string[];
   toggleReadAlert: (id: string) => void;
 }
@@ -162,11 +164,17 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   budgets,
   selectedMonth,
   selectedYear,
+  dateFilterMode,
+  startDate,
+  endDate,
+  allTransactions,
   readAlertIds,
   toggleReadAlert,
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
+
+  const isCustomRange = dateFilterMode === 'dateRange' || Boolean(startDate) || Boolean(endDate);
 
   const currentMonthKey = `${selectedYear}-${selectedMonth.padStart(2, '0')}`;
   const activeBudgetLimit = useMemo(() => {
@@ -217,24 +225,149 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
     };
   }, [filteredData]);
 
-  // 1. Monthly History (Income vs Expense monthly bars for exactly previous 6 months)
+  // Chart Header Label describing active range
+  const chartHeaderLabel = useMemo(() => {
+    if (isCustomRange) {
+      if (startDate && endDate) {
+        return `${startDate} → ${endDate}`;
+      } else if (startDate) {
+        return `≥ ${startDate}`;
+      } else if (endDate) {
+        return `≤ ${endDate}`;
+      } else {
+        return t('allTime');
+      }
+    } else {
+      if (selectedYear !== 'all' && selectedMonth !== 'all') {
+        const d = new Date(parseInt(selectedYear, 10), parseInt(selectedMonth, 10) - 1, 1);
+        const mName = d.toLocaleString('en-US', { month: 'short' });
+        return `${mName} ${selectedYear}`;
+      } else if (selectedYear !== 'all') {
+        return selectedYear;
+      } else {
+        return language === 'en' ? 'Last 6 Months' : 'နောက်ဆုံး ၆ လ';
+      }
+    }
+  }, [isCustomRange, startDate, endDate, selectedMonth, selectedYear, language, t]);
+
+  // 1. Monthly History (Income vs Expense monthly bars dynamically aligned with custom range/filters)
   const monthlyData = useMemo(() => {
     const monthlyGroups: Record<string, { month: string; rawMonth: string; income: number; expense: number }> = {};
-
-    // Generate precisely the current month and previous five months YYYY-MM labels
-    const now = new Date();
     const targetMonths: string[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      targetMonths.push(`${yyyy}-${mm}`);
+
+    if (isCustomRange) {
+      if (startDate && endDate) {
+        const startYM = startDate.substring(0, 7);
+        const endYM = endDate.substring(0, 7);
+
+        if (startYM === endYM) {
+          // If start and end date fall in the same month, show 5 preceding months + this month for context
+          const [sY, sM] = startYM.split('-').map(Number);
+          for (let i = 4; i >= 0; i--) {
+            const d = new Date(sY, sM - 1 - i, 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            targetMonths.push(`${yyyy}-${mm}`);
+          }
+        } else {
+          // Generate all YYYY-MM months from startYM to endYM inclusive
+          const [sY, sM] = startYM.split('-').map(Number);
+          const [eY, eM] = endYM.split('-').map(Number);
+          let currY = sY;
+          let currM = sM;
+
+          while (currY < eY || (currY === eY && currM <= eM)) {
+            const yyyy = currY;
+            const mm = String(currM).padStart(2, '0');
+            targetMonths.push(`${yyyy}-${mm}`);
+
+            currM++;
+            if (currM > 12) {
+              currM = 1;
+              currY++;
+            }
+          }
+        }
+      } else if (startDate) {
+        const startYM = startDate.substring(0, 7);
+        const [sY, sM] = startYM.split('-').map(Number);
+        const now = new Date();
+        const endY = now.getFullYear();
+        const endM = now.getMonth() + 1;
+
+        let currY = sY;
+        let currM = sM;
+        while (currY < endY || (currY === endY && currM <= endM)) {
+          const yyyy = currY;
+          const mm = String(currM).padStart(2, '0');
+          targetMonths.push(`${yyyy}-${mm}`);
+          currM++;
+          if (currM > 12) {
+            currM = 1;
+            currY++;
+          }
+        }
+      } else if (endDate) {
+        const endYM = endDate.substring(0, 7);
+        const [eY, eM] = endYM.split('-').map(Number);
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(eY, eM - 1 - i, 1);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          targetMonths.push(`${yyyy}-${mm}`);
+        }
+      } else {
+        // All time: gather all distinct YYYY-MM from transactions/allTransactions
+        const txSource = (allTransactions && allTransactions.length > 0) ? allTransactions : transactions;
+        const set = new Set<string>();
+        txSource.forEach(tx => {
+          if (tx.date) set.add(tx.date.substring(0, 7));
+        });
+        const sorted = Array.from(set).sort();
+        if (sorted.length > 0) {
+          targetMonths.push(...sorted);
+        } else {
+          const now = new Date();
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            targetMonths.push(`${yyyy}-${mm}`);
+          }
+        }
+      }
+    } else {
+      // Month/Year filter mode
+      if (selectedYear !== 'all' && selectedMonth !== 'all') {
+        const selY = parseInt(selectedYear, 10);
+        const selM = parseInt(selectedMonth, 10);
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(selY, selM - 1 - i, 1);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          targetMonths.push(`${yyyy}-${mm}`);
+        }
+      } else if (selectedYear !== 'all' && selectedMonth === 'all') {
+        const selY = parseInt(selectedYear, 10);
+        for (let m = 1; m <= 12; m++) {
+          const mm = String(m).padStart(2, '0');
+          targetMonths.push(`${selY}-${mm}`);
+        }
+      } else {
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          targetMonths.push(`${yyyy}-${mm}`);
+        }
+      }
     }
 
-    // Initialize monthlyGroups with the 6 target months to guarantee they appear on the chart
+    // Populate targetMonths in monthlyGroups
     targetMonths.forEach((mStr) => {
       const [y, m] = mStr.split('-');
-      const d = new Date(parseInt(y), parseInt(m) - 1, 1);
+      const d = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
       const formatMonth = d.toLocaleString('en-US', { month: 'short', year: '2-digit' });
       monthlyGroups[mStr] = {
         month: formatMonth,
@@ -244,8 +377,16 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       };
     });
 
-    // Populate transaction totals only if they fall within our target 6 months range
-    transactions.forEach((tx) => {
+    const txSource = (allTransactions && allTransactions.length > 0) ? allTransactions : transactions;
+
+    txSource.forEach((tx) => {
+      if (!tx.date) return;
+
+      if (isCustomRange) {
+        if (startDate && tx.date < startDate) return;
+        if (endDate && tx.date > endDate) return;
+      }
+
       const monthLabel = tx.date.substring(0, 7); // "YYYY-MM"
       if (monthlyGroups[monthLabel]) {
         if (tx.type === 'income') {
@@ -256,9 +397,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       }
     });
 
-    // Sort chronologically using the rawMonth YYYY-MM label
     return Object.values(monthlyGroups).sort((a, b) => a.rawMonth.localeCompare(b.rawMonth));
-  }, [transactions]);
+  }, [transactions, allTransactions, isCustomRange, startDate, endDate, selectedMonth, selectedYear]);
 
   // 2. Day-by-Day Trend (Daily Line)
   const dailyData = useMemo(() => {
@@ -919,33 +1059,6 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                 </ResponsiveContainer>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Monthly Trend History Bar Chart */}
-        <div className="p-5 ios-glass rounded-[2rem] space-y-4 lg:col-span-2">
-          <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">
-            <Landmark className="w-4 h-4 text-[#007aff]" />
-            {t('incomeVsExpense')} ({language === 'en' ? 'Last 6 Months' : 'နောက်ဆုံး ၆ လ'})
-          </h3>
-          <div className="h-60 w-full pt-1" id="monthly-bar-chart">
-            {monthlyData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-[#8e8e93] text-xs">
-                {t('noTransactions')}
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
-                  <XAxis dataKey="month" stroke="#8e8e93" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
-                  <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" />
-                  <Bar name={t('income')} dataKey="income" fill="#34c759" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} isAnimationActive={false} />
-                  <Bar name={t('expense')} dataKey="expense" fill="#ff3b30" radius={[6, 6, 0, 0]} style={{ outline: 'none' }} isAnimationActive={false} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
           </div>
         </div>
 

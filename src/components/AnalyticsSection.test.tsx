@@ -69,4 +69,16 @@ describe('AnalyticsSection', () => {
     fireEvent.click(toggleButton);
     expect(toggleButton).toHaveTextContent('Expand');
   });
+
+  it('renders correctly with custom date range filters', () => {
+    render(
+      <AnalyticsSection
+        {...defaultProps}
+        dateFilterMode="dateRange"
+        startDate="2026-05-01"
+        endDate="2026-08-15"
+      />
+    );
+    expect(screen.getByText('Cash Flow Summary')).toBeInTheDocument();
+  });
 });
