@@ -17,6 +17,11 @@ describe('NotificationsSection', () => {
     percent: 60,
     estimatedBreachDay: null,
     forecastAccuracy: 'high',
+    pacingStatus: 'on_track',
+    pacingMessageEn: 'You are spending well within limit.',
+    pacingMessageMy: 'စည်းကမ်းတကျရှိပါသည်။',
+    actionableAdviceEn: 'Target $5000/day.',
+    actionableAdviceMy: '$5000/ရက် သုံးပါ။',
     alerts: [
       {
         id: 'test_alert_1',

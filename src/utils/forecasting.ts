@@ -25,6 +25,11 @@ export interface ForecastReport {
   percent: number;
   estimatedBreachDay: number | null;
   forecastAccuracy: 'high' | 'medium' | 'low';
+  pacingStatus: 'exceeded' | 'over_pace' | 'caution' | 'on_track';
+  pacingMessageEn: string;
+  pacingMessageMy: string;
+  actionableAdviceEn: string;
+  actionableAdviceMy: string;
   alerts: SmartAlert[];
   dailyPacingPoints: { day: number; actual: number | null; projected: number }[];
 }
@@ -36,7 +41,7 @@ export function generateForecastReport(
   selectedYear: string,
   formatAmount: (amount: number) => string
 ): ForecastReport {
-  // Resolve active month and year for calculations (fallback to current today if 'all' is selected)
+  // Resolve active month and year for calculations
   const today = new Date();
   const currentYearNum = today.getFullYear();
   const currentMonthNum = today.getMonth() + 1; // 1-indexed
@@ -60,11 +65,13 @@ export function generateForecastReport(
   // Calculate elapsed days
   let daysElapsed = daysInMonth;
   if (isCurrentMonth) {
-    daysElapsed = today.getDate();
+    daysElapsed = Math.max(1, today.getDate());
   } else if (!isPastMonth) {
     // Future month
     daysElapsed = 1;
   }
+
+  const daysRemaining = Math.max(1, daysInMonth - daysElapsed + (isCurrentMonth ? 1 : 0));
 
   // Filter transactions for this specific month/year
   const monthStr = targetMonth.toString().padStart(2, '0');
@@ -83,19 +90,31 @@ export function generateForecastReport(
   // Daily pacing calculations
   const dailyLimitAllowed = budgetLimit > 0 ? budgetLimit / daysInMonth : 0;
   const currentDailyAvgSpent = totalSpent / daysElapsed;
-  const daysRemaining = Math.max(1, daysInMonth - daysElapsed + 1);
   const dailyAllowanceRemaining = !isExceeded && remaining > 0 ? remaining / daysRemaining : 0;
 
-  // Linear Run-rate pacing projection
-  const projectedSpent = budgetLimit > 0 
-    ? (isCurrentMonth ? currentDailyAvgSpent * daysInMonth : totalSpent)
-    : totalSpent;
+  // Practical Hybrid Projection:
+  // Early in current month (days 1-10), large single-day expenses (like rent or tuition) distort daily average.
+  // We use a smooth weighted blend between actual daily pace and target daily pacing.
+  let projectedSpent = totalSpent;
+  if (isPastMonth) {
+    projectedSpent = totalSpent;
+  } else if (isCurrentMonth) {
+    if (budgetLimit > 0) {
+      const weightActual = Math.min(1.0, daysElapsed / 12);
+      const effectiveVariableDailyPace = (currentDailyAvgSpent * weightActual) + (dailyLimitAllowed * (1 - weightActual));
+      const futureDays = Math.max(0, daysInMonth - daysElapsed);
+      projectedSpent = Math.round(totalSpent + (effectiveVariableDailyPace * futureDays));
+    } else {
+      const futureDays = Math.max(0, daysInMonth - daysElapsed);
+      projectedSpent = Math.round(totalSpent + (currentDailyAvgSpent * futureDays));
+    }
+  }
 
   // Estimate breach day
   let estimatedBreachDay: number | null = null;
-  if (budgetLimit > 0 && currentDailyAvgSpent > 0 && projectedSpent > budgetLimit && !isPastMonth) {
+  if (budgetLimit > 0 && currentDailyAvgSpent > 0 && projectedSpent > budgetLimit && !isPastMonth && !isExceeded) {
     const estimatedDay = Math.ceil(budgetLimit / currentDailyAvgSpent);
-    estimatedBreachDay = Math.min(daysInMonth, Math.max(1, estimatedDay));
+    estimatedBreachDay = Math.min(daysInMonth, Math.max(daysElapsed, estimatedDay));
   }
 
   // Forecast accuracy estimation based on days of data gathered
@@ -106,6 +125,37 @@ export function generateForecastReport(
     if (daysElapsed > 20) forecastAccuracy = 'high';
     else if (daysElapsed >= 8) forecastAccuracy = 'medium';
     else forecastAccuracy = 'low';
+  }
+
+  // Pacing status & Actionable Advice
+  let pacingStatus: 'exceeded' | 'over_pace' | 'caution' | 'on_track' = 'on_track';
+  let pacingMessageEn = 'You are spending well within your daily budget limit.';
+  let pacingMessageMy = 'သင်၏ သုံးစွဲမှုသည် သတ်မှတ်ဘတ်ဂျက် စံနှုန်းအတွင်း စည်းကမ်းတကျ ရှိပါသည်။';
+  let actionableAdviceEn = budgetLimit > 0
+    ? `Target spending under ${formatAmount(dailyAllowanceRemaining)}/day for the next ${daysRemaining} days.`
+    : `Average daily spend is currently ${formatAmount(currentDailyAvgSpent)}/day.`;
+  let actionableAdviceMy = budgetLimit > 0
+    ? `ကျန်ရှိသော ${daysRemaining} ရက်အတွက် တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} အောက် သုံးစွဲပါ။`
+    : `လက်ရှိတစ်နေ့ ပျမ်းမျှသုံးစွဲမှုမှာ ${formatAmount(currentDailyAvgSpent)} ဖြစ်ပါသည်။`;
+
+  if (isExceeded) {
+    pacingStatus = 'exceeded';
+    pacingMessageEn = `Budget exceeded by ${formatAmount(Math.abs(remaining))}.`;
+    pacingMessageMy = `ဘတ်ဂျက်ထက် ${formatAmount(Math.abs(remaining))} ပိုမိုသုံးစွဲမိပြီး ဖြစ်သည်။`;
+    actionableAdviceEn = `Pause non-essential expenses for the remainder of this month.`;
+    actionableAdviceMy = `မလိုအပ်သော အပိုသုံးစရိတ်များကို ရပ်တန့်ထားရန် အကြံပြုပါသည်။`;
+  } else if (budgetLimit > 0 && projectedSpent > budgetLimit) {
+    pacingStatus = 'over_pace';
+    pacingMessageEn = `Projected to breach budget by ~${formatAmount(projectedSpent - budgetLimit)} at current velocity.`;
+    pacingMessageMy = `လက်ရှိအရှိန်အတိုင်းဆိုပါက လကုန်တွင် ~${formatAmount(projectedSpent - budgetLimit)} ခန့် ကျော်လွန်နိုင်ပါသည်။`;
+    actionableAdviceEn = `Reduce daily variable spend to ${formatAmount(dailyAllowanceRemaining)}/day to stay safe.`;
+    actionableAdviceMy = `ဘတ်ဂျက်မကျော်စေရန် ကျန်ရက်များတွင် တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} ထက် မပိုအောင် ထိန်းသုံးပါ။`;
+  } else if (budgetLimit > 0 && percent >= 75) {
+    pacingStatus = 'caution';
+    pacingMessageEn = `You have used ${percent.toFixed(0)}% of your monthly budget.`;
+    pacingMessageMy = `လစဉ်ဘတ်ဂျက်၏ ${percent.toFixed(0)}% အသုံးပြုပြီးဖြစ်သည်။`;
+    actionableAdviceEn = `Keep daily spending around ${formatAmount(dailyAllowanceRemaining)}/day to keep a safety buffer.`;
+    actionableAdviceMy = `ဘတ်ဂျက်လုံလောက်စေရန် တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} ဝန်းကျင်သာ သုံးစွဲပါ။`;
   }
 
   // Create projection trajectory points for charts
@@ -122,6 +172,11 @@ export function generateForecastReport(
     }
   });
 
+  const remainingDaysCount = Math.max(1, daysInMonth - daysElapsed);
+  const projectedFutureDailyPace = budgetLimit > 0
+    ? Math.max(0, (projectedSpent - totalSpent) / remainingDaysCount)
+    : currentDailyAvgSpent;
+
   for (let d = 1; d <= daysInMonth; d++) {
     const dayActual = dailyExpenseMap[d] || 0;
     cumActual += dayActual;
@@ -135,11 +190,11 @@ export function generateForecastReport(
       });
     } else {
       // Future projection
-      cumProj += currentDailyAvgSpent;
+      cumProj += projectedFutureDailyPace;
       dailyPacingPoints.push({
         day: d,
         actual: null,
-        projected: cumProj
+        projected: Math.round(cumProj)
       });
     }
   }
@@ -173,8 +228,8 @@ export function generateForecastReport(
         type: 'warning',
         titleEn: 'Budget Caution Alert (75%+)',
         titleMy: 'ဘတ်ဂျက်အခြေအနေ သတိပြုရန် (၇၅%ကျော်)',
-        descEn: `Caution: Spending has reached ${percent.toFixed(0)}% of your limit. Consider scaling down discretionary items.`,
-        descMy: `သတိပြုရန် - သင့်အသုံးစရိတ်သည် ဘတ်ဂျက်၏ ${percent.toFixed(0)}% သို့ ရောက်ရှိနေပြီဖြစ်သည်။ မလိုအပ်သည်များကို လျှော့ချသုံးစွဲရန် အကြံပြုပါသည်။`
+        descEn: `Caution: Spending has reached ${percent.toFixed(0)}% of your limit. Target ${formatAmount(dailyAllowanceRemaining)}/day for remaining days.`,
+        descMy: `သတိပြုရန် - သင့်အသုံးစရိတ်သည် ဘတ်ဂျက်၏ ${percent.toFixed(0)}% သို့ ရောက်ရှိနေပြီဖြစ်သည်။ ကျန်ရက်များတွင် တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} ဖြင့် ထိန်းသုံးပါ။`
       });
     } else if (percent >= 50) {
       alerts.push({
@@ -182,19 +237,19 @@ export function generateForecastReport(
         type: 'info',
         titleEn: '50% Budget Milestone',
         titleMy: 'ဘတ်ဂျက် တစ်ဝက် သုံးစွဲပြီးမှု',
-        descEn: `Note: You have utilized exactly half (${percent.toFixed(0)}%) of your allocated monthly limit.`,
+        descEn: `Note: You have utilized half (${percent.toFixed(0)}%) of your allocated monthly limit.`,
         descMy: `မှတ်ချက် - သင့်သတ်မှတ်ဘတ်ဂျက်၏ တစ်ဝက်တိတိ (${percent.toFixed(0)}%) ကို သုံးစွဲပြီး ဖြစ်သည်။`
       });
     }
 
     // 2. Velocity / Burn Rate Check
-    if (!isExceeded && currentDailyAvgSpent > dailyLimitAllowed && percent < 100 && !isPastMonth) {
+    if (!isExceeded && currentDailyAvgSpent > dailyLimitAllowed * 1.15 && percent < 100 && !isPastMonth && daysElapsed >= 3) {
       alerts.push({
         id: 'burn_rate_high',
         type: 'warning',
-        titleEn: 'High Velocity (Daily Burn Rate)',
+        titleEn: 'High Spending Pace',
         titleMy: 'အသုံးစရိတ်အရှိန် မြင့်မားနေသည်',
-        descEn: `Pacing Alert: Your current daily average of ${formatAmount(currentDailyAvgSpent)}/day is higher than the recommended daily target of ${formatAmount(dailyLimitAllowed)}/day.`,
+        descEn: `Pacing Alert: Daily burn rate of ${formatAmount(currentDailyAvgSpent)}/day exceeds recommended target of ${formatAmount(dailyLimitAllowed)}/day.`,
         descMy: `အရှိန်သတိပေးချက် - လက်ရှိတစ်နေ့ပျမ်းမျှသုံးစရိတ် ${formatAmount(currentDailyAvgSpent)} သည် စံနှုန်းဖြစ်သော ${formatAmount(dailyLimitAllowed)} ထက် မြင့်မားနေပါသည်။`
       });
     }
@@ -206,8 +261,8 @@ export function generateForecastReport(
         type: 'critical',
         titleEn: 'Projected Budget Breach',
         titleMy: 'လကုန်၌ ဘတ်ဂျက်ကျော်လွန်နိုင်မှု',
-        descEn: `Pacing forecast indicates you will exceed your budget around Day ${estimatedBreachDay} of this month at the current spending velocity. Try limiting daily spend to ${formatAmount(dailyAllowanceRemaining)}/day.`,
-        descMy: `ခန့်မှန်းချက်အရ လက်ရှိသုံးစွဲမှုအရှိန်အတိုင်းဆိုပါက ဤလ၏ ရက်စွဲ (${estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်သွားနိုင်ပါသည်။ တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} ထက် မပိုအောင် ထိန်းသုံးပါ။`
+        descEn: `Forecast indicates you will breach budget around Day ${estimatedBreachDay} if spending continues at this speed. Recommended daily target: ${formatAmount(dailyAllowanceRemaining)}/day.`,
+        descMy: `ခန့်မှန်းချက်အရ လက်ရှိအတိုင်း သုံးစွဲပါက ရက်စွဲ (${estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်နိုင်ပါသည်။ တစ်နေ့လျှင် ${formatAmount(dailyAllowanceRemaining)} အောက် လျှော့သုံးပါ။`
       });
     }
 
@@ -216,9 +271,9 @@ export function generateForecastReport(
       alerts.push({
         id: 'on_track_saving',
         type: 'success',
-        titleEn: 'Excellent Spending Control',
+        titleEn: 'On Track & Under Budget',
         titleMy: 'သုံးစွဲမှု စည်းကမ်းကောင်းမွန်သည်',
-        descEn: `Great job! You are pacing well under limit and projected to save ${formatAmount(budgetLimit - projectedSpent)} of your budget this month.`,
+        descEn: `Great control! Pacing comfortably under budget. Estimated month-end surplus: ${formatAmount(budgetLimit - projectedSpent)}.`,
         descMy: `အလွန်တော်ပါသည်! လက်ရှိသုံးစွဲမှုသည် ဘတ်ဂျက်အောက်တွင် ရှိနေပြီး လကုန်ပါက ${formatAmount(budgetLimit - projectedSpent)} ဝန်းကျင် ပိုလျှံစုဆောင်းနိုင်မည်ဖြစ်သည်။`
       });
     }
@@ -237,10 +292,10 @@ export function generateForecastReport(
         alerts.push({
           id: `concentration_${cat}`,
           type: 'warning',
-          titleEn: 'Concentrated Category Spending',
+          titleEn: 'High Category Concentration',
           titleMy: 'ကဏ္ဍတစ်ခုတည်း၌ စုပြုံသုံးစွဲမှု',
-          descEn: `Category Concentration: "${cat}" consumes ${catPercent.toFixed(0)}% of your entire spending. Try diversifying or limiting expenses in this area.`,
-          descMy: `ကဏ္ဍစုပြုံမှုသတိပေးချက် - "${cat}" ကဏ္ဍသည် စုစုပေါင်းသုံးစွဲမှု၏ ${catPercent.toFixed(0)}% အထိ ယူထားသည်။ ဤကဏ္ဍရှိ သုံးစွဲမှုများကို လျှော့ချရန် စဉ်းစားပါ။`
+          descEn: `"${cat}" represents ${catPercent.toFixed(0)}% of total monthly spending (${formatAmount(amt)}).`,
+          descMy: `"${cat}" ကဏ္ဍသည် စုစုပေါင်းသုံးစွဲမှု၏ ${catPercent.toFixed(0)}% (${formatAmount(amt)}) အထိ ယူထားသည်။`
         });
       }
     });
@@ -259,7 +314,13 @@ export function generateForecastReport(
     percent,
     estimatedBreachDay,
     forecastAccuracy,
+    pacingStatus,
+    pacingMessageEn,
+    pacingMessageMy,
+    actionableAdviceEn,
+    actionableAdviceMy,
     alerts,
     dailyPacingPoints
   };
 }
+

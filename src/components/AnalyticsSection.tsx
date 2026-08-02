@@ -859,76 +859,118 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
           </div>
         </div>
 
-        {/* Smart Predictive Engine & Budget Alert Projections (Full Width Bento Panel) */}
-        <div className="p-6 ios-glass rounded-[2rem] space-y-6 lg:col-span-2 shadow-sm border border-black/5 dark:border-white/5" id="forecasting-analytics-card">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#f2f2f7] dark:border-[#2c2c2e] pb-4">
+        {/* Smart Spending Forecast & Daily Target (Full Width Bento Panel) */}
+        <div className="p-5 sm:p-6 ios-glass rounded-[2rem] space-y-5 lg:col-span-2 shadow-xs border border-black/5 dark:border-white/5" id="forecasting-analytics-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#f2f2f7] dark:border-[#2c2c2e] pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#1c1c1e] dark:text-white leading-none">
-                  {language === 'en' ? 'Smart Predictive Engine' : 'ဉာဏ်ရည်တု ခန့်မှန်းတွက်ချက်မှု'}
+                <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white leading-tight">
+                  {language === 'en' ? 'Smart Spending Forecast' : 'ဘတ်ဂျက် ခန့်မှန်းချက်နှင့် သုံးစွဲမှု အကြံပြုချက်များ'}
                 </h3>
-                <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block mt-1">
-                  {language === 'en' ? 'FORECAST MODELS & ACTIVE BUDGET ALERTS' : 'ခန့်မှန်းချက်များနှင့် ဘတ်ဂျက်သတိပေးချက်များ'}
-                </span>
+                <p className="text-xs text-[#8e8e93] mt-0.5 font-normal">
+                  {language === 'en' ? 'Practical daily pacing & advice' : 'လက်တွေ့ကျသော တစ်နေ့တာ သုံးစွဲမှု အကြံပြုချက်များ'}
+                </p>
               </div>
             </div>
 
-            {/* Accuracy Badge */}
-            <div className="self-start sm:self-center flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-[#007aff]/10 text-[#007aff] uppercase tracking-wider">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{language === 'en' ? `Accuracy: ${forecast.forecastAccuracy}` : `တိကျမှု: ${forecast.forecastAccuracy}`}</span>
+            {/* Reliability Confidence Badge */}
+            <div className="self-start sm:self-center flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/5 dark:bg-white/10 text-[#8e8e93] dark:text-gray-300">
+              <Clock className="w-3.5 h-3.5 text-[#007aff]" />
+              <span>
+                {forecast.forecastAccuracy === 'high'
+                  ? (language === 'en' ? 'High Confidence' : 'စိတ်ချရမှု မြင့်မား')
+                  : forecast.forecastAccuracy === 'medium'
+                  ? (language === 'en' ? 'Mid-Month Estimate' : 'လလယ် ခန့်မှန်းချက်')
+                  : (language === 'en' ? 'Early Month Target' : 'လဆန်း ပဏာမ စံနှုန်း')
+                }
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            {/* Left side: Metrics & active alert logs (5 cols) */}
-            <div className="xl:col-span-5 flex flex-col justify-between gap-6">
-              <div className="grid grid-cols-2 gap-3.5">
-                {/* Projected spent */}
-                <div className="p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                  <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                    {language === 'en' ? 'Projected Spend' : 'ခန့်မှန်းခြေ စုစုပေါင်း'}
-                  </span>
-                  <span className={`block text-lg font-black font-mono ${forecast.projectedSpent > activeBudgetLimit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                    {formatAmount(forecast.projectedSpent)}
-                  </span>
-                </div>
+          {/* Practical Metrics Grid: Recommended Daily Target, Projected Total, Current Daily Pace */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 1. Recommended Daily Allowance for Remaining Days */}
+            <div className="p-3.5 bg-[#007aff]/5 dark:bg-[#007aff]/10 border border-[#007aff]/10 rounded-2xl space-y-1">
+              <span className="block text-xs text-[#007aff] font-semibold">
+                {language === 'en' ? 'Recommended Daily Limit' : 'အကြံပြု တစ်နေ့တာ သုံးစွဲမှု'}
+              </span>
+              <span className="block text-lg font-bold font-mono text-[#007aff]">
+                {activeBudgetLimit > 0 ? `${formatAmount(forecast.dailyAllowanceRemaining)}/day` : (language === 'en' ? 'No budget set' : 'ဘတ်ဂျက်မသတ်မှတ်ထားပါ')}
+              </span>
+              <span className="block text-[11px] text-[#8e8e93] font-normal">
+                {language === 'en' ? 'Target for remaining days' : 'ကျန်ရှိသော ရက်များအတွက် စံနှုန်း'}
+              </span>
+            </div>
 
-                {/* Status indicator */}
-                <div className="p-4 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                  <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                    {language === 'en' ? 'Monthly Pacing' : 'အရှိန်အခြေအနေ'}
-                  </span>
-                  <span className={`block text-lg font-black font-sans ${forecast.projectedSpent > activeBudgetLimit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                    {forecast.projectedSpent > activeBudgetLimit 
-                      ? (language === 'en' ? 'Danger Zone' : 'ဘတ်ဂျက်ကျော်လွန်') 
-                      : (language === 'en' ? 'Safe Zone' : 'ပုံမှန်အခြေအနေ')
-                    }
-                  </span>
-                </div>
-              </div>
+            {/* 2. Projected Spent */}
+            <div className="p-3.5 bg-[#f2f2f7]/80 dark:bg-[#2c2c2e]/60 rounded-2xl space-y-1">
+              <span className="block text-xs text-[#8e8e93] font-medium">
+                {language === 'en' ? 'Projected Month-End Total' : 'လကုန် ခန့်မှန်းခြေ စုစုပေါင်း'}
+              </span>
+              <span className={`block text-lg font-bold font-mono ${forecast.projectedSpent > activeBudgetLimit && activeBudgetLimit > 0 ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                {formatAmount(forecast.projectedSpent)}
+              </span>
+              <span className="block text-[11px] text-[#8e8e93] font-normal">
+                {activeBudgetLimit > 0 ? `${language === 'en' ? 'Limit:' : 'ဘတ်ဂျက်:'} ${formatAmount(activeBudgetLimit)}` : (language === 'en' ? 'Based on daily burn' : 'လက်ရှိသုံးစွဲမှု အရှိန်')}
+              </span>
+            </div>
 
-              {/* Forecast Alert Logs */}
-              <div className="space-y-3">
+            {/* 3. Current Daily Average */}
+            <div className="p-3.5 bg-[#f2f2f7]/80 dark:bg-[#2c2c2e]/60 rounded-2xl space-y-1">
+              <span className="block text-xs text-[#8e8e93] font-medium">
+                {language === 'en' ? 'Current Daily Pace' : 'လက်ရှိ တစ်နေ့ ပျမ်းမျှ'}
+              </span>
+              <span className="block text-lg font-bold font-mono text-[#1c1c1e] dark:text-white">
+                {formatAmount(forecast.currentDailyAvgSpent)}/day
+              </span>
+              <span className="block text-[11px] text-[#8e8e93] font-normal">
+                {language === 'en' ? `Over ${forecast.daysElapsed} days elapsed` : `လွန်ခဲ့သော ${forecast.daysElapsed} ရက် ပျမ်းမျှ`}
+              </span>
+            </div>
+          </div>
+
+          {/* Actionable Practical Recommendation Banner */}
+          <div className={`p-3.5 rounded-2xl flex items-start gap-3 transition-colors ${
+            forecast.pacingStatus === 'exceeded'
+              ? 'bg-[#ff3b30]/10 text-[#ff3b30]'
+              : forecast.pacingStatus === 'over_pace' || forecast.pacingStatus === 'caution'
+              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+              : 'bg-[#34c759]/10 text-[#34c759]'
+          }`}>
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5 text-xs">
+              <p className="font-bold">
+                {language === 'my' ? forecast.pacingMessageMy : forecast.pacingMessageEn}
+              </p>
+              <p className="font-normal opacity-90">
+                {language === 'my' ? forecast.actionableAdviceMy : forecast.actionableAdviceEn}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 pt-1">
+            {/* Left side: Active Alert Logs (5 cols) */}
+            <div className="xl:col-span-5 flex flex-col justify-between gap-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] text-[#8e8e93] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-[#1c1c1e] dark:text-white flex items-center gap-1.5">
                     <Info className="w-3.5 h-3.5 text-[#007aff]" />
                     {language === 'en' ? 'Active Budget Signals' : 'ဘတ်ဂျက် ညွှန်ပြချက်များ'}
                   </h4>
                   {forecast.alerts.length > 0 && (
-                    <span className="text-[9px] bg-[#007aff]/10 text-[#007aff] font-extrabold px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-[#007aff]/10 text-[#007aff] font-bold px-2 py-0.5 rounded-full">
                       {forecast.alerts.filter(alert => !readAlertIds.includes(alert.id)).length} {language === 'en' ? 'Unread' : 'မဖတ်ရသေး'}
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-2.5 max-h-[190px] overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                   {forecast.alerts.length === 0 ? (
-                    <div className="p-6 text-center border border-dashed border-black/10 dark:border-white/10 rounded-2xl text-xs text-[#8e8e93] space-y-2 w-full">
-                      <p className="font-semibold">{language === 'en' ? 'All signals look completely clean and nominal.' : 'အသုံးစရိတ်အားလုံး စနစ်တကျရှိပါသည်။'}</p>
+                    <div className="p-5 text-center border border-dashed border-black/10 dark:border-white/10 rounded-2xl text-xs text-[#8e8e93] space-y-1 w-full">
+                      <p className="font-medium">{language === 'en' ? 'All spending signals look clean.' : 'အသုံးစရိတ်အားလုံး စနစ်တကျရှိပါသည်။'}</p>
                     </div>
                   ) : (
                     forecast.alerts.map((alert) => {
@@ -956,7 +998,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                           className={`group p-3 rounded-xl border flex gap-2.5 leading-normal fast-render-row ${
                             isRead
                               ? 'bg-black/[0.01] dark:bg-white/[0.01] border-black/[0.04] dark:border-white/[0.04] opacity-50'
-                              : `${alertBg} shadow-xs`
+                              : `${alertBg}`
                           }`}
                         >
                           <div className={`p-1 rounded-lg self-start shrink-0 ${alertBg} ${alertText}`}>
@@ -970,17 +1012,17 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                           </div>
                           <div className="space-y-0.5 flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <h5 className={`font-extrabold text-[#1c1c1e] dark:text-white text-[11px] leading-snug ${isRead ? 'line-through text-[#8e8e93]' : ''}`}>
+                              <h5 className={`font-bold text-[#1c1c1e] dark:text-white text-xs ${isRead ? 'line-through text-[#8e8e93]' : ''}`}>
                                 {language === 'my' ? alert.titleMy : alert.titleEn}
                               </h5>
                               
                               <button
                                 onClick={() => toggleReadAlert(alert.id)}
-                                className="shrink-0 w-6 h-6 -mt-1 -mr-1 rounded-full flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-all cursor-pointer border-0 bg-transparent"
+                                className="shrink-0 w-5 h-5 -mt-0.5 -mr-1 rounded-full flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-all cursor-pointer border-0 bg-transparent"
                                 title={isRead ? (language === 'en' ? "Mark as Unread" : "မဖတ်ရသေးဟုမှတ်ရန်") : (language === 'en' ? "Mark as Read" : "ဖတ်ပြီးမှတ်သားရန်")}
                               >
                                 {isRead ? (
-                                  <span className="text-[10px] font-extrabold leading-none opacity-50 hover:opacity-100">↺</span>
+                                  <span className="text-[10px] font-bold opacity-50 hover:opacity-100">↺</span>
                                 ) : (
                                   <div className="relative w-3.5 h-3.5 flex items-center justify-center">
                                     <span className="absolute w-1.5 h-1.5 rounded-full bg-[#007aff] group-hover:scale-0 transition-all duration-150" />
@@ -989,7 +1031,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                                 )}
                               </button>
                             </div>
-                            <p className="text-[#8e8e93] text-[10px] font-medium leading-relaxed">
+                            <p className="text-[#8e8e93] text-[11px] font-normal leading-relaxed">
                               {language === 'my' ? alert.descMy : alert.descEn}
                             </p>
                           </div>
@@ -1001,61 +1043,35 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               </div>
             </div>
 
-            {/* Right side: Splendid Actual vs Projected Trajectory Path Chart (7 cols) */}
-            <div className="xl:col-span-7 flex flex-col justify-between gap-3">
-              <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
-                <span className="uppercase tracking-wider">{language === 'en' ? 'Projected Spending Accumulation vs Budget Limit' : 'ပုံမှန်သုံးစွဲမှုနှင့် ခန့်မှန်းအသုံးစရိတ် နှိုင်းယှဉ်ချက်'}</span>
+            {/* Right side: Actual vs Projected Trajectory Path Chart (7 cols) */}
+            <div className="xl:col-span-7 flex flex-col justify-between gap-2">
+              <div className="flex items-center justify-between text-xs text-[#8e8e93] font-medium">
+                <span>{language === 'en' ? 'Spending Accumulation Trajectory' : 'အသုံးစရိတ် လမ်းကြောင်း'}</span>
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-[#007aff]" /> {language === 'en' ? 'Actual' : 'လက်ရှိသုံးပြီး'}</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-[#af52de] border border-dashed" /> {language === 'en' ? 'Projected' : 'ခန့်မှန်းချက်'}</span>
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <span className="w-2.5 h-0.5 bg-[#007aff] rounded-full inline-block" />
+                    <span>{language === 'en' ? 'Actual' : 'လက်ရှိ'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <span className="w-2.5 h-0.5 bg-[#af52de] rounded-full border border-dashed inline-block" />
+                    <span>{language === 'en' ? 'Projected' : 'ခန့်မှန်း'}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="h-64 w-full bg-black/[0.01] dark:bg-white/[0.01] border border-black/[0.02] dark:border-white/[0.02] rounded-3xl p-3 overflow-hidden">
+              <div className="h-52 w-full pt-2 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-black/[0.03] dark:border-white/[0.03] overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={forecast.dailyPacingPoints} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#007aff" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#007aff" stopOpacity={0.0}/>
-                      </linearGradient>
-                      <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#af52de" stopOpacity={0.1}/>
-                        <stop offset="95%" stopColor="#af52de" stopOpacity={0.0}/>
-                      </linearGradient>
-                    </defs>
+                  <LineChart data={forecast.dailyPacingPoints} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.06} />
                     <XAxis dataKey="day" stroke="#8e8e93" fontSize={10} tickLine={false} />
                     <YAxis stroke="#8e8e93" fontSize={10} tickLine={false} />
-                    <Tooltip 
-                      content={({ active, payload }: any) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="p-3 bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-2xl shadow-md text-xs space-y-1.5 min-w-[130px]">
-                              <p className="font-extrabold text-[#1c1c1e] dark:text-white border-b border-black/5 dark:border-white/5 pb-1 mb-1">Day {data.day}</p>
-                              {data.actual !== null && (
-                                <p className="text-[#007aff] font-bold flex justify-between gap-3">
-                                  <span>Actual:</span>
-                                  <span className="font-mono">{formatAmount(data.actual)}</span>
-                                </p>
-                              )}
-                              <p className="text-[#af52de] font-bold flex justify-between gap-3">
-                                <span>Projected:</span>
-                                <span className="font-mono">{formatAmount(data.projected)}</span>
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
+                    <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
                     {activeBudgetLimit > 0 && (
-                      <ReferenceLine y={activeBudgetLimit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.7} strokeWidth={1.5} label={{ value: language === 'en' ? 'Limit Ceiling' : 'ဘတ်ဂျက်အမြင့်ဆုံး', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft', fontWeight: 'bold' }} />
+                      <ReferenceLine y={activeBudgetLimit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.6} label={{ value: language === 'en' ? 'Budget Limit' : 'ဘတ်ဂျက်', fill: '#ff3b30', fontSize: 10, position: 'insideTopLeft' }} />
                     )}
-                    <Area type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} fillOpacity={1} fill="url(#colorActual)" connectNulls isAnimationActive={false} />
-                    <Area type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" fillOpacity={1} fill="url(#colorProjected)" isAnimationActive={false} />
-                  </AreaChart>
+                    <Line name={t('expense')} dataKey="actual" stroke="#007aff" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} connectNulls style={{ outline: 'none' }} isAnimationActive={false} />
+                    <Line name={language === 'en' ? 'Projected' : 'ခန့်မှန်း'} dataKey="projected" stroke="#af52de" strokeWidth={2} strokeDasharray="4 4" dot={false} style={{ outline: 'none' }} isAnimationActive={false} />
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>

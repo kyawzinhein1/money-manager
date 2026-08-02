@@ -814,26 +814,23 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                       className="space-y-4"
                     >
                       <div className="grid grid-cols-2 gap-3">
-                        {/* Projected Spent EOM */}
-                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Projected EOM Spend' : 'လကုန်ခန့်မှန်းခြေ'}
+                        {/* Recommended Daily Limit */}
+                        <div className="p-3.5 bg-gradient-to-br from-[#007aff]/5 to-[#5856d6]/5 dark:from-[#007aff]/10 dark:to-[#5856d6]/10 border border-[#007aff]/15 rounded-2xl space-y-1">
+                          <span className="block text-[9px] text-[#007aff] dark:text-[#64d2ff] font-black uppercase tracking-wider">
+                            {language === 'en' ? 'Daily Target' : 'တစ်နေ့တာ စံနှုန်း'}
                           </span>
-                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                            {formatAmount(forecast.projectedSpent)}
+                          <span className="block text-sm font-black font-mono text-[#007aff] dark:text-[#64d2ff]">
+                            {(activeBudget?.limit || 0) > 0 ? `${formatAmount(forecast.dailyAllowanceRemaining)}/day` : 'N/A'}
                           </span>
                         </div>
 
-                        {/* Projection Outcome status */}
+                        {/* Projected Spent EOM */}
                         <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
                           <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Pacing Outcome' : 'ခန့်မှန်းရလဒ်'}
+                            {language === 'en' ? 'Projected EOM' : 'လကုန် ခန့်မှန်းခြေ'}
                           </span>
-                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                            {forecast.projectedSpent > (activeBudget?.limit || 0) 
-                              ? (language === 'en' ? 'Overspent' : 'ဘတ်ဂျက်ကျော်နိုင်') 
-                              : (language === 'en' ? 'On Track' : 'ပုံမှန်အဆင့်ရှိ')
-                            }
+                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) && (activeBudget?.limit || 0) > 0 ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                            {formatAmount(forecast.projectedSpent)}
                           </span>
                         </div>
                       </div>
@@ -841,15 +838,9 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                       {/* Mini Trajectory Path Chart */}
                       <div className="space-y-1.5 pt-1">
                         <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
-                          <span>{language === 'en' ? 'ACTUAL VS PROJECTED TRAJECTORY PATH' : 'လက်ရှိ နှင့် ခန့်မှန်းခြေ သုံးစွဲမှုလမ်းကြောင်း'}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-wider ${
-                            forecast.forecastAccuracy === 'high' 
-                              ? 'bg-[#34c759]/10 text-[#34c759]' 
-                              : forecast.forecastAccuracy === 'medium'
-                              ? 'bg-amber-500/10 text-amber-500'
-                              : 'bg-blue-500/10 text-blue-500'
-                          }`}>
-                            {language === 'en' ? `Accuracy: ${forecast.forecastAccuracy}` : `တိကျမှု: ${forecast.forecastAccuracy}`}
+                          <span>{language === 'en' ? 'MONTHLY PACING TRAJECTORY' : 'တစ်လတာ သုံးစွဲမှု လမ်းကြောင်း'}</span>
+                          <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#007aff]/10 text-[#007aff]">
+                            {language === 'en' ? `Target: ${formatAmount(forecast.dailyAllowanceRemaining)}/day` : `စံနှုန်း: ${formatAmount(forecast.dailyAllowanceRemaining)}/ရက်`}
                           </span>
                         </div>
 
@@ -888,24 +879,18 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
                       {/* Detail pacing message */}
                       <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] text-[11px] leading-relaxed">
-                        {forecast.projectedSpent > (activeBudget?.limit || 0) ? (
+                        {forecast.projectedSpent > (activeBudget?.limit || 0) && (activeBudget?.limit || 0) > 0 ? (
                           <p className="text-red-500 font-bold flex items-center gap-1.5">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>
-                              {language === 'en' 
-                                ? `You are pacing to breach your budget on Day ${forecast.estimatedBreachDay}. Try saving ${formatAmount(forecast.projectedSpent - (activeBudget?.limit || 0))} to stay safe.`
-                                : `လက်ရှိအရှိန်အတိုင်းဆိုပါက ရက်စွဲ (${forecast.estimatedBreachDay}) ဝန်းကျင်တွင် ဘတ်ဂျက်ကျော်လွန်နိုင်ပါသည်။ ပုံမှန်အခြေအနေရောက်ရန် ${formatAmount(forecast.projectedSpent - (activeBudget?.limit || 0))} လျှော့ချပါ။`
-                              }
+                              {language === 'my' ? forecast.actionableAdviceMy : forecast.actionableAdviceEn}
                             </span>
                           </p>
                         ) : (
                           <p className="text-[#34c759] font-bold flex items-center gap-1.5">
                             <CheckCircle className="w-3.5 h-3.5 shrink-0" />
                             <span>
-                              {language === 'en'
-                                ? `You are pacing excellently! You are projected to finish the month with ${formatAmount((activeBudget?.limit || 0) - forecast.projectedSpent)} remaining.`
-                                : `စည်းကမ်းအလွန်ကောင်းမွန်ပါသည်။ လကုန်ပါက ဘတ်ဂျက်မှ ${formatAmount((activeBudget?.limit || 0) - forecast.projectedSpent)} ပိုလျှံစုဆောင်းနိုင်မည်ဖြစ်သည်။`
-                              }
+                              {language === 'my' ? forecast.actionableAdviceMy : forecast.actionableAdviceEn}
                             </span>
                           </p>
                         )}
