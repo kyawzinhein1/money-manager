@@ -16,10 +16,14 @@ import {
   Palette,
   CheckCircle2,
   Archive,
-  Info
+  Info,
+  Wrench,
+  Sliders,
+  Layers
 } from 'lucide-react';
 import { Settings } from '../../types';
 import { CATEGORY_TRANSLATIONS } from '../../translations';
+import { AVAILABLE_CATEGORY_ICONS, getCategoryIcon } from '../../utils/categoryIcon';
 
 interface ManageCategoriesViewProps {
   t: (key: string) => string;
@@ -29,11 +33,13 @@ interface ManageCategoriesViewProps {
   inactiveIncomeCategories?: string[];
   inactiveExpenseCategories?: string[];
   categoryColors?: Record<string, string>;
-  onAddCategory: (type: 'income' | 'expense', category: string, color?: string) => void;
+  categoryIcons?: Record<string, string>;
+  onAddCategory: (type: 'income' | 'expense', category: string, color?: string, icon?: string) => void;
   onDeactivateCategory?: (type: 'income' | 'expense', category: string) => void;
   onReactivateCategory?: (type: 'income' | 'expense', category: string) => void;
   onDeleteCategoryPermanently?: (type: 'income' | 'expense', category: string) => void;
   onUpdateCategoryColor?: (category: string, color: string) => void;
+  onUpdateCategoryIcon?: (category: string, iconName: string) => void;
   onDeleteCategory: (type: 'income' | 'expense', category: string) => void;
   onClose: () => void;
 }
@@ -102,17 +108,20 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
   inactiveIncomeCategories = [],
   inactiveExpenseCategories = [],
   categoryColors = {},
+  categoryIcons = {},
   onAddCategory,
   onDeactivateCategory,
   onReactivateCategory,
   onDeleteCategoryPermanently,
   onUpdateCategoryColor,
+  onUpdateCategoryIcon,
   onDeleteCategory,
   onClose,
 }) => {
   const [newCatName, setNewCatName] = useState('');
   const [newCatType, setNewCatType] = useState<'income' | 'expense'>('expense');
   const [selectedColor, setSelectedColor] = useState<string>(PRESET_COLORS[0]);
+  const [selectedIconName, setSelectedIconName] = useState<string>('Utensils');
   const [catError, setCatError] = useState<string | undefined>(undefined);
   const [categoriesSearch, setCategoriesSearch] = useState('');
   
@@ -121,9 +130,11 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
   // Type filter tab: 'all' | 'expense' | 'income'
   const [activeCategoryTab, setActiveCategoryTab] = useState<'all' | 'expense' | 'income'>('all');
 
-  // Inline color editor state
-  const [editingCategoryColor, setEditingCategoryColor] = useState<string | null>(null);
+  // Unified Category Customization Modal State (Icon + Color)
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingColorHex, setEditingColorHex] = useState<string>('#007aff');
+  const [editingIconName, setEditingIconName] = useState<string>('Tag');
+  const [iconModalSearch, setIconModalSearch] = useState<string>('');
 
   const handleAddCategorySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,8 +157,29 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
     }
 
     setCatError(undefined);
-    onAddCategory(newCatType, cleanName, selectedColor);
+    onAddCategory(newCatType, cleanName, selectedColor, selectedIconName);
     setNewCatName('');
+  };
+
+  const handleOpenCustomizer = (cat: string) => {
+    const col = getCategoryColor(cat, categoryColors);
+    const currentIcon = categoryIcons[cat] || 'Tag';
+    setEditingCategory(cat);
+    setEditingColorHex(col.hex || '#007aff');
+    setEditingIconName(currentIcon);
+    setIconModalSearch('');
+  };
+
+  const handleSaveCategorySetup = () => {
+    if (editingCategory) {
+      if (onUpdateCategoryColor && editingColorHex) {
+        onUpdateCategoryColor(editingCategory, editingColorHex);
+      }
+      if (onUpdateCategoryIcon && editingIconName) {
+        onUpdateCategoryIcon(editingCategory, editingIconName);
+      }
+    }
+    setEditingCategory(null);
   };
 
   const handleDeactivate = (type: 'income' | 'expense', cat: string) => {
@@ -172,13 +204,6 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
     } else {
       onDeleteCategory(type, cat);
     }
-  };
-
-  const handleSaveColorEdit = () => {
-    if (editingCategoryColor && onUpdateCategoryColor) {
-      onUpdateCategoryColor(editingCategoryColor, editingColorHex);
-    }
-    setEditingCategoryColor(null);
   };
 
   // Filter Active Lists
@@ -442,49 +467,82 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
               )}
             </div>
 
-            {/* Custom Color Setup Section */}
-            <div className="space-y-2.5 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-                  <Palette className="w-3.5 h-3.5 text-[#007aff]" />
-                  {t('categoryColorLabel')}
-                </label>
-                <div className="flex items-center gap-1.5">
+            {/* Custom Icon & Color Setup Section */}
+            <div className="space-y-3 pt-1">
+              {/* Icon Selector Grid */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
+                    {t('selectCategoryIcon')}
+                  </label>
+                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
+                    {selectedIconName}
+                  </span>
+                </div>
+                <div className="grid grid-cols-7 gap-1.5 p-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl border border-black/[0.03] dark:border-white/[0.03] max-h-36 overflow-y-auto custom-scrollbar">
+                  {AVAILABLE_CATEGORY_ICONS.map(({ name, label, icon: IconComp }) => {
+                    const isSelected = selectedIconName === name;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setSelectedIconName(name)}
+                        className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
+                          isSelected
+                            ? 'bg-[#007aff] text-white shadow-xs border-[#007aff] scale-105 font-bold'
+                            : 'bg-white dark:bg-[#1c1c1e] text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white border-black/5 dark:border-white/5 hover:scale-105'
+                        }`}
+                        title={label}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color Swatches Section */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5 text-[#007aff]" />
+                    {t('categoryColorLabel')}
+                  </label>
                   <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
                     {selectedColor}
                   </span>
                 </div>
-              </div>
 
-              {/* Color Swatches Grid + Custom Color Picker */}
-              <div className="grid grid-cols-7 gap-2 items-center p-2.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl border border-black/[0.03] dark:border-white/[0.03]">
-                {PRESET_COLORS.map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => setSelectedColor(hex)}
-                    className={`w-7 h-7 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 ${
-                      selectedColor === hex
-                        ? 'scale-110 border-white dark:border-[#1c1c1e] shadow-md ring-2 ring-[#007aff]'
-                        : 'border-transparent hover:scale-105 opacity-85 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: hex }}
-                    title={hex}
-                  >
-                    {selectedColor === hex && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
-                  </button>
-                ))}
+                <div className="grid grid-cols-7 gap-2 items-center p-2.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl border border-black/[0.03] dark:border-white/[0.03]">
+                  {PRESET_COLORS.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      onClick={() => setSelectedColor(hex)}
+                      className={`w-7 h-7 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 ${
+                        selectedColor === hex
+                          ? 'scale-110 border-white dark:border-[#1c1c1e] shadow-md ring-2 ring-[#007aff]'
+                          : 'border-transparent hover:scale-105 opacity-85 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: hex }}
+                      title={hex}
+                    >
+                      {selectedColor === hex && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    </button>
+                  ))}
 
-                {/* Custom Hex Color Picker Input */}
-                <div className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-dashed border-[#8e8e93]/50 hover:border-[#007aff] transition-all flex items-center justify-center cursor-pointer group shrink-0">
-                  <input
-                    type="color"
-                    value={selectedColor}
-                    onChange={(e) => setSelectedColor(e.target.value)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    title={t('selectCategoryColor')}
-                  />
-                  <Palette className="w-3.5 h-3.5 text-[#8e8e93] group-hover:text-[#007aff] transition-colors" />
+                  {/* Custom Hex Color Picker Input */}
+                  <div className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-dashed border-[#8e8e93]/50 hover:border-[#007aff] transition-all flex items-center justify-center cursor-pointer group shrink-0">
+                    <input
+                      type="color"
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      title={t('selectCategoryColor')}
+                    />
+                    <Palette className="w-3.5 h-3.5 text-[#8e8e93] group-hover:text-[#007aff] transition-colors" />
+                  </div>
                 </div>
               </div>
 
@@ -493,17 +551,22 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                 <span className="text-[10px] font-extrabold uppercase text-[#8e8e93]">
                   {settings.language === 'my' ? 'နမူနာ -' : 'Preview:'}
                 </span>
-                <div
-                  className="px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-2 border shadow-xs transition-all"
-                  style={{
-                    backgroundColor: `${selectedColor}1f`,
-                    color: selectedColor,
-                    borderColor: `${selectedColor}40`,
-                  }}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>{newCatName.trim() || (newCatType === 'expense' ? 'Expense Category' : 'Income Category')}</span>
-                </div>
+                {(() => {
+                  const PreviewIcon = getCategoryIcon(newCatName || 'Preview', { [newCatName || 'Preview']: selectedIconName });
+                  return (
+                    <div
+                      className="px-3.5 py-1.5 rounded-xl font-black text-xs flex items-center gap-2 border shadow-xs transition-all"
+                      style={{
+                        backgroundColor: `${selectedColor}1f`,
+                        color: selectedColor,
+                        borderColor: `${selectedColor}40`,
+                      }}
+                    >
+                      <PreviewIcon className="w-4 h-4 shrink-0" />
+                      <span>{newCatName.trim() || (newCatType === 'expense' ? 'Expense Tag' : 'Income Tag')}</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -575,6 +638,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                       <AnimatePresence initial={false}>
                         {filteredActiveExpenseList.map((cat) => {
                           const col = getCategoryColor(cat, categoryColors);
+                          const CatIcon = getCategoryIcon(cat, categoryIcons);
                           const translatedName = CATEGORY_TRANSLATIONS[settings.language]?.[cat] || CATEGORY_TRANSLATIONS['my']?.[cat] || cat;
                           const myanmarTranslation = CATEGORY_TRANSLATIONS['my']?.[cat];
                           const showSubtext = settings.language === 'my' && myanmarTranslation && cat !== myanmarTranslation;
@@ -588,18 +652,15 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                               className="flex items-center justify-between p-3 bg-black/[0.01] hover:bg-black/[0.03] dark:bg-white/[0.01] dark:hover:bg-white/[0.03] rounded-2xl border border-black/[0.02] dark:border-white/[0.02] transition-all"
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                {/* Clickable Color Badge to edit color */}
+                                {/* Clickable Icon & Color Badge to customize */}
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setEditingCategoryColor(cat);
-                                    setEditingColorHex(col.hex || '#ff3b30');
-                                  }}
-                                  className={`w-8 h-8 rounded-xl font-black text-[11px] uppercase flex items-center justify-center shrink-0 shadow-xs border cursor-pointer hover:scale-105 transition-all ${col.bg} ${col.border}`}
+                                  onClick={() => handleOpenCustomizer(cat)}
+                                  className={`w-9 h-9 rounded-xl font-black text-xs uppercase flex items-center justify-center shrink-0 shadow-xs border cursor-pointer hover:scale-105 transition-all ${col.bg} ${col.border}`}
                                   style={col.style}
-                                  title={settings.language === 'my' ? 'အရောင် ပြောင်းရန်' : 'Click to edit color'}
+                                  title={t('iconSetup')}
                                 >
-                                  {translatedName.substring(0, 2)}
+                                  <CatIcon className="w-4 h-4" />
                                 </button>
                                 <div className="flex flex-col min-w-0">
                                   <span className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
@@ -613,17 +674,29 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                                 </div>
                               </div>
 
-                              {/* Deactivate Button */}
-                              <button
-                                id={`deactivate-cat-${cat}`}
-                                type="button"
-                                onClick={() => handleDeactivate('expense', cat)}
-                                className="px-3 py-1.5 flex items-center gap-1.5 text-[#ff9500] hover:text-[#ff9500] rounded-xl bg-[#ff9500]/10 hover:bg-[#ff9500]/20 transition-all cursor-pointer border border-[#ff9500]/20 text-[11px] font-black"
-                                title={t('deactivateCategory')}
-                              >
-                                <EyeOff className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">{t('deactivateCategory')}</span>
-                              </button>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {/* Icon & Color Setup Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenCustomizer(cat)}
+                                  className="p-1.5 text-[#007aff] hover:bg-[#007aff]/10 rounded-xl transition-all cursor-pointer border border-transparent hover:border-[#007aff]/20"
+                                  title={t('iconSetup')}
+                                >
+                                  <Wrench className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Deactivate Button */}
+                                <button
+                                  id={`deactivate-cat-${cat}`}
+                                  type="button"
+                                  onClick={() => handleDeactivate('expense', cat)}
+                                  className="px-2.5 py-1.5 flex items-center gap-1.5 text-[#ff9500] hover:text-[#ff9500] rounded-xl bg-[#ff9500]/10 hover:bg-[#ff9500]/20 transition-all cursor-pointer border border-[#ff9500]/20 text-[11px] font-black"
+                                  title={t('deactivateCategory')}
+                                >
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                  <span className="hidden sm:inline">{t('deactivateCategory')}</span>
+                                </button>
+                              </div>
                             </motion.div>
                           );
                         })}
@@ -658,6 +731,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                       <AnimatePresence initial={false}>
                         {filteredActiveIncomeList.map((cat) => {
                           const col = getCategoryColor(cat, categoryColors);
+                          const CatIcon = getCategoryIcon(cat, categoryIcons);
                           const translatedName = CATEGORY_TRANSLATIONS[settings.language]?.[cat] || CATEGORY_TRANSLATIONS['my']?.[cat] || cat;
                           const myanmarTranslation = CATEGORY_TRANSLATIONS['my']?.[cat];
                           const showSubtext = settings.language === 'my' && myanmarTranslation && cat !== myanmarTranslation;
@@ -671,18 +745,15 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                               className="flex items-center justify-between p-3 bg-black/[0.01] hover:bg-black/[0.03] dark:bg-white/[0.01] dark:hover:bg-white/[0.03] rounded-2xl border border-black/[0.02] dark:border-white/[0.02] transition-all"
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                {/* Clickable Color Badge */}
+                                {/* Clickable Icon Badge */}
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setEditingCategoryColor(cat);
-                                    setEditingColorHex(col.hex || '#34c759');
-                                  }}
-                                  className={`w-8 h-8 rounded-xl font-black text-[11px] uppercase flex items-center justify-center shrink-0 shadow-xs border cursor-pointer hover:scale-105 transition-all ${col.bg} ${col.border}`}
+                                  onClick={() => handleOpenCustomizer(cat)}
+                                  className={`w-9 h-9 rounded-xl font-black text-xs uppercase flex items-center justify-center shrink-0 shadow-xs border cursor-pointer hover:scale-105 transition-all ${col.bg} ${col.border}`}
                                   style={col.style}
-                                  title={settings.language === 'my' ? 'အရောင် ပြောင်းရန်' : 'Click to edit color'}
+                                  title={t('iconSetup')}
                                 >
-                                  {translatedName.substring(0, 2)}
+                                  <CatIcon className="w-4 h-4" />
                                 </button>
                                 <div className="flex flex-col min-w-0">
                                   <span className="text-xs font-black text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
@@ -696,17 +767,29 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                                 </div>
                               </div>
 
-                              {/* Deactivate Button */}
-                              <button
-                                id={`deactivate-cat-${cat}`}
-                                type="button"
-                                onClick={() => handleDeactivate('income', cat)}
-                                className="px-3 py-1.5 flex items-center gap-1.5 text-[#ff9500] hover:text-[#ff9500] rounded-xl bg-[#ff9500]/10 hover:bg-[#ff9500]/20 transition-all cursor-pointer border border-[#ff9500]/20 text-[11px] font-black"
-                                title={t('deactivateCategory')}
-                              >
-                                <EyeOff className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">{t('deactivateCategory')}</span>
-                              </button>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {/* Icon & Color Setup Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenCustomizer(cat)}
+                                  className="p-1.5 text-[#007aff] hover:bg-[#007aff]/10 rounded-xl transition-all cursor-pointer border border-transparent hover:border-[#007aff]/20"
+                                  title={t('iconSetup')}
+                                >
+                                  <Wrench className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Deactivate Button */}
+                                <button
+                                  id={`deactivate-cat-${cat}`}
+                                  type="button"
+                                  onClick={() => handleDeactivate('income', cat)}
+                                  className="px-2.5 py-1.5 flex items-center gap-1.5 text-[#ff9500] hover:text-[#ff9500] rounded-xl bg-[#ff9500]/10 hover:bg-[#ff9500]/20 transition-all cursor-pointer border border-[#ff9500]/20 text-[11px] font-black"
+                                  title={t('deactivateCategory')}
+                                >
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                  <span className="hidden sm:inline">{t('deactivateCategory')}</span>
+                                </button>
+                              </div>
                             </motion.div>
                           );
                         })}
@@ -755,6 +838,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                         <AnimatePresence initial={false}>
                           {filteredInactiveExpenseList.map((cat) => {
                             const col = getCategoryColor(cat, categoryColors);
+                            const CatIcon = getCategoryIcon(cat, categoryIcons);
                             const translatedName = CATEGORY_TRANSLATIONS[settings.language]?.[cat] || CATEGORY_TRANSLATIONS['my']?.[cat] || cat;
 
                             return (
@@ -770,7 +854,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                                     className={`w-8 h-8 rounded-xl font-black text-[11px] uppercase flex items-center justify-center shrink-0 shadow-xs border ${col.bg} ${col.border}`}
                                     style={col.style}
                                   >
-                                    {translatedName.substring(0, 2)}
+                                    <CatIcon className="w-4 h-4" />
                                   </div>
                                   <span className="text-xs font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
                                     {translatedName}
@@ -836,6 +920,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                         <AnimatePresence initial={false}>
                           {filteredInactiveIncomeList.map((cat) => {
                             const col = getCategoryColor(cat, categoryColors);
+                            const CatIcon = getCategoryIcon(cat, categoryIcons);
                             const translatedName = CATEGORY_TRANSLATIONS[settings.language]?.[cat] || CATEGORY_TRANSLATIONS['my']?.[cat] || cat;
 
                             return (
@@ -851,7 +936,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                                     className={`w-8 h-8 rounded-xl font-black text-[11px] uppercase flex items-center justify-center shrink-0 shadow-xs border ${col.bg} ${col.border}`}
                                     style={col.style}
                                   >
-                                    {translatedName.substring(0, 2)}
+                                    <CatIcon className="w-4 h-4" />
                                   </div>
                                   <span className="text-xs font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate">
                                     {translatedName}
@@ -897,57 +982,163 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
         </div>
       </div>
 
-      {/* Color Edit Popover/Modal */}
-      {editingCategoryColor && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1c1c1e] rounded-[2rem] p-6 max-w-sm w-full space-y-4 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-black text-[#1c1c1e] dark:text-white flex items-center gap-2">
-                <Palette className="w-4 h-4 text-[#007aff]" />
-                {t('selectCategoryColor')} ({editingCategoryColor})
-              </h4>
+      {/* Comprehensive Category Icon & Color Customizer Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] p-6 max-w-md w-full space-y-5 border border-black/[0.1] dark:border-white/[0.1] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-black/[0.05] dark:border-white/[0.05] shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-2xl bg-[#007aff]/10 flex items-center justify-center text-[#007aff]">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-[#1c1c1e] dark:text-white">
+                    {t('customizeCategory') || 'Customize Category'}
+                  </h4>
+                  <p className="text-[11px] font-bold text-[#8e8e93]">
+                    {CATEGORY_TRANSLATIONS[settings.language]?.[editingCategory] || editingCategory}
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setEditingCategoryColor(null)}
+                onClick={() => setEditingCategory(null)}
                 className="w-8 h-8 rounded-full bg-black/[0.05] dark:bg-white/[0.1] flex items-center justify-center text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-colors cursor-pointer border-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-6 gap-2.5 py-2">
-              {PRESET_COLORS.map((hex) => (
-                <button
-                  key={hex}
-                  type="button"
-                  onClick={() => setEditingColorHex(hex)}
-                  className={`w-9 h-9 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 ${
-                    editingColorHex === hex
-                      ? 'scale-110 border-white dark:border-[#1c1c1e] shadow-md ring-2 ring-[#007aff]'
-                      : 'border-transparent hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: hex }}
-                >
-                  {editingColorHex === hex && <Check className="w-4 h-4 text-white stroke-[3]" />}
-                </button>
-              ))}
+            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+              {/* Live Preview Card */}
+              <div className="flex items-center justify-center p-4 bg-black/[0.02] dark:bg-white/[0.03] rounded-2xl border border-black/[0.04] dark:border-white/[0.04]">
+                {(() => {
+                  const ModalIcon = getCategoryIcon(editingCategory, { [editingCategory]: editingIconName });
+                  return (
+                    <div
+                      className="px-4 py-2 rounded-2xl font-black text-sm flex items-center gap-2.5 border shadow-sm transition-all"
+                      style={{
+                        backgroundColor: `${editingColorHex}20`,
+                        color: editingColorHex,
+                        borderColor: `${editingColorHex}40`,
+                      }}
+                    >
+                      <ModalIcon className="w-5 h-5 shrink-0" />
+                      <span>{CATEGORY_TRANSLATIONS[settings.language]?.[editingCategory] || editingCategory}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Icon Setup Grid */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
+                    {t('selectCategoryIcon')}
+                  </label>
+                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
+                    {editingIconName}
+                  </span>
+                </div>
+
+                {/* Icon Filter Search Box */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8e8e93]" />
+                  <input
+                    type="text"
+                    placeholder={settings.language === 'my' ? 'အိုင်ကွန် ရှာရန်...' : 'Search icon name...'}
+                    value={iconModalSearch}
+                    onChange={(e) => setIconModalSearch(e.target.value)}
+                    className="w-full h-8 pl-8 pr-3 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/5 dark:border-white/5 rounded-xl text-xs font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] placeholder-[#8e8e93] focus:outline-none"
+                  />
+                </div>
+
+                {/* Icon Grid */}
+                <div className="grid grid-cols-6 sm:grid-cols-7 gap-1.5 p-2 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl border border-black/[0.03] dark:border-white/[0.03] max-h-44 overflow-y-auto custom-scrollbar">
+                  {AVAILABLE_CATEGORY_ICONS.filter(({ name, label }) => {
+                    const q = iconModalSearch.toLowerCase();
+                    return name.toLowerCase().includes(q) || label.toLowerCase().includes(q);
+                  }).map(({ name, label, icon: IconComp }) => {
+                    const isSelected = editingIconName === name;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setEditingIconName(name)}
+                        className={`h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
+                          isSelected
+                            ? 'bg-[#007aff] text-white shadow-xs border-[#007aff] scale-105 font-bold'
+                            : 'bg-white dark:bg-[#1c1c1e] text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white border-black/5 dark:border-white/5 hover:scale-105'
+                        }`}
+                        title={label}
+                      >
+                        <IconComp className="w-4 h-4" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color Setup Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5 text-[#007aff]" />
+                    {t('categoryColorLabel')}
+                  </label>
+                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
+                    {editingColorHex}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 items-center p-2.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl border border-black/[0.03] dark:border-white/[0.03]">
+                  {PRESET_COLORS.map((hex) => (
+                    <button
+                      key={hex}
+                      type="button"
+                      onClick={() => setEditingColorHex(hex)}
+                      className={`w-7 h-7 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 ${
+                        editingColorHex === hex
+                          ? 'scale-110 border-white dark:border-[#1c1c1e] shadow-md ring-2 ring-[#007aff]'
+                          : 'border-transparent hover:scale-105 opacity-85 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: hex }}
+                    >
+                      {editingColorHex === hex && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    </button>
+                  ))}
+
+                  <div className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-dashed border-[#8e8e93]/50 hover:border-[#007aff] transition-all flex items-center justify-center cursor-pointer group shrink-0">
+                    <input
+                      type="color"
+                      value={editingColorHex}
+                      onChange={(e) => setEditingColorHex(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Palette className="w-3.5 h-3.5 text-[#8e8e93] group-hover:text-[#007aff] transition-colors" />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
-              <div className="relative flex-1">
-                <input
-                  type="color"
-                  value={editingColorHex}
-                  onChange={(e) => setEditingColorHex(e.target.value)}
-                  className="w-full h-10 rounded-xl cursor-pointer bg-transparent border-0"
-                />
-              </div>
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-black/[0.05] dark:border-white/[0.05] shrink-0">
               <button
                 type="button"
-                onClick={handleSaveColorEdit}
-                className="px-5 h-10 bg-[#007aff] hover:bg-[#0071eb] text-white rounded-xl text-xs font-black transition-all cursor-pointer border-0 shadow-xs"
+                onClick={() => setEditingCategory(null)}
+                className="px-4 h-10 bg-black/[0.05] hover:bg-black/[0.1] dark:bg-white/[0.08] dark:hover:bg-white/[0.12] text-[#1c1c1e] dark:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border-0"
               >
-                {t('save') || 'Save Color'}
+                {t('cancel') || 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCategorySetup}
+                className="px-6 h-10 bg-[#007aff] hover:bg-[#0071eb] text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer border-0 shadow-sm flex items-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                {t('save') || 'Save Setup'}
               </button>
             </div>
           </div>

@@ -47,6 +47,8 @@ import { Transaction, Language, Budget } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateForecastReport } from '../utils/forecasting';
 import { findActiveBudget } from '../utils/budgetUtils';
+import { getCategoryIcon } from '../utils/categoryIcon';
+import { getCategoryStyle } from '../utils/categoryStyle';
 
 interface AnalyticsSectionProps {
   transactions: Transaction[];
@@ -62,6 +64,8 @@ interface AnalyticsSectionProps {
   allTransactions?: Transaction[];
   readAlertIds: string[];
   toggleReadAlert: (id: string) => void;
+  categoryColors?: Record<string, string>;
+  categoryIcons?: Record<string, string>;
 }
 
 const COLORS = [
@@ -76,55 +80,14 @@ const COLORS = [
   '#8e8e93', // Grey
 ];
 
-// Category Icon Map for gorgeous visuals matching BudgetSection
-const getCategoryIcon = (category: string) => {
-  const norm = category.toLowerCase();
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
-    return <Utensils className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('transport') || norm.includes('taxi') || norm.includes('bus') || norm.includes('fuel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
-    return <Car className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('shop') || norm.includes('store') || norm.includes('clothes') || norm.includes('grocery') || norm.includes('ဈေးဝယ်')) {
-    return <ShoppingBag className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('entertain') || norm.includes('movie') || norm.includes('show') || norm.includes('game') || norm.includes('ဖျော်ဖြေ')) {
-    return <Film className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('house') || norm.includes('rent') || norm.includes('room') || norm.includes('အိမ်')) {
-    return <HomeIcon className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('util') || norm.includes('bill') || norm.includes('electric') || norm.includes('water') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
-    return <Zap className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('health') || norm.includes('medical') || norm.includes('pharmacy') || norm.includes('doctor') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး')) {
-    return <HeartPulse className="w-3.5 h-3.5" />;
-  }
-  if (norm.includes('educat') || norm.includes('school') || norm.includes('book') || norm.includes('course') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
-    return <GraduationCap className="w-3.5 h-3.5" />;
-  }
-  return <HelpCircle className="w-3.5 h-3.5" />;
-};
-
 // Custom accent colors for categories matching BudgetSection
-const getCategoryColorClasses = (category: string, index: number) => {
-  const norm = category.toLowerCase();
+const getCategoryColorClasses = (category: string, index: number, categoryColors?: Record<string, string>) => {
   const fallbackColor = COLORS[index % COLORS.length];
-  
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) return { bg: 'bg-[#34c759]/10', text: 'text-[#34c759]', border: 'border-[#34c759]/20', fill: '#34c759' };
-  if (norm.includes('transport') || norm.includes('taxi') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) return { bg: 'bg-[#007aff]/10', text: 'text-[#007aff]', border: 'border-[#007aff]/20', fill: '#007aff' };
-  if (norm.includes('shop') || norm.includes('ဈေးဝယ်')) return { bg: 'bg-[#ff2d55]/10', text: 'text-[#ff2d55]', border: 'border-[#ff2d55]/20', fill: '#ff2d55' };
-  if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) return { bg: 'bg-[#af52de]/10', text: 'text-[#af52de]', border: 'border-[#af52de]/20', fill: '#af52de' };
-  if (norm.includes('house') || norm.includes('rent') || norm.includes('အိမ်')) return { bg: 'bg-[#5856d6]/10', text: 'text-[#5856d6]', border: 'border-[#5856d6]/20', fill: '#5856d6' };
-  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) return { bg: 'bg-[#ff9500]/10', text: 'text-[#ff9500]', border: 'border-[#ff9500]/20', fill: '#ff9500' };
-  if (norm.includes('health') || norm.includes('medical') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး')) return { bg: 'bg-[#ff3b30]/10', text: 'text-[#ff3b30]', border: 'border-[#ff3b30]/20', fill: '#ff3b30' };
-  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး')) return { bg: 'bg-[#1badf8]/10', text: 'text-[#1badf8]', border: 'border-[#1badf8]/20', fill: '#1badf8' };
-  
-  return { 
-    bg: 'bg-slate-400/10', 
-    text: 'text-slate-500 dark:text-slate-400', 
-    border: 'border-slate-500/10', 
-    fill: fallbackColor 
+  const catStyle = getCategoryStyle(category, categoryColors);
+  const fill = catStyle.hex || fallbackColor;
+  return {
+    ...catStyle,
+    fill
   };
 };
 
@@ -170,6 +133,8 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   allTransactions,
   readAlertIds,
   toggleReadAlert,
+  categoryColors = {},
+  categoryIcons = {},
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
@@ -791,7 +756,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                         isAnimationActive={false}
                       >
                         {categoryData.map((entry, index) => {
-                          const styleInfo = getCategoryColorClasses(entry.rawName, index);
+                          const styleInfo = getCategoryColorClasses(entry.rawName, index, categoryColors);
                           return (
                             <Cell key={`cell-${index}`} fill={styleInfo.fill} style={{ outline: 'none' }} />
                           );
@@ -817,13 +782,17 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
             {/* Gorgeous Category Ranking List (matching the style details of Budget section) */}
             <div className="sm:col-span-7 space-y-3.5 max-h-[195px] overflow-y-auto pr-1 scrollbar-thin">
               {categoryData.slice(0, 5).map((item, index) => {
-                const styleInfo = getCategoryColorClasses(item.rawName, index);
+                const styleInfo = getCategoryColorClasses(item.rawName, index, categoryColors);
+                const CatIcon = getCategoryIcon(item.rawName, categoryIcons);
                 return (
                   <div key={item.rawName} className="space-y-1.5 fast-render-row">
                     <div className="flex items-center justify-between text-xs text-[#1c1c1e] dark:text-[#f2f2f7]">
                       <span className="flex items-center gap-2 font-bold">
-                        <div className={`p-1.5 rounded-lg ${styleInfo.bg} ${styleInfo.text} border ${styleInfo.border}`}>
-                          {getCategoryIcon(item.rawName)}
+                        <div
+                          className={`p-1.5 rounded-lg border ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border}`}
+                          style={styleInfo.style}
+                        >
+                          <CatIcon className="w-3.5 h-3.5" />
                         </div>
                         {item.name}
                       </span>

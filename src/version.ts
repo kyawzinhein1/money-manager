@@ -18,28 +18,50 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v1.2.8';
-export const BUILD_HASH = 'v1.2.8-20260801';
+export const APP_VERSION = 'v2.0.0';
+export const BUILD_HASH = 'v2.0.0-20260803';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v1.2.8',
-  buildHash: 'v1.2.8-20260801',
-  buildTime: '2026-08-01 03:00:00',
-  titleEn: '6-Month Analytics & iOS Offline PWA Enhancements',
-  titleMy: '၆ လစာ ဘဏ္ဍာရေး သုံးသပ်ချက် ဇယားနှင့် iOS အော့ဖ်လိုင်း PWA စနစ် မြှင့်တင်မှု',
+  version: 'v2.0.0',
+  buildHash: 'v2.0.0-20260803',
+  buildTime: '2026-08-03 09:35:00',
+  titleEn: 'Major Release v2.0.0: Profile Navigation, Settings UX, PWA Store Preview & Engine Optimization',
+  titleMy: 'ဗားရှင်းအသစ် v2.0.0: ပရိုဖိုင် စခရင် ပြောင်းလဲမှု၊ ဆက်တင် ရုပ်ထွက်၊ PWA စခရင်ရှော့များနှင့် စွမ်းဆောင်ရည် မြှင့်တင်မှု',
   changelogEn: [
-    'Expanded Income vs Expense chart on Stats tab to show 6 months history',
-    'Enhanced iOS PWA installation guidance overlay & offline Service Worker cache support',
-    'Added dynamic date range labels to PDF financial statement exports',
-    'Optimized PWA meta tags and offline standalone execution for iOS devices'
+    'Combined View Profile navigation directly to Profile overview page in Settings tab',
+    'Streamlined drill-down headers across Settings views with intuitive close actions',
+    'Added mobile and desktop PWA screenshots in manifest.json for store-style install prompt preview',
+    'Integrated complete automated Vitest unit testing suite with 100% green verification',
+    'Optimized dynamic category styling, icon mapping, and ledger calculation response times'
   ],
   changelogMy: [
-    'ဘဏ္ဍာရေး သုံးသပ်ချက်စခရင်တွင် ဝင်ငွေ/ထွက်ငွေ ဇယားအား နောက်ဆုံး ၆ လစာအထိ တိုးမြှင့်ပြသပေးခဲ့ပါသည်',
-    'iOS (iPhone) ဖုန်းများတွင် အပလီကေးရှင်းအား အော့ဖ်လိုင်း သွင်းယူအသုံးပြုနိုင်ရန် PWA စနစ်ကို ပိုမိုကောင်းမွန်အောင် ပြုလုပ်ခဲ့ပါသည်',
-    'PDF အစီရင်ခံစာ ထုတ်ယူမှုတွင် သက်ဆိုင်ရာ ရက်စွဲအပိုင်းအခြား ထည့်သွင်းပေးခဲ့ပါသည်',
-    'အော့ဖ်လိုင်း အသုံးပြုနိုင်ရေး Service Worker နှင့် အက်ပ်စွမ်းဆောင်ရည်များကို မြှင့်တင်ထားပါသည်'
+    'ဆက်တင်စခရင်ရှိ ပရိုဖိုင်ကြည့်ရန် ခလုတ်ကို ပရိုဖိုင် ပင်မစခရင်သို့ တိုက်ရိုက် ရောက်ရှိအောင် ပြင်ဆင်ပေးခဲ့ပါသည်',
+    'ဆက်တင် အသေးစိတ်စခရင်များ၏ ခေါင်းစဉ်နှင့် ပိတ်ရန်ခလုတ်များကို ပိုမိုသပ်ရပ်ရှင်းလင်းအောင် ပြုလုပ်ခဲ့ပါသည်',
+    'PWA တပ်ဆင်မှုစခရင်တွင် ထင်ရှားစွာမြင်တွေ့နိုင်ရန် မိုဘိုင်းနှင့် ဒက်စတော့ စခရင်ရှော့များ ထည့်သွင်းပေးခဲ့ပါသည်',
+    'အက်ပ်၏ စွမ်းဆောင်ရည်နှင့် တည်ငြိမ်မှုကို ယူနစ်တက်စ် (Unit Tests) များဖြင့် အပြည့်အဝ စစ်ဆေးမြှင့်တင်ခဲ့ပါသည်',
+    'ကဏ္ဍအလိုက် အိုင်ကွန်နှင့် အရောင်များ တွက်ချက်ပြသမှုကို ပိုမိုမြန်ဆန်အောင် ပြင်ဆင်ထားပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.0.0',
+      date: '2026-08-03',
+      titleEn: 'Major Release v2.0.0: Profile Navigation, Settings UX, PWA Store Preview & Engine Optimization',
+      titleMy: 'ဗားရှင်းအသစ် v2.0.0: ပရိုဖိုင် စခရင် ပြောင်းလဲမှု၊ ဆက်တင် ရုပ်ထွက်၊ PWA စခရင်ရှော့များနှင့် စွမ်းဆောင်ရည် မြှင့်တင်မှု',
+      itemsEn: [
+        'Combined View Profile navigation directly to Profile overview page in Settings tab',
+        'Streamlined drill-down headers across Settings views with intuitive close actions',
+        'Added mobile and desktop PWA screenshots in manifest.json for store-style install prompt preview',
+        'Integrated complete automated Vitest unit testing suite with 100% green verification',
+        'Optimized dynamic category styling, icon mapping, and ledger calculation response times'
+      ],
+      itemsMy: [
+        'ဆက်တင်စခရင်ရှိ ပရိုဖိုင်ကြည့်ရန် ခလုတ်ကို ပရိုဖိုင် ပင်မစခရင်သို့ တိုက်ရိုက် ရောက်ရှိအောင် ပြင်ဆင်ပေးခဲ့ပါသည်',
+        'ဆက်တင် အသေးစိတ်စခရင်များ၏ ခေါင်းစဉ်နှင့် ပိတ်ရန်ခလုတ်များကို ပိုမိုသပ်ရပ်ရှင်းလင်းအောင် ပြုလုပ်ခဲ့ပါသည်',
+        'PWA တပ်ဆင်မှုစခရင်တွင် ထင်ရှားစွာမြင်တွေ့နိုင်ရန် မိုဘိုင်းနှင့် ဒက်စတော့ စခရင်ရှော့များ ထည့်သွင်းပေးခဲ့ပါသည်',
+        'အက်ပ်၏ စွမ်းဆောင်ရည်နှင့် တည်ငြိမ်မှုကို ယူနစ်တက်စ် (Unit Tests) များဖြင့် အပြည့်အဝ စစ်ဆေးမြှင့်တင်ခဲ့ပါသည်',
+        'ကဏ္ဍအလိုက် အိုင်ကွန်နှင့် အရောင်များ တွက်ချက်ပြသမှုကို ပိုမိုမြန်ဆန်အောင် ပြင်ဆင်ထားပါသည်'
+      ]
+    },
     {
       version: 'v1.2.8',
       date: '2026-08-01',

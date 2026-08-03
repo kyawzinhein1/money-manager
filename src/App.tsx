@@ -32,7 +32,8 @@ import {
   Sparkles,
   DownloadCloud,
   Eye,
-  EyeOff
+  EyeOff,
+  Smartphone
 } from 'lucide-react';
 
 import { Transaction, Budget, Language, Currency, Settings, UserProfile, NavbarSettings } from './types';
@@ -43,6 +44,7 @@ import { getLocalDateStr, getLocalMonthStr, getLocalYearStr, getLocalMonthYearKe
 import { DateFilterSwitcher } from './components/DateFilterSwitcher';
 import { generateForecastReport } from './utils/forecasting';
 import { getCategoryStyle } from './utils/categoryStyle';
+import { getCategoryIcon } from './utils/categoryIcon';
 import {
   APP_VERSION,
   LOCAL_VERSION_INFO,
@@ -61,6 +63,7 @@ import { SettingsSection } from './components/SettingsSection';
 import { ProfileSection } from './components/ProfileSection';
 import { AddTransactionSection } from './components/AddTransactionSection';
 import { NotificationsSection } from './components/NotificationsSection';
+import { PWAInstallGuideModal } from './components/PWAInstallGuideModal';
 
 export default function App() {
   // State Initialization from LocalStorage or Defaults with a one-time clean-up of old mock data
@@ -125,6 +128,15 @@ export default function App() {
       'Gift': '#f43f5e'
     };
   });
+
+  const [categoryIcons, setCategoryIcons] = useState<Record<string, string>>(() => {
+    const saved = localStorage.getItem('mm_category_icons');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mm_category_icons', JSON.stringify(categoryIcons));
+  }, [categoryIcons]);
 
   const [customCurrency, setCustomCurrency] = useState<Currency>(() => {
     const saved = localStorage.getItem('mm_currency');
@@ -229,6 +241,7 @@ export default function App() {
   const [showMonthMenu, setShowMonthMenu] = useState<boolean>(false);
   const [showYearMenu, setShowYearMenu] = useState<boolean>(false);
   const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
+  const [showPWAInstallGuide, setShowPWAInstallGuide] = useState<boolean>(false);
 
   const [showBalance, setShowBalance] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -482,13 +495,16 @@ export default function App() {
   const t = React.useCallback((key: string) => TRANSLATIONS[settings.language][key] || key, [settings.language]);
   const tc = React.useCallback((cat: string) => CATEGORY_TRANSLATIONS[settings.language][cat] || cat, [settings.language]);
 
-  const handleAddCategory = React.useCallback((type: 'income' | 'expense', category: string, color?: string) => {
+  const handleAddCategory = React.useCallback((type: 'income' | 'expense', category: string, color?: string, icon?: string) => {
     if (type === 'income') {
       if (!incomeCategories.includes(category)) {
         setIncomeCategories(prev => [...prev, category]);
         setInactiveIncomeCategories(prev => prev.filter(c => c !== category));
         if (color) {
           setCategoryColors(prev => ({ ...prev, [category]: color }));
+        }
+        if (icon) {
+          setCategoryIcons(prev => ({ ...prev, [category]: icon }));
         }
         showToast(settings.language === 'my' ? `ဝင်ငွေ အမျိုးအစား "${category}" ထည့်သွင်းပြီးပါပြီ။` : `Income category "${category}" added.`, 'success');
       } else {
@@ -500,6 +516,9 @@ export default function App() {
         setInactiveExpenseCategories(prev => prev.filter(c => c !== category));
         if (color) {
           setCategoryColors(prev => ({ ...prev, [category]: color }));
+        }
+        if (icon) {
+          setCategoryIcons(prev => ({ ...prev, [category]: icon }));
         }
         showToast(settings.language === 'my' ? `ထွက်ငွေ အမျိုးအစား "${category}" ထည့်သွင်းပြီးပါပြီ။` : `Expense category "${category}" added.`, 'success');
       } else {
@@ -572,6 +591,11 @@ export default function App() {
   const handleUpdateCategoryColor = React.useCallback((category: string, color: string) => {
     setCategoryColors(prev => ({ ...prev, [category]: color }));
     showToast(settings.language === 'my' ? `"${category}" အရောင် ပြောင်းလဲပြီးပါပြီ။` : `Category color updated for "${category}".`, 'success');
+  }, [settings.language]);
+
+  const handleUpdateCategoryIcon = React.useCallback((category: string, iconName: string) => {
+    setCategoryIcons(prev => ({ ...prev, [category]: iconName }));
+    showToast(settings.language === 'my' ? `"${category}" အိုင်ကွန် ပြောင်းလဲပြီးပါပြီ။` : `Category icon updated for "${category}".`, 'success');
   }, [settings.language]);
 
   const handleDeleteCategory = React.useCallback((type: 'income' | 'expense', category: string) => {
@@ -824,7 +848,7 @@ export default function App() {
     showToast(t('updateRecordSuccess'), 'success');
   }, [t]);
 
-  const handleDeleteTransaction = React.useCallback((id: string) => {
+  const handleDeleteTransaction = React.useCallback((id: string, onSuccess?: () => void) => {
     const transactionToDelete = transactions.find(t => t.id === id);
     if (!transactionToDelete) return;
 
@@ -841,6 +865,7 @@ export default function App() {
         setTransactions((prev) => prev.filter((tx) => tx.id !== id));
         showToast(t('deleteRecordSuccess'), 'success');
         setConfirmDialog(null);
+        if (onSuccess) onSuccess();
       }
     });
   }, [transactions, settings.language, tc, formatAmount, t]);
@@ -982,7 +1007,7 @@ export default function App() {
 
   const handleEditProfileClick = React.useCallback(() => {
     setActiveTab('profile');
-    setIsProfileEditing(true);
+    setIsProfileEditing(false);
   }, []);
 
   const handleSaveProfile = React.useCallback((updatedProfile: UserProfile) => {
@@ -1369,16 +1394,6 @@ export default function App() {
 
           {/* Quick toggle settings in top bar */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Language toggle quick button */}
-            <button
-              id="quick-lang-toggle"
-              onClick={() => handleUpdateLanguage(settings.language === 'en' ? 'my' : 'en')}
-              className="px-2.5 py-1.5 text-[#007aff] hover:bg-[#007aff]/10 rounded-full transition-all cursor-pointer font-bold text-xs"
-              title="Switch Language"
-            >
-              {settings.language === 'en' ? 'MY' : 'EN'}
-            </button>
-
             {/* Theme Toggle Button */}
             <button
               id="quick-theme-toggle"
@@ -1767,6 +1782,7 @@ export default function App() {
                         <div className="space-y-2.5">
                           {dashboardFilteredTransactions.slice(0, 5).map((tx) => {
                             const style = getCategoryStyle(tx.category, categoryColors);
+                            const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
                             return (
                               <div
                                 key={tx.id}
@@ -1777,11 +1793,7 @@ export default function App() {
                                     className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 border ${style.bg} ${style.text} ${style.border}`}
                                     style={style.style}
                                   >
-                                    {tx.type === 'income' ? (
-                                      <ArrowUpRight className="w-5 h-5" />
-                                    ) : (
-                                      <ArrowDownLeft className="w-5 h-5" />
-                                    )}
+                                    <CategoryIcon className="w-5 h-5" />
                                   </div>
                                   <div className="min-w-0">
                                     <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight">
@@ -1828,6 +1840,7 @@ export default function App() {
                     incomeCategories={incomeCategories}
                     expenseCategories={expenseCategories}
                     categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
                     onAddTransactionTrigger={() => {
                       setEditingTxInAddPage(null);
                       setActiveTab('add-transaction');
@@ -1848,6 +1861,7 @@ export default function App() {
                     incomeCategories={incomeCategories}
                     expenseCategories={expenseCategories}
                     categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
                     onAddTransaction={handleAddTransaction}
                     onCancel={() => setActiveTab(lastMainTab)}
                     initialTransaction={editingTxInAddPage}
@@ -1868,6 +1882,8 @@ export default function App() {
                     formatAmount={formatAmount}
                     selectedMonth={selectedMonth}
                     selectedYear={selectedYear}
+                    categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
                   />
                 )}
 
@@ -1887,6 +1903,8 @@ export default function App() {
                     allTransactions={transactions}
                     readAlertIds={readAlertIds}
                     toggleReadAlert={toggleReadAlert}
+                    categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
                   />
                 )}
 
@@ -1907,11 +1925,13 @@ export default function App() {
                     inactiveIncomeCategories={inactiveIncomeCategories}
                     inactiveExpenseCategories={inactiveExpenseCategories}
                     categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
                     onAddCategory={handleAddCategory}
                     onDeactivateCategory={handleDeactivateCategory}
                     onReactivateCategory={handleReactivateCategory}
                     onDeleteCategoryPermanently={handleDeleteCategoryPermanently}
                     onUpdateCategoryColor={handleUpdateCategoryColor}
+                    onUpdateCategoryIcon={handleUpdateCategoryIcon}
                     onDeleteCategory={handleDeleteCategory}
                     onLoadDemoData={handleLoadDemoData}
                     onClearAllData={handleClearAllData}
@@ -1919,9 +1939,10 @@ export default function App() {
                     profile={profile}
                     onEditProfileClick={() => {
                       setActiveTab('profile');
-                      setIsProfileEditing(true);
+                      setIsProfileEditing(false);
                     }}
                     onRestoreBackup={handleRestoreBackup}
+                    onOpenPWAInstallGuide={() => setShowPWAInstallGuide(true)}
                     transactions={transactions}
                     budgets={budgets}
                     readAlertIds={readAlertIds}
@@ -2050,6 +2071,13 @@ export default function App() {
 
       {/* Welcome Onboarding Screen */}
       <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+
+      {/* PWA Standalone App Installation Guide Modal */}
+      <PWAInstallGuideModal
+        isOpen={showPWAInstallGuide}
+        onClose={() => setShowPWAInstallGuide(false)}
+        language={settings.language}
+      />
     </div>
   );
 }

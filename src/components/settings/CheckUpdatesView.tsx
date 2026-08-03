@@ -68,8 +68,8 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
     localStorage.setItem(
       'mm_just_updated_msg',
       language === 'my'
-        ? `အက်ပ်ကို ဗားရှင်းအသစ် (${serverInfo?.version || 'v1.2.6'}) သို့ အောင်မြင်စွာ အဆင့်မြှင့်တင်ပြီးပါပြီ။`
-        : `Application updated successfully to version ${serverInfo?.version || 'v1.2.6'}!`
+        ? `အက်ပ်ကို ဗားရှင်းအသစ် (${serverInfo?.version || 'v2.0.0'}) သို့ အောင်မြင်စွာ အဆင့်မြှင့်တင်ပြီးပါပြီ။`
+        : `Application updated successfully to version ${serverInfo?.version || 'v2.0.0'}!`
     );
     forceApplyAppUpdate();
   };
@@ -173,7 +173,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
               <ArrowUpCircle className="w-6 h-6 text-white shrink-0" />
               <div>
                 <h3 className="text-sm font-black tracking-wide">
-                  {language === 'my' ? `အက်ပ် ဗားရှင်းအသစ် (${serverInfo?.version || 'v1.2.6'}) ထွက်ရှိပါပြီ!` : `New Version Available: ${serverInfo?.version || 'v1.2.6'}!`}
+                  {language === 'my' ? `အက်ပ် ဗားရှင်းအသစ် (${serverInfo?.version || 'v2.0.0'}) ထွက်ရှိပါပြီ!` : `New Version Available: ${serverInfo?.version || 'v2.0.0'}!`}
                 </h3>
                 <p className="text-xs text-white/80">
                   {language === 'my' ? serverInfo?.titleMy || 'နောက်ဆုံးပြင်ဆင်ချက်များကို ရယူနိုင်ပါပြီ' : serverInfo?.titleEn || 'Latest fixes and improvements are ready'}

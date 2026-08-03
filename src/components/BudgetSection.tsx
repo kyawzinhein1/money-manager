@@ -31,6 +31,8 @@ import { generateForecastReport } from '../utils/forecasting';
 import { IOSDatePicker } from './IOSDatePicker';
 import { IOSDateRangePicker } from './IOSDateRangePicker';
 import { findActiveBudget } from '../utils/budgetUtils';
+import { getCategoryIcon } from '../utils/categoryIcon';
+import { getCategoryStyle } from '../utils/categoryStyle';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -55,52 +57,9 @@ interface BudgetSectionProps {
   formatAmount: (amount: number) => string;
   selectedMonth: string;
   selectedYear: string;
+  categoryColors?: Record<string, string>;
+  categoryIcons?: Record<string, string>;
 }
-
-// Category Icon Map for gorgeous visuals
-const getCategoryIcon = (category: string) => {
-  const norm = category.toLowerCase();
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('restaurant') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်')) {
-    return <Utensils className="w-4 h-4" />;
-  }
-  if (norm.includes('transport') || norm.includes('taxi') || norm.includes('bus') || norm.includes('fuel') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
-    return <Car className="w-4 h-4" />;
-  }
-  if (norm.includes('shop') || norm.includes('store') || norm.includes('clothes') || norm.includes('grocery') || norm.includes('ဈေးဝယ်') || norm.includes('ကုန်စုံ')) {
-    return <ShoppingBag className="w-4 h-4" />;
-  }
-  if (norm.includes('entertain') || norm.includes('movie') || norm.includes('show') || norm.includes('game') || norm.includes('ဖျော်ဖြေ')) {
-    return <Film className="w-4 h-4" />;
-  }
-  if (norm.includes('house') || norm.includes('rent') || norm.includes('room') || norm.includes('အိမ်')) {
-    return <HomeIcon className="w-4 h-4" />;
-  }
-  if (norm.includes('util') || norm.includes('bill') || norm.includes('electric') || norm.includes('water') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
-    return <Zap className="w-4 h-4" />;
-  }
-  if (norm.includes('health') || norm.includes('medical') || norm.includes('pharmacy') || norm.includes('doctor') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး')) {
-    return <HeartPulse className="w-4 h-4" />;
-  }
-  if (norm.includes('educat') || norm.includes('school') || norm.includes('book') || norm.includes('course') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
-    return <GraduationCap className="w-4 h-4" />;
-  }
-  return <HelpCircle className="w-4 h-4" />;
-};
-
-// Custom accent colors for categories
-const getCategoryColorClasses = (category: string) => {
-  const norm = category.toLowerCase();
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်')) return { bg: 'bg-[#34c759]/10', text: 'text-[#34c759]', border: 'border-[#34c759]/20', fill: 'bg-[#34c759]' };
-  if (norm.includes('transport') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) return { bg: 'bg-[#007aff]/10', text: 'text-[#007aff]', border: 'border-[#007aff]/20', fill: 'bg-[#007aff]' };
-  if (norm.includes('shop') || norm.includes('ဈေးဝယ်') || norm.includes('ကုန်စုံ')) return { bg: 'bg-[#ff2d55]/10', text: 'text-[#ff2d55]', border: 'border-[#ff2d55]/20', fill: 'bg-[#ff2d55]' };
-  if (norm.includes('entertain') || norm.includes('ဖျော်ဖြေ')) return { bg: 'bg-[#af52de]/10', text: 'text-[#af52de]', border: 'border-[#af52de]/20', fill: 'bg-[#af52de]' };
-  if (norm.includes('house') || norm.includes('rent') || norm.includes('အိမ်')) return { bg: 'bg-[#5856d6]/10', text: 'text-[#5856d6]', border: 'border-[#5856d6]/20', fill: 'bg-[#5856d6]' };
-  if (norm.includes('util') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) return { bg: 'bg-[#ff9500]/10', text: 'text-[#ff9500]', border: 'border-[#ff9500]/20', fill: 'bg-[#ff9500]' };
-  if (norm.includes('health') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး')) return { bg: 'bg-[#ff3b30]/10', text: 'text-[#ff3b30]', border: 'border-[#ff3b30]/20', fill: 'bg-[#ff3b30]' };
-  if (norm.includes('educat') || norm.includes('ပညာရေး')) return { bg: 'bg-[#1badf8]/10', text: 'text-[#1badf8]', border: 'border-[#1badf8]/20', fill: 'bg-[#1badf8]' };
-  return { bg: 'bg-[#8e8e93]/10', text: 'text-[#8e8e93]', border: 'border-[#8e8e93]/20', fill: 'bg-[#8e8e93]' };
-};
-
 export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   budgets,
   transactions,
@@ -111,6 +70,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   formatAmount,
   selectedMonth,
   selectedYear,
+  categoryColors = {},
+  categoryIcons = {},
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
@@ -915,15 +876,19 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                   ) : (
                     categorySpentList.map(({ category, spent }) => {
                       const relativePercent = (activeBudget?.limit || 0) > 0 ? (spent / (activeBudget?.limit || 0)) * 100 : 0;
-                      const catStyle = getCategoryColorClasses(category);
+                      const catStyle = getCategoryStyle(category, categoryColors);
+                      const CatIcon = getCategoryIcon(category, categoryIcons);
                       const isHighWarn = relativePercent > (100 / (categorySpentList.length || 1)) * 1.5;
 
                       return (
                         <div key={category} className="space-y-1.5 fast-render-row">
                           <div className="flex justify-between items-center text-xs">
                             <div className="flex items-center gap-2">
-                              <div className={`p-1.5 rounded-lg ${catStyle.bg} ${catStyle.text} border ${catStyle.border}`}>
-                                {getCategoryIcon(category)}
+                              <div
+                                className={`p-1.5 rounded-lg border ${catStyle.bg} ${catStyle.text} ${catStyle.border}`}
+                                style={catStyle.style}
+                              >
+                                <CatIcon className="w-4 h-4" />
                               </div>
                               <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{tc(category)}</span>
                             </div>
@@ -948,7 +913,8 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min((spent / (totalSpent || 1)) * 100, 100)}%` }}
                               transition={{ duration: 0.6, ease: 'easeOut' }}
-                              className={`h-full rounded-full gpu-layer ${catStyle.fill}`}
+                              className="h-full rounded-full gpu-layer bg-[#007aff]"
+                              style={catStyle.hex ? { backgroundColor: catStyle.hex } : undefined}
                             />
                           </div>
                         </div>

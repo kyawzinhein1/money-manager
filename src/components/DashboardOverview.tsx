@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Transaction, Budget, Settings } from '../types';
 import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
+import { getCategoryIcon } from '../utils/categoryIcon';
 import { findActiveBudget } from '../utils/budgetUtils';
 import { getLocalMonthStr, getLocalYearStr } from '../utils/dateUtils';
 import { DateFilterSwitcher } from './DateFilterSwitcher';
@@ -54,6 +55,7 @@ interface DashboardOverviewProps {
   onExportPDF: () => void;
   setEditingTxInAddPage: (tx: Transaction | null) => void;
   categoryColors?: Record<string, string>;
+  categoryIcons?: Record<string, string>;
 }
 
 interface DashboardRecentTxItemProps {
@@ -62,6 +64,7 @@ interface DashboardRecentTxItemProps {
   translatedCategory: string;
   formattedDate: string;
   formattedAmount: string;
+  categoryIcons?: Record<string, string>;
 }
 
 const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo(({
@@ -69,8 +72,11 @@ const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo((
   style,
   translatedCategory,
   formattedDate,
-  formattedAmount
+  formattedAmount,
+  categoryIcons
 }) => {
+  const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
+
   return (
     <div
       className="group flex items-center justify-between p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 fast-render-row"
@@ -80,11 +86,7 @@ const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo((
           className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${style.bg} ${style.text} ${style.border}`}
           style={style.style}
         >
-          {tx.type === 'income' ? (
-            <ArrowUpRight className="w-5 h-5" />
-          ) : (
-            <ArrowDownLeft className="w-5 h-5" />
-          )}
+          <CategoryIcon className="w-5 h-5" />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight">
@@ -135,6 +137,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   onExportPDF,
   setEditingTxInAddPage,
   categoryColors = {},
+  categoryIcons = {},
 }) => {
   const monthMenuRef = React.useRef<HTMLDivElement>(null);
   const yearMenuRef = React.useRef<HTMLDivElement>(null);
@@ -467,6 +470,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                 translatedCategory={tc(tx.category)}
                 formattedDate={formatDateDMY(tx.date)}
                 formattedAmount={formatAmount(tx.amount)}
+                categoryIcons={categoryIcons}
               />
             ))}
             {dashboardFilteredTransactions.length === 0 && (

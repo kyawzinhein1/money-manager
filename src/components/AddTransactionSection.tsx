@@ -30,6 +30,7 @@ import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { IOSDatePicker } from './IOSDatePicker';
 import { getCategoryStyle } from '../utils/categoryStyle';
 import { getLocalDateStr } from '../utils/dateUtils';
+import { getCategoryIcon } from '../utils/categoryIcon';
 
 interface AddTransactionSectionProps {
   language: Language;
@@ -43,48 +44,8 @@ interface AddTransactionSectionProps {
   onEditTransaction?: (tx: Transaction) => void;
   formatAmount: (amount: number) => string;
   categoryColors?: Record<string, string>;
+  categoryIcons?: Record<string, string>;
 }
-
-const getCategoryIcon = (name: string): LucideIcon => {
-  const norm = name.trim().toLowerCase();
-  if (norm.includes('food') || norm.includes('dining') || norm.includes('grocer') || norm.includes('စားသောက်') || norm.includes('အစားအသောက်') || norm.includes('ကုန်စုံ')) {
-    return Utensils;
-  }
-  if (norm.includes('transport') || norm.includes('travel') || norm.includes('thukyan') || norm.includes('သယ်ယူ') || norm.includes('ခရီးသွား')) {
-    return Car;
-  }
-  if (norm.includes('shop') || norm.includes('store') || norm.includes('ဈေးဝယ်')) {
-    return ShoppingBag;
-  }
-  if (norm.includes('entertain') || norm.includes('movie') || norm.includes('ဖျော်ဖြေ')) {
-    return Film;
-  }
-  if (norm.includes('hous') || norm.includes('rent') || norm.includes('အိမ်')) {
-    return Home;
-  }
-  if (norm.includes('util') || norm.includes('bill') || norm.includes('မီတာ') || norm.includes('ဖုန်းဘေလ်')) {
-    return Zap;
-  }
-  if (norm.includes('health') || norm.includes('well') || norm.includes('gym') || norm.includes('ကျန်းမာရေး') || norm.includes('ဆေးဝါး') || norm.includes('ဂျင်')) {
-    return HeartPulse;
-  }
-  if (norm.includes('educat') || norm.includes('school') || norm.includes('ပညာရေး') || norm.includes('သင်တန်း')) {
-    return GraduationCap;
-  }
-  if (norm.includes('salar') || norm.includes('လစာ')) {
-    return Briefcase;
-  }
-  if (norm.includes('free') || norm.includes('consult') || norm.includes('လွတ်လပ်') || norm.includes('အလွတ်တန်း') || norm.includes('အကြံပေး')) {
-    return Laptop;
-  }
-  if (norm.includes('invest') || norm.includes('dividend') || norm.includes('ရင်းနှီးမြှုပ်နှံ') || norm.includes('အစုရှယ်ယာ')) {
-    return TrendingUp;
-  }
-  if (norm.includes('gift') || norm.includes('bonus') || norm.includes('grant') || norm.includes('လက်ဆောင်') || norm.includes('ဆုကြေး') || norm.includes('ထောက်ပံ့')) {
-    return Gift;
-  }
-  return Tag;
-};
 
 const getCategoryColors = (name: string) => {
   const norm = name.trim().toLowerCase();
@@ -206,6 +167,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
   onEditTransaction,
   formatAmount,
   categoryColors = {},
+  categoryIcons = {},
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
@@ -447,7 +409,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
               {currentCategories.map((cat) => {
                 const isSelected = category === cat;
-                const IconComponent = getCategoryIcon(cat);
+                const IconComponent = getCategoryIcon(cat, categoryIcons);
                 const catStyle = getCategoryStyle(cat, categoryColors);
 
                 return (

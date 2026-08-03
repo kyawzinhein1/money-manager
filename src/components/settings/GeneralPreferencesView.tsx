@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sun, Moon, Globe, ChevronDown, Check, Wallet, Info, SlidersHorizontal } from 'lucide-react';
+import { Sun, Moon, Globe, ChevronDown, Check, Wallet, Info, SlidersHorizontal, Smartphone, ChevronRight } from 'lucide-react';
 import { BalanceMethod, Language, Settings } from '../../types';
 
 interface GeneralPreferencesViewProps {
@@ -9,6 +9,7 @@ interface GeneralPreferencesViewProps {
   onUpdateTheme: (theme: 'light' | 'dark') => void;
   onUpdateBalanceMethod?: (method: BalanceMethod) => void;
   onResetSettings?: () => void;
+  onOpenPWAInstallGuide?: () => void;
 }
 
 export const GeneralPreferencesView: React.FC<GeneralPreferencesViewProps> = ({
@@ -18,6 +19,7 @@ export const GeneralPreferencesView: React.FC<GeneralPreferencesViewProps> = ({
   onUpdateTheme,
   onUpdateBalanceMethod,
   onResetSettings,
+  onOpenPWAInstallGuide,
 }) => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const currentBalanceMethod: BalanceMethod = settings.balanceMethod || 'all_time';
@@ -263,6 +265,28 @@ export const GeneralPreferencesView: React.FC<GeneralPreferencesViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* PWA Standalone App Installation Guide */}
+      {onOpenPWAInstallGuide && (
+        <div className="pt-3 border-t border-black/[0.05] dark:border-white/[0.05] space-y-2">
+          <label className="text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-[#007aff]" />
+            <span>{settings.language === 'my' ? 'PWA အော့ဖ်လိုင်း အက်ပ် ထည့်သွင်းရန်' : 'PWA Standalone App'}</span>
+          </label>
+          <button
+            id="general-open-pwa-guide-btn"
+            type="button"
+            onClick={onOpenPWAInstallGuide}
+            className="w-full flex items-center justify-between px-4 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-2xl text-xs font-bold transition-all cursor-pointer border-0"
+          >
+            <div className="flex items-center gap-2.5">
+              <Smartphone className="w-4 h-4" />
+              <span>{settings.language === 'my' ? 'iOS (iPhone) / Android အက်ပ် ထည့်သွင်းနည်း လမ်းညွှန်' : 'iOS / Android App Setup Guide'}</span>
+            </div>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Reset Application Settings Action */}
       {onResetSettings && (

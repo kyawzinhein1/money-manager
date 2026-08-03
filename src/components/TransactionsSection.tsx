@@ -24,13 +24,16 @@ import {
   List,
   XCircle,
   HelpCircle,
-  FolderOpen
+  FolderOpen,
+  Tag,
+  Info
 } from 'lucide-react';
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateLedgerPDF } from '../utils/pdfGenerator';
 import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
 import { getLocalDateStr } from '../utils/dateUtils';
+import { getCategoryIcon } from '../utils/categoryIcon';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -38,13 +41,14 @@ interface TransactionsSectionProps {
   language: Language;
   onAddTransaction: (tx: Omit<Transaction, 'id'>) => void;
   onEditTransaction: (tx: Transaction) => void;
-  onDeleteTransaction: (id: string) => void;
+  onDeleteTransaction: (id: string, onSuccess?: () => void) => void;
   formatAmount: (amount: number) => string;
   incomeCategories?: string[];
   expenseCategories?: string[];
   onAddTransactionTrigger?: () => void;
   onEditTransactionTrigger?: (tx: Transaction) => void;
   categoryColors?: Record<string, string>;
+  categoryIcons?: Record<string, string>;
 }
 
 const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Gift', 'Others'];
@@ -85,8 +89,8 @@ interface TransactionRowProps {
   categoryStyle: CategoryStyle;
   translatedCategory: string;
   formattedAmount: string;
-  onEdit: (tx: Transaction) => void;
-  onDelete: (id: string) => void;
+  categoryIcons?: Record<string, string>;
+  onClick: (tx: Transaction) => void;
 }
 
 const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
@@ -95,58 +99,40 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
   categoryStyle,
   translatedCategory,
   formattedAmount,
-  onEdit,
-  onDelete
+  categoryIcons,
+  onClick
 }) => {
+  const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
   return (
     <tr
-      className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] text-sm fast-render-row"
+      id={`tx-row-${tx.id}`}
+      onClick={() => onClick(tx)}
+      className="hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-sm fast-render-row transition-colors cursor-pointer group"
     >
-      <td className="p-4.5 font-mono text-xs text-[#8e8e93] font-extrabold">
+      <td className="p-3.5 pl-4 font-mono text-xs text-[#8e8e93] font-medium">
         {formattedDate}
       </td>
-      <td className="p-4.5 whitespace-nowrap">
+      <td className="p-3.5 whitespace-nowrap">
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
           style={categoryStyle.style}
         >
-          {tx.type === 'income' ? (
-            <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
-          ) : (
-            <ArrowDownLeft className="w-3.5 h-3.5 shrink-0" />
-          )}
+          <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
           {translatedCategory}
         </span>
       </td>
-      <td className="p-4.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-extrabold max-w-[240px] truncate">
-        {tx.description}
+      <td className="p-3.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold max-w-[240px] truncate">
+        {tx.description || translatedCategory}
       </td>
       <td
-        className={`p-4.5 text-right font-black font-mono whitespace-nowrap text-base ${
+        className={`p-3.5 text-right font-bold font-mono whitespace-nowrap text-base ${
           tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
         }`}
       >
         {tx.type === 'income' ? '+' : '-'}{formattedAmount}
       </td>
-      <td className="p-4.5">
-        <div className="flex items-center justify-center gap-1.5">
-          <button
-            id={`edit-tx-${tx.id}`}
-            onClick={() => onEdit(tx)}
-            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-xl cursor-pointer border-0 bg-transparent"
-            title="Edit Ledger Entry"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            id={`delete-tx-${tx.id}`}
-            onClick={() => onDelete(tx.id)}
-            className="w-10 h-10 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl cursor-pointer border-0 bg-transparent"
-            title="Remove ledger entry"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+      <td className="p-3.5 pr-4 text-right">
+        <ChevronRight className="w-4 h-4 text-[#8e8e93] opacity-40 group-hover:opacity-100 transition-opacity inline-block" />
       </td>
     </tr>
   );
@@ -154,66 +140,49 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
 
 const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
   tx,
-  formattedDate,
   categoryStyle,
   translatedCategory,
   formattedAmount,
-  onEdit,
-  onDelete
+  categoryIcons,
+  onClick
 }) => {
+  const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
   return (
     <div
-      className="p-4 space-y-3 hover:bg-black/5 dark:hover:bg-white/5 fast-render-row"
+      id={`tx-card-${tx.id}`}
+      onClick={() => onClick(tx)}
+      className="p-3.5 flex items-center justify-between gap-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer fast-render-row active:bg-black/5 dark:active:bg-white/5"
     >
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Category Icon Badge */}
+        <div
+          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
           style={categoryStyle.style}
         >
-          {tx.type === 'income' ? (
-            <ArrowUpRight className="w-3 h-3 shrink-0" />
-          ) : (
-            <ArrowDownLeft className="w-3 h-3 shrink-0" />
-          )}
-          {translatedCategory}
-        </span>
+          <CategoryIcon className="w-4 h-4 shrink-0" />
+        </div>
+
+        {/* Title & Category Subtitle */}
+        <div className="min-w-0 space-y-0.5 flex-1">
+          <p className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
+            {tx.description || translatedCategory}
+          </p>
+          <span className="text-xs font-medium text-[#8e8e93] block truncate">
+            {translatedCategory}
+          </span>
+        </div>
+      </div>
+
+      {/* Amount & Chevron */}
+      <div className="flex items-center gap-2 shrink-0">
         <span
-          className={`text-base font-black font-mono ${
+          className={`text-sm sm:text-base font-bold font-mono ${
             tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
           }`}
         >
           {tx.type === 'income' ? '+' : '-'}{formattedAmount}
         </span>
-      </div>
-
-      <div className="flex items-start justify-between gap-3 pt-0.5">
-        <div className="space-y-1 min-w-0">
-          <p className="text-sm font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
-            {tx.description}
-          </p>
-          <p className="text-[11px] font-extrabold text-[#8e8e93] font-mono leading-none">
-            {formattedDate}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0 self-center">
-          <button
-            id={`edit-tx-mob-${tx.id}`}
-            onClick={() => onEdit(tx)}
-            className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl cursor-pointer"
-            title="Edit entry"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            id={`delete-tx-mob-${tx.id}`}
-            onClick={() => onDelete(tx.id)}
-            className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 bg-black/[0.03] dark:bg-white/[0.05] border-0 rounded-xl cursor-pointer"
-            title="Delete entry"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <ChevronRight className="w-4 h-4 text-[#8e8e93]/50 shrink-0" />
       </div>
     </div>
   );
@@ -232,6 +201,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   onAddTransactionTrigger,
   onEditTransactionTrigger,
   categoryColors = {},
+  categoryIcons = {},
 }) => {
   const isMobile = useIsMobile();
   const t = useCallback((key: string) => TRANSLATIONS[language][key] || key, [language]);
@@ -263,6 +233,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   // Modal / Form State
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [selectedTxDetail, setSelectedTxDetail] = useState<Transaction | null>(null);
 
   // Form Fields
   const [formType, setFormType] = useState<TransactionType>('expense');
@@ -421,6 +392,66 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     };
   }, [filteredTransactions]);
 
+  // Format Date for Group Header
+  const formatGroupHeaderDate = useCallback((dateStr: string): string => {
+    if (!dateStr) return '';
+    const today = getLocalDateStr();
+
+    const yesterdayObj = new Date();
+    yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+    const yesterday = getLocalDateStr(yesterdayObj);
+
+    const formattedDMY = formatDateDMY(dateStr);
+
+    if (dateStr === today) {
+      return language === 'my' ? `ယနေ့ (${formattedDMY})` : `Today, ${formattedDMY}`;
+    }
+    if (dateStr === yesterday) {
+      return language === 'my' ? `မနေ့က (${formattedDMY})` : `Yesterday, ${formattedDMY}`;
+    }
+
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        const dt = new Date(y, m - 1, d);
+        if (language === 'en') {
+          const dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
+          const monthName = dt.toLocaleDateString('en-US', { month: 'short' });
+          return `${dayName}, ${d} ${monthName} ${y}`;
+        }
+      }
+    }
+
+    return formattedDMY;
+  }, [language, formatDateDMY]);
+
+  // Group paginated transactions by date
+  const groupedTransactions = useMemo(() => {
+    const list = pageSize === 0 ? filteredTransactions : paginatedTransactions;
+    const groups: { date: string; txs: Transaction[]; dailyExpense: number; dailyIncome: number }[] = [];
+    const map = new Map<string, { date: string; txs: Transaction[]; dailyExpense: number; dailyIncome: number }>();
+
+    for (const tx of list) {
+      let group = map.get(tx.date);
+      if (!group) {
+        group = { date: tx.date, txs: [], dailyExpense: 0, dailyIncome: 0 };
+        map.set(tx.date, group);
+        groups.push(group);
+      }
+      group.txs.push(tx);
+      if (tx.type === 'expense') {
+        group.dailyExpense += tx.amount;
+      } else if (tx.type === 'income') {
+        group.dailyIncome += tx.amount;
+      }
+    }
+
+    return groups;
+  }, [filteredTransactions, paginatedTransactions, pageSize]);
+
   // CSV Export action
   const handleExportCSV = () => {
     if (filteredTransactions.length === 0) return;
@@ -469,6 +500,192 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
       formatAmount
     });
   };
+
+  const currentDetailTx = useMemo(() => {
+    if (!selectedTxDetail) return null;
+    return transactions.find((t) => t.id === selectedTxDetail.id) || selectedTxDetail;
+  }, [selectedTxDetail, transactions]);
+
+  // Scroll to top when transaction detail page is opened
+  useEffect(() => {
+    if (selectedTxDetail) {
+      window.scrollTo(0, 0);
+    }
+  }, [selectedTxDetail]);
+
+  // Dedicated Transaction Detail Page View
+  if (currentDetailTx) {
+    const style = getCategoryStyle(currentDetailTx.category, categoryColors);
+    const translatedCat = tc(currentDetailTx.category);
+    const DetailCatIcon = getCategoryIcon(currentDetailTx.category, categoryIcons);
+
+    return (
+      <div className="space-y-5 max-w-lg mx-auto pb-8" id="transaction-detail-page">
+        {/* Navigation Top Bar */}
+        <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5 pb-3">
+          <button
+            id="tx-detail-back-btn"
+            onClick={() => setSelectedTxDetail(null)}
+            className="inline-flex items-center gap-1 text-[#007aff] hover:opacity-80 font-semibold text-sm transition-opacity cursor-pointer border-0 bg-transparent p-0"
+          >
+            <ChevronLeft className="w-5 h-5 -ml-1" />
+            <span>{language === 'my' ? 'နောက်သို့' : 'Back'}</span>
+          </button>
+
+          <h2 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+            {language === 'my' ? 'စာရင်း အသေးစိတ်' : 'Transaction Detail'}
+          </h2>
+
+          <div className="w-16" /> {/* Visual Spacer */}
+        </div>
+
+        {/* Hero Card Banner */}
+        <div className="ios-glass p-6 rounded-2xl border border-black/5 dark:border-white/5 shadow-xs text-center space-y-3 relative overflow-hidden">
+          {/* Category Icon Badge */}
+          <div
+            className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center border shadow-xs ${style.bg} ${style.text} ${style.border}`}
+            style={style.style}
+          >
+            <DetailCatIcon className="w-7 h-7" />
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[11px] font-medium text-[#8e8e93] uppercase tracking-wider">
+              {currentDetailTx.type === 'income'
+                ? (language === 'my' ? 'ဝင်ငွေ ပမာဏ' : 'Income Amount')
+                : (language === 'my' ? 'အသုံးစရိတ် ပမာဏ' : 'Expense Amount')}
+            </p>
+            <div
+              className={`text-2xl sm:text-3xl font-bold font-mono tracking-tight ${
+                currentDetailTx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+              }`}
+            >
+              {currentDetailTx.type === 'income' ? '+' : '-'}{formatAmount(currentDetailTx.amount)}
+            </div>
+            <div className="pt-1">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${style.bg} ${style.text} ${style.border}`}
+                style={style.style}
+              >
+                <DetailCatIcon className="w-3.5 h-3.5" />
+                {translatedCat}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Details Group Card (iOS Inset Group Style) */}
+        <div className="ios-glass rounded-2xl border border-black/5 dark:border-white/5 overflow-hidden shadow-xs divide-y divide-black/5 dark:divide-white/5">
+          {/* Note / Description */}
+          <div className="p-4 flex items-start gap-3.5">
+            <div className="w-8 h-8 rounded-lg bg-[#007aff]/10 flex items-center justify-center shrink-0 mt-0.5">
+              <FileText className="w-4 h-4 text-[#007aff]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[#8e8e93] font-medium block text-[10px] uppercase tracking-wider">
+                {language === 'my' ? 'မှတ်စု / အကြောင်းအရာ' : 'Note / Description'}
+              </span>
+              <p className="text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] mt-0.5 break-words">
+                {currentDetailTx.description || tc(currentDetailTx.category)}
+              </p>
+            </div>
+          </div>
+
+          {/* Date */}
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4 text-purple-500" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[#8e8e93] font-medium block text-[10px] uppercase tracking-wider">
+                  {language === 'my' ? 'ရက်စွဲ' : 'Date'}
+                </span>
+                <span className="font-semibold text-xs sm:text-sm text-[#1c1c1e] dark:text-[#f2f2f7] truncate block">
+                  {formatGroupHeaderDate(currentDetailTx.date)}
+                </span>
+              </div>
+            </div>
+            <span className="font-mono text-xs text-[#8e8e93] font-medium bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg shrink-0">
+              {formatDateDMY(currentDetailTx.date)}
+            </span>
+          </div>
+
+          {/* Type */}
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                currentDetailTx.type === 'income' ? 'bg-[#34c759]/10' : 'bg-[#ff3b30]/10'
+              }`}>
+                <Tag className={`w-4 h-4 ${
+                  currentDetailTx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+                }`} />
+              </div>
+              <div>
+                <span className="text-[#8e8e93] font-medium block text-[10px] uppercase tracking-wider">
+                  {language === 'my' ? 'အမျိုးအစား' : 'Type'}
+                </span>
+                <span className={`font-semibold text-xs sm:text-sm ${
+                  currentDetailTx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+                }`}>
+                  {currentDetailTx.type === 'income'
+                    ? (language === 'my' ? 'ဝင်ငွေ' : 'Income')
+                    : (language === 'my' ? 'အသုံးစရိတ်' : 'Expense')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Entry ID */}
+          <div className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gray-500/10 flex items-center justify-center shrink-0">
+                <Info className="w-4 h-4 text-[#8e8e93]" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[#8e8e93] font-medium block text-[10px] uppercase tracking-wider">
+                  {language === 'my' ? 'မှတ်ပုံတင် အိုင်ဒီ' : 'Entry ID'}
+                </span>
+                <span className="font-mono text-xs text-[#1c1c1e] dark:text-[#f2f2f7] font-medium truncate block">
+                  {currentDetailTx.id}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons: Compact & Sleek */}
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <button
+            id={`detail-page-edit-${currentDetailTx.id}`}
+            onClick={() => {
+              const txToEdit = currentDetailTx;
+              setSelectedTxDetail(null);
+              handleOpenEdit(txToEdit);
+            }}
+            className="py-2.5 px-4 rounded-xl bg-[#007aff] hover:bg-[#007aff]/90 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-0 shadow-2xs active:scale-[0.98]"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            <span>{language === 'my' ? 'ပြင်ဆင်မည်' : 'Edit'}</span>
+          </button>
+
+          <button
+            id={`detail-page-delete-${currentDetailTx.id}`}
+            onClick={() => {
+              const txId = currentDetailTx.id;
+              onDeleteTransaction(txId, () => {
+                setSelectedTxDetail(null);
+              });
+            }}
+            className="py-2.5 px-4 rounded-xl bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 text-[#ff3b30] font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#ff3b30]/20 active:scale-[0.98]"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{language === 'my' ? 'ဖျက်မည်' : 'Delete'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" id="transactions-section">
@@ -573,15 +790,15 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
 
       {/* View Mode Segmented Control Bar */}
       <div className="flex justify-center sm:justify-start">
-        <div className="inline-flex items-center bg-[#f2f2f7] dark:bg-[#2c2c2e] p-1 rounded-2xl border border-black/5 dark:border-white/5 w-full sm:w-auto">
+        <div className="inline-flex items-center p-1 bg-black/[0.04] dark:bg-white/[0.05] rounded-2xl border border-black/[0.04] dark:border-white/[0.06] h-11 w-full sm:w-auto shadow-xs">
           <button
             id="view-mode-list-btn"
             type="button"
             onClick={() => setViewMode('list')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 h-9 rounded-xl text-xs transition-all border-0 cursor-pointer ${
               viewMode === 'list'
-                ? 'bg-white dark:bg-[#1c1c1e] text-[#007aff] shadow-sm'
-                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-extrabold border border-black/5 dark:border-white/10'
+                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white font-semibold'
             }`}
           >
             <List className="w-4 h-4" />
@@ -591,10 +808,10 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             id="view-mode-calendar-btn"
             type="button"
             onClick={() => setViewMode('calendar')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-xl text-xs font-bold transition-all border-0 cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 h-9 rounded-xl text-xs transition-all border-0 cursor-pointer ${
               viewMode === 'calendar'
-                ? 'bg-white dark:bg-[#1c1c1e] text-[#007aff] shadow-sm'
-                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-extrabold border border-black/5 dark:border-white/10'
+                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white font-semibold'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -876,90 +1093,107 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Advanced Filter, Search, Segmented Controls Container for List View */}
-          <div className="p-5 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-4 shadow-xs">
-        <div className="flex flex-col lg:flex-row gap-3.5 items-stretch lg:items-center">
-          {/* Custom Styled Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-3.5 w-4.5 h-4.5 text-[#8e8e93]" />
-            <input
-              id="search-input"
-              type="text"
-              placeholder={t('searchDescription')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-10 py-3 bg-black/[0.03] dark:bg-white/[0.04] border border-transparent hover:border-black/5 dark:hover:border-white/5 rounded-2xl text-sm text-[#1c1c1e] dark:text-[#f2f2f7] placeholder-[#8e8e93] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 focus:bg-white dark:focus:bg-[#1c1c1e] transition-all duration-200"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-3 w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[#8e8e93] cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          {/* Advanced Search & Segmented Mode Control Panel */}
+          <div className="p-4 sm:p-5 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-3.5 shadow-xs">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
+              
+              {/* Refined Search Input */}
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8e8e93] pointer-events-none" />
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder={t('searchDescription')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-11 pl-10 pr-9 bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] hover:border-black/10 dark:hover:border-white/10 rounded-2xl text-xs sm:text-sm font-medium text-[#1c1c1e] dark:text-[#f2f2f7] placeholder-[#8e8e93] focus:outline-none focus:ring-2 focus:ring-[#007aff]/25 focus:border-[#007aff]/40 focus:bg-white dark:focus:bg-[#1c1c1e] transition-all duration-200"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
-          {/* Action Filters Row */}
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            {/* Apple Styled Type Segmented Control */}
-            <div className="flex w-full sm:w-72 md:w-80 p-1 bg-black/[0.03] dark:bg-white/[0.04] rounded-full shrink-0 border border-black/[0.02] dark:border-white/[0.02] h-11 items-center">
-              {(['all', 'income', 'expense'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setTypeFilter(type)}
-                  className={`flex-1 justify-center px-2 h-9 text-xs font-bold rounded-full transition-all duration-200 cursor-pointer flex items-center border-0 ${
-                    typeFilter === type
-                      ? 'bg-white dark:bg-[#38383a] text-[#007aff] shadow-xs font-black'
-                      : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7]'
-                  }`}
-                >
-                  {type === 'all'
-                    ? t('allTypes')
-                    : type === 'income'
-                      ? t('income')
-                      : t('expense')}
-                </button>
-              ))}
+              {/* 3-Toggle Mode Switch & Reset Controls */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                {/* Apple Inset 3-Toggle Segment Control */}
+                <div className="flex items-center p-1 bg-black/[0.04] dark:bg-white/[0.05] rounded-2xl border border-black/[0.04] dark:border-white/[0.06] h-11 w-full sm:w-auto shrink-0 shadow-xs">
+                  {(['all', 'income', 'expense'] as const).map((type) => {
+                    const isActive = typeFilter === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setTypeFilter(type)}
+                        className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-9 px-3.5 sm:px-4 rounded-xl text-xs transition-all duration-200 cursor-pointer border-0 select-none ${
+                          isActive
+                            ? type === 'income'
+                              ? 'bg-white dark:bg-[#2c2c2e] text-[#34c759] shadow-xs font-black border border-black/5 dark:border-white/10'
+                              : type === 'expense'
+                                ? 'bg-white dark:bg-[#2c2c2e] text-[#ff3b30] shadow-xs font-black border border-black/5 dark:border-white/10'
+                                : 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-black border border-black/5 dark:border-white/10'
+                            : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7] font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        {type === 'all' && <Filter className="w-3.5 h-3.5 opacity-75" />}
+                        {type === 'income' && <ArrowUpRight className="w-3.5 h-3.5" />}
+                        {type === 'expense' && <ArrowDownLeft className="w-3.5 h-3.5" />}
+                        <span>
+                          {type === 'all'
+                            ? t('allTypes')
+                            : type === 'income'
+                              ? t('income')
+                              : t('expense')}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Reset / Clear Filters Action Button */}
+                {hasActiveFilters && (
+                  <button
+                    id="clear-filters-btn"
+                    onClick={handleClearFilters}
+                    className="h-11 px-4 rounded-2xl flex items-center justify-center gap-1.5 text-xs font-bold text-[#ff3b30] bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 border border-[#ff3b30]/20 transition-all duration-200 cursor-pointer shrink-0"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    <span>{language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset'}</span>
+                  </button>
+                )}
+              </div>
             </div>
 
+            {/* Match Results Status Bar */}
+            <div className="flex items-center justify-between text-[11px] font-bold text-[#8e8e93] pt-1.5 border-t border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5">
+                <span className="uppercase tracking-wider text-[10px]">
+                  {language === 'my' ? 'ရလဒ်တွေ့ရှိမှု:' : 'Ledger Records:'}
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff] font-mono font-extrabold text-xs">
+                  {filteredTransactions.length}
+                </span>
+              </div>
 
-
-            {/* Reset / Clear Filters Indicator button */}
-            {hasActiveFilters && (
-              <button
-                id="clear-filters-btn"
-                onClick={handleClearFilters}
-                className="h-11 px-4.5 rounded-2xl flex items-center justify-center gap-1.5 text-xs font-bold text-[#ff3b30] hover:bg-[#ff3b30]/10 border border-transparent hover:border-[#ff3b30]/10 transition-all duration-200 cursor-pointer"
-              >
-                <XCircle className="w-4 h-4" />
-                <span>{language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset'}</span>
-              </button>
-            )}
+              {hasActiveFilters && (
+                <span className="text-amber-500 font-medium text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {language === 'my' ? 'စီစစ်မှုအသုံးပြုထားသည်' : 'Active filters applied'}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* Matches Status Line */}
-        <div className="flex items-center justify-between text-[11px] font-bold text-[#8e8e93] uppercase tracking-wider pt-1">
-          <span>
-            {language === 'my' ? 'ရလဒ်တွေ့ရှိမှု -' : 'Ledger Match results:'}{' '}
-            <span className="text-[#007aff] font-mono">{filteredTransactions.length}</span>{' '}
-            {language === 'my' ? 'ခု' : 'records'}
-          </span>
-          {hasActiveFilters && (
-            <span className="text-amber-500 font-semibold normal-case tracking-normal">
-              {language === 'my' ? '* ဇယားတွင် ရှာဖွေမှု အသုံးပြုထားပါသည်' : '* Filters currently applied'}
-            </span>
-          )}
-        </div>
-      </div>
 
       {/* Transaction List - iOS Table Style */}
       <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 overflow-hidden shadow-xs">
         {isMobile ? (
-          /* Mobile View Card List */
+          /* Mobile View Card List Grouped by Date */
           <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
             {filteredTransactions.length === 0 ? (
               <div className="p-12 text-center">
@@ -979,22 +1213,49 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                 </div>
               </div>
             ) : (
-              paginatedTransactions.map((tx) => (
-                <MobileTransactionCard
-                  key={tx.id}
-                  tx={tx}
-                  formattedDate={formatDateDMY(tx.date)}
-                  categoryStyle={getCategoryStyle(tx.category, categoryColors)}
-                  translatedCategory={tc(tx.category)}
-                  formattedAmount={formatAmount(tx.amount)}
-                  onEdit={handleOpenEdit}
-                  onDelete={onDeleteTransaction}
-                />
+              groupedTransactions.map((group) => (
+                <div key={group.date} className="border-b border-black/5 dark:border-white/5 last:border-b-0">
+                  {/* Sticky Date Group Header */}
+                  <div className="sticky top-0 z-10 px-4 py-2 bg-[#f2f2f7]/95 dark:bg-[#2c2c2e]/95 backdrop-blur-md flex items-center justify-between text-xs border-y border-black/5 dark:border-white/5">
+                    <div className="flex items-center gap-1.5 font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                      <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
+                      <span>{formatGroupHeaderDate(group.date)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-mono font-bold text-xs">
+                      {group.dailyExpense > 0 && (
+                        <span className="text-[#ff3b30] bg-[#ff3b30]/10 px-2 py-0.5 rounded-full text-[11px]">
+                          -{formatAmount(group.dailyExpense)}
+                        </span>
+                      )}
+                      {group.dailyIncome > 0 && (
+                        <span className="text-[#34c759] bg-[#34c759]/10 px-2 py-0.5 rounded-full text-[11px]">
+                          +{formatAmount(group.dailyIncome)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Transactions under this Date */}
+                  <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
+                    {group.txs.map((tx) => (
+                      <MobileTransactionCard
+                        key={tx.id}
+                        tx={tx}
+                        formattedDate={formatDateDMY(tx.date)}
+                        categoryStyle={getCategoryStyle(tx.category, categoryColors)}
+                        translatedCategory={tc(tx.category)}
+                        formattedAmount={formatAmount(tx.amount)}
+                        categoryIcons={categoryIcons}
+                        onClick={setSelectedTxDetail}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))
             )}
           </div>
         ) : (
-          /* Desktop View Table */
+          /* Desktop View Table Grouped by Date */
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse" id="transactions-table">
               <thead>
@@ -1003,7 +1264,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   <th className="p-4.5">{t('category')}</th>
                   <th className="p-4.5">{t('description')}</th>
                   <th className="p-4.5 text-right">{t('amount')}</th>
-                  <th className="p-4.5 text-center">{t('actions')}</th>
+                  <th className="p-4.5 text-right"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/[0.03] dark:divide-white/[0.03]">
@@ -1034,17 +1295,49 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                     </td>
                   </tr>
                 ) : (
-                  paginatedTransactions.map((tx) => (
-                    <DesktopTransactionRow
-                      key={tx.id}
-                      tx={tx}
-                      formattedDate={formatDateDMY(tx.date)}
-                      categoryStyle={getCategoryStyle(tx.category, categoryColors)}
-                      translatedCategory={tc(tx.category)}
-                      formattedAmount={formatAmount(tx.amount)}
-                      onEdit={handleOpenEdit}
-                      onDelete={onDeleteTransaction}
-                    />
+                  groupedTransactions.map((group) => (
+                    <React.Fragment key={group.date}>
+                      {/* Date Group Section Header Row */}
+                      <tr className="bg-[#f2f2f7]/80 dark:bg-[#2c2c2e]/60 border-y border-black/5 dark:border-white/5">
+                        <td colSpan={3} className="p-2.5 pl-4 font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7]">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
+                            <span>{formatGroupHeaderDate(group.date)}</span>
+                            <span className="text-[11px] text-[#8e8e93] font-normal ml-1">
+                              ({group.txs.length} {group.txs.length === 1 ? (language === 'my' ? 'ခု' : 'entry') : (language === 'my' ? 'ခု' : 'entries')})
+                            </span>
+                          </div>
+                        </td>
+                        <td colSpan={2} className="p-2.5 pr-4 text-right font-mono font-bold text-xs">
+                          <div className="flex items-center justify-end gap-2">
+                            {group.dailyIncome > 0 && (
+                              <span className="text-[#34c759] bg-[#34c759]/10 px-2.5 py-0.5 rounded-full text-xs">
+                                +{formatAmount(group.dailyIncome)}
+                              </span>
+                            )}
+                            {group.dailyExpense > 0 && (
+                              <span className="text-[#ff3b30] bg-[#ff3b30]/10 px-2.5 py-0.5 rounded-full text-xs">
+                                -{formatAmount(group.dailyExpense)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Transaction Rows for this Date */}
+                      {group.txs.map((tx) => (
+                        <DesktopTransactionRow
+                          key={tx.id}
+                          tx={tx}
+                          formattedDate={formatDateDMY(tx.date)}
+                          categoryStyle={getCategoryStyle(tx.category, categoryColors)}
+                          translatedCategory={tc(tx.category)}
+                          formattedAmount={formatAmount(tx.amount)}
+                          categoryIcons={categoryIcons}
+                          onClick={setSelectedTxDetail}
+                        />
+                      ))}
+                    </React.Fragment>
                   ))
                 )}
               </tbody>
