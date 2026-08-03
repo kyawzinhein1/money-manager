@@ -295,7 +295,7 @@ export default function App() {
   const [newVersionAvailable, setNewVersionAvailable] = useState<AppVersionInfo | null>(null);
 
   useEffect(() => {
-    const isAutoCheckOn = localStorage.getItem('mm_auto_check_updates') !== 'false';
+    const isAutoCheckOn = localStorage.getItem('mm_auto_check_updates') === 'true';
     if (isAutoCheckOn) {
       const timer = setTimeout(() => {
         fetchServerVersionInfo().then(serverData => {

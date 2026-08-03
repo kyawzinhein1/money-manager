@@ -40,7 +40,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
   const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
   const [serverInfo, setServerInfo] = useState<AppVersionInfo | null>(null);
   const [autoCheck, setAutoCheck] = useState<boolean>(() => {
-    return localStorage.getItem('mm_auto_check_updates') !== 'false';
+    return localStorage.getItem('mm_auto_check_updates') === 'true';
   });
   const [statusMessage, setStatusMessage] = useState<string>(() => {
     const msg = localStorage.getItem('mm_just_updated_msg');
@@ -52,16 +52,18 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
   });
 
   useEffect(() => {
-    // Automatically fetch server version info on mount
-    fetchServerVersionInfo().then(data => {
-      if (data) {
-        setServerInfo(data);
-        if (data.buildHash !== LOCAL_VERSION_INFO.buildHash || data.version !== LOCAL_VERSION_INFO.version) {
-          setUpdateAvailable(true);
+    // Only fetch server version info on mount if autoCheck is enabled
+    if (autoCheck) {
+      fetchServerVersionInfo().then(data => {
+        if (data) {
+          setServerInfo(data);
+          if (data.buildHash !== LOCAL_VERSION_INFO.buildHash || data.version !== LOCAL_VERSION_INFO.version) {
+            setUpdateAvailable(true);
+          }
         }
-      }
-    });
-  }, []);
+      });
+    }
+  }, [autoCheck]);
 
   const handleApplyUpdate = () => {
     localStorage.setItem('mm_open_updates_on_load', 'true');
