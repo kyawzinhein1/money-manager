@@ -1,25 +1,34 @@
 {
   "name": "Personal Money Manager",
   "short_name": "Personal Money",
-  "description": "Premium Liquid Glass Financial Tracker",
+  "description": "Premium Liquid Glass Financial & Expense Tracker with 100% Offline PWA Capabilities",
+  "lang": "en-US",
+  "dir": "ltr",
   "start_url": "/",
   "id": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "orientation": "portrait-primary",
   "background_color": "#09090b",
   "theme_color": "#09090b",
-  "categories": ["finance", "utilities"],
+  "categories": ["finance", "utilities", "productivity"],
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-maskable.png",
@@ -32,6 +41,60 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Transaction",
+      "short_name": "Add New",
+      "description": "Quickly record income or expense transaction",
+      "url": "/?action=add_transaction",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Reports",
+      "short_name": "Analytics",
+      "description": "View spending trends, charts, and financial analytics",
+      "url": "/?tab=analytics",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Budget Manager",
+      "short_name": "Budgets",
+      "description": "Check monthly budget limits and progress",
+      "url": "/?tab=budgets",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Savings & Goals",
+      "short_name": "Savings",
+      "description": "Track savings targets and financial goals",
+      "url": "/?tab=savings",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "screenshots": [
