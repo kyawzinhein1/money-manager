@@ -8,7 +8,9 @@ const ASSETS = [
   '/icon-512.png',
   '/apple-touch-icon.png',
   '/icon-maskable.png',
-  '/icon.svg'
+  '/icon.svg',
+  '/screenshot-narrow.jpg',
+  '/screenshot-wide.jpg'
 ];
 
 self.addEventListener('message', (event) => {
