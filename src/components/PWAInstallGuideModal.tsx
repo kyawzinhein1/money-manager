@@ -64,9 +64,14 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
       setSelectedPlatform('android');
     }
 
+    if ((window as any).deferredPwaPrompt) {
+      setDeferredPrompt((window as any).deferredPwaPrompt);
+    }
+
     // Capture Android / Chrome beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).deferredPwaPrompt = e;
       setDeferredPrompt(e);
     };
 

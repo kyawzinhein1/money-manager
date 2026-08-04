@@ -252,10 +252,8 @@ export default function App() {
       setIsStandaloneApp(standalone);
 
       const handleBeforeInstallPrompt = (e: Event) => {
-        // Automatically pop up PWA install modal when prompt is ready if not in standalone
-        if (!standalone) {
-          setShowPWAInstallGuide(true);
-        }
+        // Prevent Chrome 67 and earlier from automatically showing the prompt, but store event globally
+        (window as any).deferredPwaPrompt = e;
       };
 
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
