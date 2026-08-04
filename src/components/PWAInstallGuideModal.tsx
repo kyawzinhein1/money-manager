@@ -95,6 +95,7 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
     if (isOpen) {
       setShowDetailedGuide(false);
       setCopiedUrl(false);
+      setIsInstalled(false);
 
       const standalone =
         (window.navigator as any).standalone === true ||
@@ -106,6 +107,8 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
       }
     }
   }, [isOpen]);
+
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
   const handleInstallClick = async () => {
     const activePrompt = deferredPrompt || (window as any).deferredPwaPrompt;
@@ -122,7 +125,7 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
       setDeferredPrompt(null);
       (window as any).deferredPwaPrompt = null;
     } else {
-      // If native prompt was already consumed or unavailable, show detailed step by step guide
+      // Show detailed step by step guide when prompt is consumed or running in iframe
       setShowDetailedGuide(true);
     }
   };
@@ -144,6 +147,10 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
     } else {
       setShowDetailedGuide(true);
     }
+  };
+
+  const handleOpenInNewTab = () => {
+    window.open(window.location.href, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopyUrl = () => {
@@ -171,10 +178,39 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
         </div>
 
         {/* Modal Header Title */}
-        <div className="px-6 pt-2 pb-4 text-left">
-          <h2 className="text-xl sm:text-2xl font-bold text-[#1c1c1e] dark:text-white tracking-tight">
-            {language === 'my' ? 'ပင်မစာမျက်နှာသို့ ထည့်သွင်းရန်' : 'Add to home screen'}
-          </h2>
+        <div className="px-6 pt-2 pb-3 text-left space-y-1.5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1c1c1e] dark:text-white tracking-tight">
+              {language === 'my' ? 'ပင်မစာမျက်နှာသို့ ထည့်သွင်းရန်' : 'Add to home screen'}
+            </h2>
+            {isStandalone && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#34c759]/10 text-[#34c759] text-[11px] font-bold">
+                <Check className="w-3 h-3" />
+                {language === 'my' ? 'ထည့်သွင်းပြီး' : 'Installed'}
+              </span>
+            )}
+          </div>
+
+          {/* If in iframe, suggest opening in new tab for direct browser menu access */}
+          {isInIframe && (
+            <div className="p-3 bg-[#007aff]/10 dark:bg-[#007aff]/20 rounded-2xl flex items-center justify-between gap-3 text-xs text-[#007aff]">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 shrink-0" />
+                <span className="font-medium leading-tight">
+                  {language === 'my'
+                    ? 'ဘရောက်ဇာတွင် တိုက်ရိုက် ထည့်သွင်းရန် လင့်ခ်အသစ်ဖြင့် ဖွင့်ပါ'
+                    : 'Open in a new tab for 1-click Chrome / Safari PWA prompt'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenInNewTab}
+                className="px-3 py-1.5 bg-[#007aff] text-white font-bold rounded-xl text-xs hover:bg-[#0063cc] transition-colors shrink-0 border-0 cursor-pointer shadow-xs"
+              >
+                {language === 'my' ? 'ဖွင့်မည်' : 'Open'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Option Selection Group Cards (Exact match to system bottom sheet) */}
