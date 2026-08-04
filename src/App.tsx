@@ -252,7 +252,8 @@ export default function App() {
       setIsStandaloneApp(standalone);
 
       const handleBeforeInstallPrompt = (e: Event) => {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt, but store event globally
+        // Prevent default mini-infobar and store prompt globally for custom or 3-dots install triggers
+        e.preventDefault();
         (window as any).deferredPwaPrompt = e;
       };
 

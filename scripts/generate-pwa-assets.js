@@ -113,11 +113,15 @@ async function generateAssets() {
   `;
   await sharp(Buffer.from(narrowSvg))
     .resize(1080, 1920)
+    .png()
+    .toFile(path.join(publicDir, 'screenshot-narrow.png'));
+  await sharp(Buffer.from(narrowSvg))
+    .resize(1080, 1920)
     .jpeg({ quality: 90 })
     .toFile(path.join(publicDir, 'screenshot-narrow.jpg'));
-  console.log('✓ Generated screenshot-narrow.jpg (1080x1920 JPEG)');
+  console.log('✓ Generated screenshot-narrow.png & .jpg (1080x1920)');
 
-  // 6. Generate screenshot-wide.jpg (1920x1080 JPEG) - Desktop / Tablet App UI mockup
+  // 6. Generate screenshot-wide (1920x1080) - Desktop / Tablet App UI mockup
   const wideSvg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
     <rect width="1920" height="1080" fill="#09090b" />
@@ -162,9 +166,13 @@ async function generateAssets() {
   `;
   await sharp(Buffer.from(wideSvg))
     .resize(1920, 1080)
+    .png()
+    .toFile(path.join(publicDir, 'screenshot-wide.png'));
+  await sharp(Buffer.from(wideSvg))
+    .resize(1920, 1080)
     .jpeg({ quality: 90 })
     .toFile(path.join(publicDir, 'screenshot-wide.jpg'));
-  console.log('✓ Generated screenshot-wide.jpg (1920x1080 JPEG)');
+  console.log('✓ Generated screenshot-wide.png & .jpg (1920x1080)');
 
   console.log('🎉 All PWA assets generated successfully!');
 }

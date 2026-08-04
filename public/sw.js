@@ -1,4 +1,4 @@
-const CACHE_NAME = 'money-manager-v4';
+const CACHE_NAME = 'money-manager-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -9,6 +9,8 @@ const ASSETS = [
   '/apple-touch-icon.png',
   '/icon-maskable.png',
   '/icon.svg',
+  '/screenshot-narrow.png',
+  '/screenshot-wide.png',
   '/screenshot-narrow.jpg',
   '/screenshot-wide.jpg'
 ];
