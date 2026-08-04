@@ -18,30 +18,42 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v2.0.0';
-export const BUILD_HASH = 'v2.0.0-20260803';
+export const APP_VERSION = 'v2.1.0';
+export const BUILD_HASH = 'v2.1.0-20260804';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v2.0.0',
-  buildHash: 'v2.0.0-20260803',
-  buildTime: '2026-08-03 09:35:00',
-  titleEn: 'Major Release v2.0.0: Profile Navigation, Settings UX, PWA Store Preview & Engine Optimization',
-  titleMy: 'ဗားရှင်းအသစ် v2.0.0: ပရိုဖိုင် စခရင် ပြောင်းလဲမှု၊ ဆက်တင် ရုပ်ထွက်၊ PWA စခရင်ရှော့များနှင့် စွမ်းဆောင်ရည် မြှင့်တင်မှု',
+  version: 'v2.1.0',
+  buildHash: 'v2.1.0-20260804',
+  buildTime: '2026-08-04 15:00:00',
+  titleEn: 'Release v2.1.0: Add to Home Screen PWA Modal & Native High-Res Screenshots',
+  titleMy: 'ဗားရှင်းအသစ် v2.1.0: ပင်မစာမျက်နှာသို့ ထည့်သွင်းရန် PWA စနစ်နှင့် စခရင်ရှော့များ',
   changelogEn: [
-    'Combined View Profile navigation directly to Profile overview page in Settings tab',
-    'Streamlined drill-down headers across Settings views with intuitive close actions',
-    'Added mobile and desktop PWA screenshots in manifest.json for store-style install prompt preview',
-    'Integrated complete automated Vitest unit testing suite with 100% green verification',
-    'Optimized dynamic category styling, icon mapping, and ledger calculation response times'
+    'Added native Chrome/Safari style "Add to home screen" bottom sheet modal triggered on user action',
+    'Generated valid 192px/512px PWA PNG icons, maskable icon, and rich mobile/desktop preview screenshots',
+    'Updated manifest.json and Service Worker caching for seamless offline app experience'
   ],
   changelogMy: [
-    'ဆက်တင်စခရင်ရှိ ပရိုဖိုင်ကြည့်ရန် ခလုတ်ကို ပရိုဖိုင် ပင်မစခရင်သို့ တိုက်ရိုက် ရောက်ရှိအောင် ပြင်ဆင်ပေးခဲ့ပါသည်',
-    'ဆက်တင် အသေးစိတ်စခရင်များ၏ ခေါင်းစဉ်နှင့် ပိတ်ရန်ခလုတ်များကို ပိုမိုသပ်ရပ်ရှင်းလင်းအောင် ပြုလုပ်ခဲ့ပါသည်',
-    'PWA တပ်ဆင်မှုစခရင်တွင် ထင်ရှားစွာမြင်တွေ့နိုင်ရန် မိုဘိုင်းနှင့် ဒက်စတော့ စခရင်ရှော့များ ထည့်သွင်းပေးခဲ့ပါသည်',
-    'အက်ပ်၏ စွမ်းဆောင်ရည်နှင့် တည်ငြိမ်မှုကို ယူနစ်တက်စ် (Unit Tests) များဖြင့် အပြည့်အဝ စစ်ဆေးမြှင့်တင်ခဲ့ပါသည်',
-    'ကဏ္ဍအလိုက် အိုင်ကွန်နှင့် အရောင်များ တွက်ချက်ပြသမှုကို ပိုမိုမြန်ဆန်အောင် ပြင်ဆင်ထားပါသည်'
+    'Chrome နှင့် Safari ဘရောက်ဇာများတွင် Add to home screen နှိပ်ပါက ပေါ်လာမည့် PWA ပြသမှုစနစ်',
+    'အက်ပ်၏ PWA အိုင်ကွန်များနှင့် စခရင်ရှော့ရုပ်ပုံများကို အရည်အသွေးမြင့်မားစွာ ထည့်သွင်းပေးခဲ့ပါသည်',
+    'Service Worker အော့ဖ်လိုင်း စနစ်နှင့် manifest.json ဖိုင်ကို ပိုမိုပြည့်စုံအောင် ပြင်ဆင်ထားပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.1.0',
+      date: '2026-08-04',
+      titleEn: 'Release v2.1.0: Add to Home Screen PWA Modal & Native High-Res Screenshots',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.0: ပင်မစာမျက်နှာသို့ ထည့်သွင်းရန် PWA စနစ်နှင့် စခရင်ရှော့များ',
+      itemsEn: [
+        'Added native Chrome/Safari style "Add to home screen" bottom sheet modal triggered on user action',
+        'Generated valid 192px/512px PWA PNG icons, maskable icon, and rich mobile/desktop preview screenshots',
+        'Updated manifest.json and Service Worker caching for seamless offline app experience'
+      ],
+      itemsMy: [
+        'Chrome နှင့် Safari ဘရောက်ဇာများတွင် Add to home screen နှိပ်ပါက ပေါ်လာမည့် PWA ပြသမှုစနစ်',
+        'အက်ပ်၏ PWA အိုင်ကွန်များနှင့် စခရင်ရှော့ရုပ်ပုံများကို အရည်အသွေးမြင့်မားစွာ ထည့်သွင်းပေးခဲ့ပါသည်',
+        'Service Worker အော့ဖ်လိုင်း စနစ်နှင့် manifest.json ဖိုင်ကို ပိုမိုပြည့်စုံအောင် ပြင်ဆင်ထားပါသည်'
+      ]
+    },
     {
       version: 'v2.0.0',
       date: '2026-08-03',
