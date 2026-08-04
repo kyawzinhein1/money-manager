@@ -242,6 +242,28 @@ export default function App() {
   const [showYearMenu, setShowYearMenu] = useState<boolean>(false);
   const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
   const [showPWAInstallGuide, setShowPWAInstallGuide] = useState<boolean>(false);
+  const [isStandaloneApp, setIsStandaloneApp] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const standalone =
+        (window.navigator as any).standalone === true ||
+        window.matchMedia('(display-mode: standalone)').matches;
+      setIsStandaloneApp(standalone);
+
+      const handleBeforeInstallPrompt = (e: Event) => {
+        // Automatically pop up PWA install modal when prompt is ready if not in standalone
+        if (!standalone) {
+          setShowPWAInstallGuide(true);
+        }
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    }
+  }, []);
 
   const [showBalance, setShowBalance] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -1394,6 +1416,17 @@ export default function App() {
 
           {/* Quick toggle settings in top bar */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Quick Install App PWA Pill */}
+            <button
+              id="quick-pwa-install-btn"
+              onClick={() => setShowPWAInstallGuide(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] text-xs font-bold transition-all cursor-pointer border-0 active:scale-95"
+              title={settings.language === 'my' ? 'PWA အက်ပ် ထည့်သွင်းရန်' : 'Install Standalone PWA'}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{settings.language === 'my' ? 'အက်ပ် ထည့်သွင်းမည်' : 'Install App'}</span>
+            </button>
+
             {/* Theme Toggle Button */}
             <button
               id="quick-theme-toggle"
