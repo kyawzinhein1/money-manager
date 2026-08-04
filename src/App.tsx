@@ -635,13 +635,19 @@ export default function App() {
     localStorage.setItem('mm_profile', JSON.stringify(profile));
   }, [profile]);
 
-  // Apply Theme class to document root for dark mode
+  // Apply Theme class to document root for dark mode & update theme-color meta tag
   useEffect(() => {
     const root = document.documentElement;
-    if (settings.theme === 'dark') {
+    const isDark = settings.theme === 'dark';
+    if (isDark) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
+    }
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', isDark ? '#09090b' : '#f2f2f7');
     }
   }, [settings.theme]);
 
@@ -1357,7 +1363,7 @@ export default function App() {
 
       {/* Global Banner for Budget Warnings */}
       {categoriesExceeded.length > 0 && (
-        <div className="relative z-10 bg-rose-500 text-white py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2 shadow-sm animate-pulse no-print">
+        <div className="relative z-10 bg-rose-500 text-white pt-[env(safe-area-inset-top)] py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2 shadow-sm animate-pulse no-print">
           <AlertTriangle className="w-4 h-4" />
           <span>
             {t('overBudget')}: {categoriesExceeded.map((c) => tc(c.category)).join(', ')}
@@ -1367,7 +1373,7 @@ export default function App() {
 
       {/* Dynamic App Update Notification Banner */}
       {newVersionAvailable && (
-        <div className="bg-gradient-to-r from-[#007aff] to-[#af52de] text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-xs font-bold no-print sticky top-0 z-[99999]">
+        <div className="bg-gradient-to-r from-[#007aff] to-[#af52de] text-white pt-[env(safe-area-inset-top)] px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-xs font-bold no-print sticky top-0 z-[99999]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 animate-bounce text-amber-300 shrink-0" />
             <span>
@@ -1395,8 +1401,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Top Header */}
-      <header className="relative z-40 ios-glass-nav sticky top-0 no-print transition-all border-b border-black/[0.04] dark:border-white/[0.05]">
+      {/* Top Header with iOS Safe Area Inset Top Padding */}
+      <header className="relative z-40 ios-glass-nav sticky top-0 pt-[env(safe-area-inset-top)] no-print transition-all border-b border-black/[0.04] dark:border-white/[0.05]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-tr from-[#007aff] to-[#30b0ff] rounded-2xl flex items-center justify-center text-white shadow-md shadow-[#007aff]/25 ring-2 ring-white/50 dark:ring-black/50">

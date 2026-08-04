@@ -59,11 +59,11 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
   if (nav.blur === 'medium') blurAmount = '12px';
   if (nav.blur === 'high') blurAmount = '24px';
 
-  let shapeClasses = 'fixed bottom-3 left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-[24px] px-1.5';
+  let shapeClasses = 'fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 right-3 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-[24px] px-1.5';
   if (nav.shape === 'full') {
-    shapeClasses = 'fixed bottom-0 left-0 right-0 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-none px-2';
+    shapeClasses = 'fixed bottom-0 left-0 right-0 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-none px-2 pb-[env(safe-area-inset-bottom)]';
   } else if (nav.shape === 'pill') {
-    shapeClasses = 'fixed bottom-3 left-4 right-4 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-full px-3';
+    shapeClasses = 'fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-4 right-4 sm:left-0 sm:right-0 sm:mx-auto sm:max-w-md rounded-full px-3';
   }
 
   let borderClasses = 'border border-black/10 dark:border-white/10 shadow-lg';

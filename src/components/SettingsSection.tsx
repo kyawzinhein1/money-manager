@@ -571,7 +571,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
             </div>
           </div>
           <span className="text-[10px] font-mono text-[#8e8e93] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg self-start sm:self-auto">
-            © {new Date().getFullYear()} Money Manager v2.1.0
+            © {new Date().getFullYear()} Money Manager {APP_VERSION}
           </span>
         </div>
       </div>

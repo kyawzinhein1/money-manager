@@ -18,26 +18,42 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v2.1.0';
-export const BUILD_HASH = 'v2.1.0-20260804';
+export const APP_VERSION = 'v2.1.1';
+export const BUILD_HASH = 'v2.1.1-20260804';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v2.1.0',
-  buildHash: 'v2.1.0-20260804',
-  buildTime: '2026-08-04 15:00:00',
-  titleEn: 'Release v2.1.0: Add to Home Screen PWA Modal & Native High-Res Screenshots',
-  titleMy: 'ဗားရှင်းအသစ် v2.1.0: ပင်မစာမျက်နှာသို့ ထည့်သွင်းရန် PWA စနစ်နှင့် စခရင်ရှော့များ',
+  version: 'v2.1.1',
+  buildHash: 'v2.1.1-20260804',
+  buildTime: '2026-08-04 16:30:00',
+  titleEn: 'Release v2.1.1: iOS Safe Area Top Inset & Interactive PWA Install Prompt',
+  titleMy: 'ဗားရှင်းအသစ် v2.1.1: iPhone Notch အမိုးနှင့် PWA တပ်ဆင်မှု ပြင်ဆင်ချက်များ',
   changelogEn: [
-    'Added native Chrome/Safari style "Add to home screen" bottom sheet modal triggered on user action',
-    'Generated valid 192px/512px PWA PNG icons, maskable icon, and rich mobile/desktop preview screenshots',
-    'Updated manifest.json and Service Worker caching for seamless offline app experience'
+    'Optimized iOS safe area inset top/bottom paddings for iPhone notch and Home Indicator',
+    'Refined PWA install guide modal reset behavior and added direct copy link action',
+    'Enhanced theme color meta synchronization for dark mode and light mode status bar styling'
   ],
   changelogMy: [
-    'Chrome နှင့် Safari ဘရောက်ဇာများတွင် Add to home screen နှိပ်ပါက ပေါ်လာမည့် PWA ပြသမှုစနစ်',
-    'အက်ပ်၏ PWA အိုင်ကွန်များနှင့် စခရင်ရှော့ရုပ်ပုံများကို အရည်အသွေးမြင့်မားစွာ ထည့်သွင်းပေးခဲ့ပါသည်',
-    'Service Worker အော့ဖ်လိုင်း စနစ်နှင့် manifest.json ဖိုင်ကို ပိုမိုပြည့်စုံအောင် ပြင်ဆင်ထားပါသည်'
+    'iPhone ဖုန်းများတွင် Top Notch မိုးမိခြင်းမရှိစေရန် Safe Area Safe Padding စနစ် ထည့်သွင်းပေးခဲ့ပါသည်',
+    'PWA အော့ဖ်လိုင်း တပ်ဆင်မှုစခရင်နှင့် အက်ပ်လင့်ခ် ကူးယူသည့် စနစ်များကို မြှင့်တင်ခဲ့ပါသည်',
+    'Dark Mode နှင့် Light Mode အကူးအပြောင်းတွင် iOS Status Bar အရောင် တိုက်ရိုက်ပြောင်းလဲပေးပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.1.1',
+      date: '2026-08-04',
+      titleEn: 'Release v2.1.1: iOS Safe Area Top Inset & Interactive PWA Install Prompt',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.1: iPhone Notch အမိုးနှင့် PWA တပ်ဆင်မှု ပြင်ဆင်ချက်များ',
+      itemsEn: [
+        'Optimized iOS safe area inset top/bottom paddings for iPhone notch and Home Indicator',
+        'Refined PWA install guide modal reset behavior and added direct copy link action',
+        'Enhanced theme color meta synchronization for dark mode and light mode status bar styling'
+      ],
+      itemsMy: [
+        'iPhone ဖုန်းများတွင် Top Notch မိုးမိခြင်းမရှိစေရန် Safe Area Safe Padding စနစ် ထည့်သွင်းပေးခဲ့ပါသည်',
+        'PWA အော့ဖ်လိုင်း တပ်ဆင်မှုစခရင်နှင့် အက်ပ်လင့်ခ် ကူးယူသည့် စနစ်များကို မြှင့်တင်ခဲ့ပါသည်',
+        'Dark Mode နှင့် Light Mode အကူးအပြောင်းတွင် iOS Status Bar အရောင် တိုက်ရိုက်ပြောင်းလဲပေးပါသည်'
+      ]
+    },
     {
       version: 'v2.1.0',
       date: '2026-08-04',

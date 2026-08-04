@@ -52,7 +52,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({
   const unreadAlertsCount = forecastAlerts.filter(a => !readAlertIds.includes(a.id)).length;
 
   return (
-    <header className="relative z-40 ios-glass-nav sticky top-0 no-print transition-all border-b border-black/[0.04] dark:border-white/[0.05]">
+    <header className="relative z-40 ios-glass-nav sticky top-0 pt-[env(safe-area-inset-top)] no-print transition-all border-b border-black/[0.04] dark:border-white/[0.05]">
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-tr from-[#007aff] to-[#30b0ff] rounded-2xl flex items-center justify-center text-white shadow-md shadow-[#007aff]/25 ring-2 ring-white/50 dark:ring-black/50">

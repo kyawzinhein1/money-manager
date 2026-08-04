@@ -75,6 +75,25 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mt-safe {
+  margin-top: env(safe-area-inset-top, 0px);
+}
+
 body {
   -webkit-overflow-scrolling: touch;
 }
