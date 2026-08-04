@@ -78,6 +78,7 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      (window as any).deferredPwaPrompt = null;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -89,28 +90,57 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
     };
   }, []);
 
+  // Reset modal state every time isOpen changes to true
+  useEffect(() => {
+    if (isOpen) {
+      setShowDetailedGuide(false);
+      setCopiedUrl(false);
+
+      const standalone =
+        (window.navigator as any).standalone === true ||
+        window.matchMedia('(display-mode: standalone)').matches;
+      setIsStandalone(standalone);
+
+      if ((window as any).deferredPwaPrompt) {
+        setDeferredPrompt((window as any).deferredPwaPrompt);
+      }
+    }
+  }, [isOpen]);
+
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setIsInstalled(true);
+    const activePrompt = deferredPrompt || (window as any).deferredPwaPrompt;
+    if (activePrompt) {
+      try {
+        await activePrompt.prompt();
+        const choice = await activePrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          setIsInstalled(true);
+        }
+      } catch (err) {
+        console.warn('PWA install prompt error:', err);
       }
       setDeferredPrompt(null);
+      (window as any).deferredPwaPrompt = null;
     } else {
-      // If prompt not available directly, show step by step instructions
+      // If native prompt was already consumed or unavailable, show detailed step by step guide
       setShowDetailedGuide(true);
     }
   };
 
   const handleCreateShortcutClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setIsInstalled(true);
+    const activePrompt = deferredPrompt || (window as any).deferredPwaPrompt;
+    if (activePrompt) {
+      try {
+        await activePrompt.prompt();
+        const choice = await activePrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          setIsInstalled(true);
+        }
+      } catch (err) {
+        console.warn('PWA shortcut prompt error:', err);
       }
       setDeferredPrompt(null);
+      (window as any).deferredPwaPrompt = null;
     } else {
       setShowDetailedGuide(true);
     }
@@ -310,15 +340,44 @@ export const PWAInstallGuideModal: React.FC<PWAInstallGuideModalProps> = ({
                   </div>
                 </div>
               )}
+              {/* Copy URL & Share Action */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  className="w-full py-2.5 px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[#007aff] font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border-0"
+                >
+                  {copiedUrl ? (
+                    <>
+                      <Check className="w-4 h-4 text-[#34c759]" />
+                      <span>{language === 'my' ? 'လင့်ခ် ကူးယူပြီးပါပြီ!' : 'URL Copied!'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>{language === 'my' ? 'အက်ပ် လင့်ခ် ကူးယူမည်' : 'Copy App Link'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="pt-1 text-center">
+            <div className="pt-1 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleCopyUrl}
+                className="text-xs font-semibold text-[#007aff] hover:underline flex items-center gap-1.5 border-0 bg-transparent cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{copiedUrl ? (language === 'my' ? 'ကူးယူပြီးပါပြီ' : 'Copied!') : (language === 'my' ? 'လင့်ခ် ကူးယူမည်' : 'Copy link')}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowDetailedGuide(true)}
                 className="text-xs font-semibold text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-colors border-0 bg-transparent cursor-pointer underline"
               >
-                {language === 'my' ? 'အသေးစိတ် ထည့်သွင်းနည်း လမ်းညွှန်ကြည့်မည်' : 'How to install manually?'}
+                {language === 'my' ? 'အသေးစိတ် ထည့်သွင်းနည်း' : 'How to install manually?'}
               </button>
             </div>
           )}
