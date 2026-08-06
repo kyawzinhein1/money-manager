@@ -33,7 +33,8 @@ import {
   DownloadCloud,
   Eye,
   EyeOff,
-  Smartphone
+  Smartphone,
+  WifiOff
 } from 'lucide-react';
 
 import { Transaction, Budget, Language, Currency, Settings, UserProfile, NavbarSettings } from './types';
@@ -243,6 +244,22 @@ export default function App() {
   const [showAlertsMenu, setShowAlertsMenu] = useState<boolean>(false);
   const [showPWAInstallGuide, setShowPWAInstallGuide] = useState<boolean>(false);
   const [isStandaloneApp, setIsStandaloneApp] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1360,6 +1377,18 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Offline Status Alert Banner */}
+      {isOffline && (
+        <div className="bg-slate-900 text-slate-200 pt-[env(safe-area-inset-top)] py-1.5 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2 border-b border-slate-800 shadow-xs no-print">
+          <WifiOff className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>
+            {settings.language === 'my'
+              ? 'အော့ဖ်လိုင်း စနစ်ဖွင့်ထားပါသည် (အချက်အလက်အားလုံး သင့်ဖုန်းထဲတွင် အပြည့်အဝ အလုပ်လုပ်ပါသည်)'
+              : 'Offline Mode Active (All your financial data is safely stored locally)'}
+          </span>
+        </div>
+      )}
 
       {/* Global Banner for Budget Warnings */}
       {categoriesExceeded.length > 0 && (

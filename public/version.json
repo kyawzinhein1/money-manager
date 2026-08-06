@@ -1,20 +1,36 @@
 {
-  "version": "v2.1.1",
-  "buildHash": "v2.1.1-20260804",
-  "buildTime": "2026-08-04 16:30:00",
-  "titleEn": "Release v2.1.1: iOS Safe Area Top Inset & Interactive PWA Install Prompt",
-  "titleMy": "ဗားရှင်းအသစ် v2.1.1: iPhone Notch အမိုးနှင့် PWA တပ်ဆင်မှု ပြင်ဆင်ချက်များ",
+  "version": "v2.1.2",
+  "buildHash": "v2.1.2-20260805",
+  "buildTime": "2026-08-05 18:00:00",
+  "titleEn": "Release v2.1.2: Bulletproof PWA Offline Capability & Zero White Screen Fix",
+  "titleMy": "ဗားရှင်းအသစ် v2.1.2: အော့ဖ်လိုင်းစနစ် အကြွင်းမဲ့ အဆင်ပြေစေရေးနှင့် စခရင်အဖြူပေါ်မှု အပြီးတိုင် ပြင်ဆင်ချက်",
   "changelogEn": [
-    "Optimized iOS safe area inset top/bottom paddings for iPhone notch and Home Indicator",
-    "Refined PWA install guide modal reset behavior and added direct copy link action",
-    "Enhanced theme color meta synchronization for dark mode and light mode status bar styling"
+    "Fixed uncloned response stream bug in Service Worker cache storage strategy",
+    "Ensured robust offline fallback for index.html navigation and static JS/CSS bundles",
+    "Added real-time network status indicator banner for seamless offline financial management"
   ],
   "changelogMy": [
-    "iPhone ဖုန်းများတွင် Top Notch မိုးမိခြင်းမရှိစေရန် Safe Area Safe Padding စနစ် ထည့်သွင်းပေးခဲ့ပါသည်",
-    "PWA အော့ဖ်လိုင်း တပ်ဆင်မှုစခရင်နှင့် အက်ပ်လင့်ခ် ကူးယူသည့် စနစ်များကို မြှင့်တင်ခဲ့ပါသည်",
-    "Dark Mode နှင့် Light Mode အကူးအပြောင်းတွင် iOS Status Bar အရောင် တိုက်ရိုက်ပြောင်းလဲပေးပါသည်"
+    "Service Worker ၏ ကက်ချ် အချက်အလက် သိမ်းဆည်းသည့် စနစ်အတွင်းမှ Stream error ကို အပြီးတိုင် ပြင်ဆင်ခဲ့ပါသည်",
+    "အင်တာနက် လိုင်းမရှိဘဲ အက်ပ်ဖွင့်ပါက စခရင်အဖြူပေါ်သည့် ပြဿနာကို ဖြေရှင်းခဲ့ပြီး အော့ဖ်လိုင်း လုံးဝ အလုပ်လုပ်စေပါသည်",
+    "အင်တာနက် ချိတ်ဆက်မှု မရှိသည့် အချိန်များတွင် အော့ဖ်လိုင်း သတိပေး ဘန်နာ ထည့်သွင်းပေးထားပါသည်"
   ],
   "releaseHistory": [
+    {
+      "version": "v2.1.2",
+      "date": "2026-08-05",
+      "titleEn": "Release v2.1.2: Bulletproof PWA Offline Capability & Zero White Screen Fix",
+      "titleMy": "ဗားရှင်းအသစ် v2.1.2: အော့ဖ်လိုင်းစနစ် အကြွင်းမဲ့ အဆင်ပြေစေရေးနှင့် စခရင်အဖြူပေါ်မှု အပြီးတိုင် ပြင်ဆင်ချက်",
+      "itemsEn": [
+        "Fixed uncloned response stream bug in Service Worker cache storage strategy",
+        "Ensured robust offline fallback for index.html navigation and static JS/CSS bundles",
+        "Added real-time network status indicator banner for seamless offline financial management"
+      ],
+      "itemsMy": [
+        "Service Worker ၏ ကက်ချ် အချက်အလက် သိမ်းဆည်းသည့် စနစ်အတွင်းမှ Stream error ကို အပြီးတိုင် ပြင်ဆင်ခဲ့ပါသည်",
+        "အင်တာနက် လိုင်းမရှိဘဲ အက်ပ်ဖွင့်ပါက စခရင်အဖြူပေါ်သည့် ပြဿနာကို ဖြေရှင်းခဲ့ပြီး အော့ဖ်လိုင်း လုံးဝ အလုပ်လုပ်စေပါသည်",
+        "အင်တာနက် ချိတ်ဆက်မှု မရှိသည့် အချိန်များတွင် အော့ဖ်လိုင်း သတိပေး ဘန်နာ ထည့်သွင်းပေးထားပါသည်"
+      ]
+    },
     {
       "version": "v2.1.1",
       "date": "2026-08-04",
