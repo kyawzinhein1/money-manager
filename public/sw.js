@@ -1,6 +1,6 @@
-const CACHE_NAME = 'money-manager-v8';
+const CACHE_NAME = 'money-manager-v9';
 
-// Essential shell assets pre-cached during Service Worker installation
+// Core shell assets to pre-cache immediately
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -27,19 +27,41 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Install event - Pre-cache core shell assets and skip waiting for immediate activation
+// Install event - Pre-cache core shell assets & auto-discover bundled assets from index.html
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_ASSETS).catch((err) => {
-        console.warn('SW pre-cache warning:', err);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // 1. Add core static assets
+      await cache.addAll(CORE_ASSETS).catch((err) => {
+        console.warn('SW core pre-cache warning:', err);
       });
+
+      // 2. Fetch /index.html and pre-cache any referenced JS/CSS assets
+      try {
+        const indexResponse = await fetch('/index.html');
+        if (indexResponse && indexResponse.ok) {
+          const htmlText = await indexResponse.text();
+          // Extract script src and link href URLs
+          const assetMatches = htmlText.match(/(?:src|href)=["']([^"']+\.(?:js|css|woff2|png|svg|json))["']/gi) || [];
+          const relativeAssets = assetMatches
+            .map((m) => m.replace(/^(?:src|href)=["']|["']$/gi, ''))
+            .filter((url) => !url.startsWith('http') && !url.startsWith('//'));
+
+          if (relativeAssets.length > 0) {
+            await cache.addAll([...new Set(relativeAssets)]).catch((e) => {
+              console.warn('SW auto-discovered asset pre-cache warning:', e);
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to parse index.html during SW installation:', err);
+      }
     })
   );
 });
 
-// Activate event - Clean up old cache storage versions and claim clients immediately
+// Activate event - Delete outdated cache buckets and claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -54,7 +76,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Notification click event
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
@@ -62,38 +84,37 @@ self.addEventListener('notificationclick', (event) => {
       for (const client of clientList) {
         if ('focus' in client) return client.focus();
       }
-        if (self.clients.openWindow) return self.clients.openWindow('/');
+      if (self.clients.openWindow) return self.clients.openWindow('/');
     })
   );
 });
 
-// Fetch event listener - Robust offline caching strategy
+// Fetch event listener - Instant Cache-First with Network Revalidation (Zero White Screen Strategy)
 self.addEventListener('fetch', (event) => {
-  // Only intercept GET requests
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
   const isSameOrigin = url.origin === self.location.origin;
   const isGoogleFont = url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com');
 
-  // Skip cross-origin non-font requests
+  // Ignore third-party non-font requests
   if (!isSameOrigin && !isGoogleFont) return;
 
-  // 1. Always network-first for version.json to ensure update detection
+  // 1. Version checking endpoint -> Network first, fallback to cached or synthetic JSON
   if (isSameOrigin && url.pathname === '/version.json') {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' })
         .then((networkResponse) => {
           if (networkResponse && networkResponse.ok) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+            const cacheCopy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
           }
           return networkResponse;
         })
         .catch(() => {
-          return caches.match('/version.json').then((res) => {
+          return caches.match('/version.json', { ignoreSearch: true }).then((res) => {
             if (res) return res;
-            return new Response(JSON.stringify({ version: 'v2.1.1', buildHash: 'offline' }), {
+            return new Response(JSON.stringify({ version: 'v2.1.2', buildHash: 'offline' }), {
               headers: { 'Content-Type': 'application/json' }
             });
           });
@@ -102,7 +123,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Navigation / Page Requests (index.html, root path, HTML documents)
+  // 2. Navigation / HTML Document requests (e.g. /, /index.html, /index.html?pwa=1)
   const isNavigation =
     event.request.mode === 'navigate' ||
     (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) ||
@@ -110,122 +131,81 @@ self.addEventListener('fetch', (event) => {
 
   if (isNavigation) {
     event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.ok) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put('/index.html', responseToCache.clone());
-              cache.put('/', responseToCache.clone());
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Offline fallback for navigation: check request URL, root, then index.html
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) return cachedResponse;
-            return caches.match('/').then((rootResponse) => {
-              if (rootResponse) return rootResponse;
-              return caches.match('/index.html');
-            });
-          });
-        })
-    );
-    return;
-  }
-
-  // 3. Static Assets (JS, CSS, Images, Fonts, Icons) -> CACHE-FIRST strategy
-  const isStaticAsset =
-    isGoogleFont ||
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.jpg') ||
-    url.pathname.endsWith('.jpeg') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.woff2') ||
-    url.pathname.endsWith('.json');
-
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Background revalidation if online
+      caches.match(event.request, { ignoreSearch: true }).then((cachedIndex) => {
+        // If cached index.html exists, return immediately (0ms start even after app kill)
+        if (cachedIndex) {
+          // Revalidate in background if online
           fetch(event.request)
             .then((networkResponse) => {
               if (networkResponse && networkResponse.ok) {
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+                const cacheCopy = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put('/index.html', cacheCopy.clone());
+                  cache.put('/', cacheCopy.clone());
+                  cache.put(event.request, cacheCopy);
+                });
               }
             })
-            .catch(() => {
-              /* Ignore background revalidation errors when offline */
-            });
-          return cachedResponse;
+            .catch(() => {});
+          return cachedIndex;
         }
 
-        // Cache miss -> Fetch from network and save clone to cache
+        // Cache miss for index -> Network fetch
         return fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+              const cacheCopy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put('/index.html', cacheCopy.clone());
+                cache.put('/', cacheCopy.clone());
+                cache.put(event.request, cacheCopy);
+              });
             }
             return networkResponse;
           })
           .catch(() => {
-            // Offline fallback for static assets: return appropriate MIME content or empty response, NOT index.html!
-            if (url.pathname.endsWith('.js')) {
-              return new Response('/* offline script placeholder */', {
-                headers: { 'Content-Type': 'application/javascript' }
-              });
-            }
-            if (url.pathname.endsWith('.css')) {
-              return new Response('/* offline style placeholder */', {
-                headers: { 'Content-Type': 'text/css' }
-              });
-            }
-            if (url.pathname.endsWith('.svg')) {
-              return new Response(
-                '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"></svg>',
-                { headers: { 'Content-Type': 'image/svg+xml' } }
-              );
-            }
-            return new Response('', { status: 404, statusText: 'Offline asset not cached' });
+            // Absolute fallback for navigation -> root or index.html
+            return caches.match('/', { ignoreSearch: true }).then((rootRes) => {
+              if (rootRes) return rootRes;
+              return caches.match('/index.html', { ignoreSearch: true });
+            });
           });
       })
     );
     return;
   }
 
-  // 4. Stale-while-revalidate for all other same-origin requests
+  // 3. Static Assets (JS, CSS, PNG, SVG, Fonts, JSON) -> Cache-First with ignoreSearch
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedAsset) => {
+      if (cachedAsset) {
+        // Background revalidation
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+              const cacheCopy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
             }
           })
           .catch(() => {});
-        return cachedResponse;
+        return cachedAsset;
       }
 
+      // Fetch from network if not in cache
       return fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.ok) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+            const cacheCopy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
           }
           return networkResponse;
         })
         .catch(() => {
-          return caches.match('/index.html');
+          // If asset is completely missing and offline, fallback to cached index.html or empty asset
+          return caches.match('/index.html', { ignoreSearch: true }).then((fallback) => {
+            if (fallback && url.pathname.endsWith('.html')) return fallback;
+            return new Response('', { status: 404, statusText: 'Offline Asset Not Cached' });
+          });
         });
     })
   );

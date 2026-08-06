@@ -40,10 +40,52 @@
         }
       })();
     </script>
+    <style>
+      /* Zero white screen fallback container styling */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #09090b;
+        color: #ffffff;
+      }
+      #root:empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #09090b;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      #root:empty::before {
+        content: "";
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #007aff, #30b0ff);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 122, 255, 0.4);
+        margin-bottom: 20px;
+        background-image: url('/icon-192.png');
+        background-size: cover;
+        background-position: center;
+        animation: pulseLogo 1.8s ease-in-out infinite alternate;
+      }
+      #root:empty::after {
+        content: "Money Manager";
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #f4f4f5;
+      }
+      @keyframes pulseLogo {
+        0% { transform: scale(0.96); opacity: 0.85; }
+        100% { transform: scale(1.04); opacity: 1; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

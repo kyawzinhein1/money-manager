@@ -9,15 +9,17 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register Service Worker for PWA capabilities immediately
+// Register Service Worker for PWA capabilities immediately with prompt updates
 if ('serviceWorker' in navigator) {
   const registerSW = () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('SW registered: ', registration);
+        // Check for updates periodically
+        registration.update().catch(() => {});
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        console.warn('SW registration failed: ', registrationError);
       });
   };
 
@@ -27,4 +29,3 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', registerSW);
   }
 }
-

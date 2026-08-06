@@ -1,20 +1,36 @@
 {
-  "version": "v2.1.2",
-  "buildHash": "v2.1.2-20260805",
-  "buildTime": "2026-08-05 18:00:00",
-  "titleEn": "Release v2.1.2: Bulletproof PWA Offline Capability & Zero White Screen Fix",
-  "titleMy": "ဗားရှင်းအသစ် v2.1.2: အော့ဖ်လိုင်းစနစ် အကြွင်းမဲ့ အဆင်ပြေစေရေးနှင့် စခရင်အဖြူပေါ်မှု အပြီးတိုင် ပြင်ဆင်ချက်",
+  "version": "v2.1.3",
+  "buildHash": "v2.1.3-20260805",
+  "buildTime": "2026-08-05 19:45:00",
+  "titleEn": "Release v2.1.3: Instant Cold Launch & Zero White Screen PWA Offline Engine",
+  "titleMy": "ဗားရှင်းအသစ် v2.1.3: အက်ပ် ပိတ်ပြီး ပြန်ဖွင့်ချိန် စခရင်အဖြူ လုံးဝ မပေါ်စေရန်နှင့် အော့ဖ်လိုင်း ချက်ချင်းပွင့်သည့် စနစ်",
   "changelogEn": [
-    "Fixed uncloned response stream bug in Service Worker cache storage strategy",
-    "Ensured robust offline fallback for index.html navigation and static JS/CSS bundles",
-    "Added real-time network status indicator banner for seamless offline financial management"
+    "Implemented instant Cache-First navigation strategy with ignoreSearch matching for PWA shortcuts",
+    "Auto-discovered and pre-cached bundled JS/CSS resources during Service Worker installation",
+    "Added seamless native dark/light splash shell inside index.html for zero white screen startup"
   ],
   "changelogMy": [
-    "Service Worker ၏ ကက်ချ် အချက်အလက် သိမ်းဆည်းသည့် စနစ်အတွင်းမှ Stream error ကို အပြီးတိုင် ပြင်ဆင်ခဲ့ပါသည်",
-    "အင်တာနက် လိုင်းမရှိဘဲ အက်ပ်ဖွင့်ပါက စခရင်အဖြူပေါ်သည့် ပြဿနာကို ဖြေရှင်းခဲ့ပြီး အော့ဖ်လိုင်း လုံးဝ အလုပ်လုပ်စေပါသည်",
-    "အင်တာနက် ချိတ်ဆက်မှု မရှိသည့် အချိန်များတွင် အော့ဖ်လိုင်း သတိပေး ဘန်နာ ထည့်သွင်းပေးထားပါသည်"
+    "Recent Apps မှ အက်ပ်ကို ဖြုတ်ပြီး အော့ဖ်လိုင်း ပြန်ဖွင့်ချိန် ချက်ချင်းပွင့်စေရန် Cache-First စနစ် ပြောင်းလဲခဲ့ပါသည်",
+    "Service Worker တပ်ဆင်ချိန်တွင် JavaScript နှင့် CSS ဖိုင်အားလုံးကို လိုအောက် ပရီးကက်ချ် ပြုလုပ်ထားပါသည်",
+    "အက်ပ် စတင်ပွင့်ချိန် စခရင် အဖြူရောင် လုံးဝ မပေါ်စေရန် index.html တွင် Instant Splash Shell ထည့်သွင်းထားပါသည်"
   ],
   "releaseHistory": [
+    {
+      "version": "v2.1.3",
+      "date": "2026-08-05",
+      "titleEn": "Release v2.1.3: Instant Cold Launch & Zero White Screen PWA Offline Engine",
+      "titleMy": "ဗားရှင်းအသစ် v2.1.3: အက်ပ် ပိတ်ပြီး ပြန်ဖွင့်ချိန် စခရင်အဖြူ လုံးဝ မပေါ်စေရန်နှင့် အော့ဖ်လိုင်း ချက်ချင်းပွင့်သည့် စနစ်",
+      "itemsEn": [
+        "Implemented instant Cache-First navigation strategy with ignoreSearch matching for PWA shortcuts",
+        "Auto-discovered and pre-cached bundled JS/CSS resources during Service Worker installation",
+        "Added seamless native dark/light splash shell inside index.html for zero white screen startup"
+      ],
+      "itemsMy": [
+        "Recent Apps မှ အက်ပ်ကို ဖြုတ်ပြီး အော့ဖ်လိုင်း ပြန်ဖွင့်ချိန် ချက်ချင်းပွင့်စေရန် Cache-First စနစ် ပြောင်းလဲခဲ့ပါသည်",
+        "Service Worker တပ်ဆင်ချိန်တွင် JavaScript နှင့် CSS ဖိုင်အားလုံးကို လိုအောက် ပရီးကက်ချ် ပြုလုပ်ထားပါသည်",
+        "အက်ပ် စတင်ပွင့်ချိန် စခရင် အဖြူရောင် လုံးဝ မပေါ်စေရန် index.html တွင် Instant Splash Shell ထည့်သွင်းထားပါသည်"
+      ]
+    },
     {
       "version": "v2.1.2",
       "date": "2026-08-05",
