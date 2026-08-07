@@ -68,28 +68,43 @@ import { NotificationsSection } from './components/NotificationsSection';
 import { PWAInstallGuideModal } from './components/PWAInstallGuideModal';
 
 export default function App() {
-  // State Initialization from LocalStorage or Defaults with a one-time clean-up of old mock data
+  // State Initialization from LocalStorage or Backup with fail-safe recovery
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const isCleaned = localStorage.getItem('mm_default_cleaned_v9');
-    if (!isCleaned) {
-      localStorage.setItem('mm_default_cleaned_v9', 'true');
-      localStorage.removeItem('mm_transactions');
-      localStorage.removeItem('mm_budgets');
-      localStorage.removeItem('mm_onboarding_completed');
-      localStorage.removeItem('mm_profile');
-      localStorage.removeItem('mm_settings');
-      localStorage.removeItem('mm_currency');
-      localStorage.removeItem('mm_income_categories');
-      localStorage.removeItem('mm_expense_categories');
-      return [];
+    try {
+      const saved = localStorage.getItem('mm_transactions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      const backup = localStorage.getItem('mm_transactions_backup');
+      if (backup) {
+        const parsedBackup = JSON.parse(backup);
+        if (Array.isArray(parsedBackup) && parsedBackup.length > 0) return parsedBackup;
+      }
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error loading transactions from storage:', e);
     }
-    const saved = localStorage.getItem('mm_transactions');
-    return saved ? JSON.parse(saved) : [];
+    return [];
   });
 
   const [budgets, setBudgets] = useState<Budget[]>(() => {
-    const saved = localStorage.getItem('mm_budgets');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('mm_budgets');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      const backup = localStorage.getItem('mm_budgets_backup');
+      if (backup) {
+        const parsedBackup = JSON.parse(backup);
+        if (Array.isArray(parsedBackup) && parsedBackup.length > 0) return parsedBackup;
+      }
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error loading budgets from storage:', e);
+    }
+    return [];
   });
 
   const [incomeCategories, setIncomeCategories] = useState<string[]>(() => {
@@ -141,18 +156,39 @@ export default function App() {
   }, [categoryIcons]);
 
   const [customCurrency, setCustomCurrency] = useState<Currency>(() => {
-    const saved = localStorage.getItem('mm_currency');
-    return saved ? JSON.parse(saved) : { code: 'MMK', symbol: 'Ks', name: 'Myanmar Kyat' };
+    try {
+      const saved = localStorage.getItem('mm_currency');
+      if (saved) return JSON.parse(saved);
+      const backup = localStorage.getItem('mm_currency_backup');
+      if (backup) return JSON.parse(backup);
+    } catch (e) {
+      console.error('Error loading currency:', e);
+    }
+    return { code: 'MMK', symbol: 'Ks', name: 'Myanmar Kyat' };
   });
 
   const [settings, setSettings] = useState<Settings>(() => {
-    const saved = localStorage.getItem('mm_settings');
-    return saved ? JSON.parse(saved) : { language: 'en', currency: 'MMK', theme: 'light' };
+    try {
+      const saved = localStorage.getItem('mm_settings');
+      if (saved) return JSON.parse(saved);
+      const backup = localStorage.getItem('mm_settings_backup');
+      if (backup) return JSON.parse(backup);
+    } catch (e) {
+      console.error('Error loading settings:', e);
+    }
+    return { language: 'en', currency: 'MMK', theme: 'light' };
   });
 
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('mm_profile');
-    return saved ? JSON.parse(saved) : {
+    try {
+      const saved = localStorage.getItem('mm_profile');
+      if (saved) return JSON.parse(saved);
+      const backup = localStorage.getItem('mm_profile_backup');
+      if (backup) return JSON.parse(backup);
+    } catch (e) {
+      console.error('Error loading profile:', e);
+    }
+    return {
       name: 'Kyaw Zin Hein',
       photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       incomeSource: 'Monthly Salary',
@@ -502,13 +538,27 @@ export default function App() {
     showToast(welcomeMsg, 'success');
   };
 
-  // Synchronize with LocalStorage
+  // Synchronize with LocalStorage (Dual Primary + Backup Storage)
   useEffect(() => {
-    localStorage.setItem('mm_transactions', JSON.stringify(transactions));
+    try {
+      localStorage.setItem('mm_transactions', JSON.stringify(transactions));
+      if (Array.isArray(transactions) && transactions.length > 0) {
+        localStorage.setItem('mm_transactions_backup', JSON.stringify(transactions));
+      }
+    } catch (e) {
+      console.error('Failed to sync transactions:', e);
+    }
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem('mm_budgets', JSON.stringify(budgets));
+    try {
+      localStorage.setItem('mm_budgets', JSON.stringify(budgets));
+      if (Array.isArray(budgets) && budgets.length > 0) {
+        localStorage.setItem('mm_budgets_backup', JSON.stringify(budgets));
+      }
+    } catch (e) {
+      console.error('Failed to sync budgets:', e);
+    }
   }, [budgets]);
 
   useEffect(() => {
@@ -642,15 +692,30 @@ export default function App() {
   }, [handleDeactivateCategory]);
 
   useEffect(() => {
-    localStorage.setItem('mm_currency', JSON.stringify(customCurrency));
+    try {
+      localStorage.setItem('mm_currency', JSON.stringify(customCurrency));
+      localStorage.setItem('mm_currency_backup', JSON.stringify(customCurrency));
+    } catch (e) {
+      console.error('Failed to sync currency:', e);
+    }
   }, [customCurrency]);
 
   useEffect(() => {
-    localStorage.setItem('mm_settings', JSON.stringify(settings));
+    try {
+      localStorage.setItem('mm_settings', JSON.stringify(settings));
+      localStorage.setItem('mm_settings_backup', JSON.stringify(settings));
+    } catch (e) {
+      console.error('Failed to sync settings:', e);
+    }
   }, [settings]);
 
   useEffect(() => {
-    localStorage.setItem('mm_profile', JSON.stringify(profile));
+    try {
+      localStorage.setItem('mm_profile', JSON.stringify(profile));
+      localStorage.setItem('mm_profile_backup', JSON.stringify(profile));
+    } catch (e) {
+      console.error('Failed to sync profile:', e);
+    }
   }, [profile]);
 
   // Apply Theme class to document root for dark mode & update theme-color meta tag
