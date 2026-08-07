@@ -14,37 +14,34 @@ import {
   TrendingDown, 
   Calendar, 
   Info,
-  Utensils,
-  Car,
-  ShoppingBag,
-  Film,
-  Home as HomeIcon,
+  Clock,
+  ArrowUpRight,
+  Flame,
+  Target,
   Zap,
-  HeartPulse,
-  GraduationCap,
-  HelpCircle,
-  Clock
+  BarChart3,
+  PieChart as PieIcon,
+  X,
+  Copy,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { Budget, Transaction, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateForecastReport } from '../utils/forecasting';
-import { IOSDatePicker } from './IOSDatePicker';
 import { IOSDateRangePicker } from './IOSDateRangePicker';
 import { findActiveBudget } from '../utils/budgetUtils';
 import { getCategoryIcon } from '../utils/categoryIcon';
 import { getCategoryStyle } from '../utils/categoryStyle';
 import {
   ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ReferenceLine,
   Line,
-  LineChart
+  LineChart,
+  XAxis,
+  YAxis
 } from 'recharts';
 
 interface BudgetSectionProps {
@@ -60,6 +57,7 @@ interface BudgetSectionProps {
   categoryColors?: Record<string, string>;
   categoryIcons?: Record<string, string>;
 }
+
 export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   budgets,
   transactions,
@@ -104,9 +102,9 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   );
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [bentoTab, setBentoTab] = useState<'burn' | 'projection'>('burn');
+  const [bentoTab, setBentoTab] = useState<'burn' | 'projection' | 'categories'>('burn');
 
-  // Keep input synchronized when month selection or active budget changes
+  // Sync input when month selection or active budget changes
   React.useEffect(() => {
     if (!isEditing) {
       setBudgetLimit(activeBudget ? activeBudget.limit.toString() : '');
@@ -207,7 +205,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   };
 
   // Category breakdown of the spent amount
-  const { categorySpentMap, categorySpentList } = React.useMemo(() => {
+  const { categorySpentList } = React.useMemo(() => {
     const spentMap: Record<string, number> = {};
     transactions
       .filter(tx => tx.type === 'expense')
@@ -219,7 +217,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
       .map(([category, spent]) => ({ category, spent }))
       .sort((a, b) => b.spent - a.spent);
 
-    return { categorySpentMap: spentMap, categorySpentList: spentList };
+    return { categorySpentList: spentList };
   }, [transactions]);
 
   const percent = React.useMemo(() => {
@@ -234,7 +232,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
     return activeBudget ? activeBudget.limit - totalSpent : 0;
   }, [activeBudget, totalSpent]);
 
-  // --- INTRODUCE BURN RATE & TIME CALCULATIONS ---
+  // Days remaining & time offsets
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month, 0).getDate();
   };
@@ -254,7 +252,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   if (isCurrentSelected) {
     daysRemaining = Math.max(1, totalDays - currentDayOffset + 1);
   } else {
-    // Check if future or past
     const isPast = currentYearInt < today.getFullYear() || 
       (currentYearInt === today.getFullYear() && currentMonthInt < (today.getMonth() + 1));
     daysRemaining = isPast ? 0 : totalDays;
@@ -303,59 +300,94 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
   const advice = getSmartRecommendation();
 
-  // Circular progress math configurations
-  const radius = 50;
+  // SVG Circular Ring Gauge setup
+  const radius = 52;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (Math.min(percent, 100) / 100) * circumference;
 
   return (
     <div className="space-y-6" id="budget-section">
-      {/* Dynamic Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <PiggyBank className="w-5 h-5 text-[#34c759]" />
-            {t('budgets')} ({getRangeLabel()})
-          </h2>
-          <p className="text-xs text-[#8e8e93]">
-            {t('budgetUsage')} • {t('calculatedDynamically')} {getRangeLabel()}
-          </p>
+      {/* Dynamic Professional Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-black/5 dark:border-white/5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="p-2.5 rounded-2xl bg-[#34c759]/10 text-[#34c759] shrink-0">
+              <Landmark className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+                {t('budgets')}
+                <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20">
+                  <Calendar className="w-3 h-3" />
+                  {getRangeLabel()}
+                </span>
+              </h2>
+              <p className="text-xs text-[#8e8e93] font-medium">
+                {language === 'my' ? 'လစဉ် သုံးစွဲမှု ကန့်သတ်ချက်နှင့် အသုံးစရိတ် ထိန်းချုပ်မှု' : 'Smart spending limits & daily financial velocity tracking'}
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Primary Action Control */}
+        {!activeBudget && (
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <button
+              id="set-budget-header-btn"
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="flex items-center justify-center gap-2 h-10 px-5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold shadow-md shadow-[#007aff]/20 transition-all cursor-pointer active:scale-95 border-0"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>{t('setBudget')}</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Set/Edit Budget Form */}
+      {/* Set/Edit Budget Modal / Slide-down */}
       <AnimatePresence>
         {isEditing && (
-          <motion.div
-            initial={{ opacity: 0, y: -15, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -15, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="overflow-hidden"
-          >
-            <form
-              id="budget-form"
-              onSubmit={handleFormSubmit}
-              noValidate
-              className="p-6 ios-glass rounded-[2.2rem] space-y-5 shadow-sm"
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-lg bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl p-6 sm:p-7 border border-white/20 dark:border-white/10 space-y-6 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-[#007aff]/10 text-[#007aff] rounded-xl">
-                  <Sparkles className="w-4 h-4" />
+              {/* Modal Title */}
+              <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-[#1c1c1e] dark:text-white">
+                      {activeBudget ? t('updateBudget') : t('setOverallBudget')}
+                    </h3>
+                    <p className="text-xs text-[#8e8e93] font-medium">
+                      {getRangeLabel()}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white">
-                  {activeBudget ? t('updateBudget') : t('setOverallBudget')}
-                </h3>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="space-y-4">
-                {/* Centered Large Immersive Amount Section matching Edit Transaction UI */}
-                <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] shadow-xs text-center space-y-4">
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#8e8e93] block">
-                    {language === 'my' ? 'သတ်မှတ် ဘတ်ဂျက် ပမာဏ' : 'BUDGET LIMIT'}
+              <form id="budget-form" onSubmit={handleFormSubmit} noValidate className="space-y-5">
+                {/* Immersive Amount Section */}
+                <div className="p-6 rounded-[2rem] bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 text-center space-y-3">
+                  <span className="text-[10px] uppercase tracking-wider font-black text-[#8e8e93] block">
+                    {language === 'my' ? 'သတ်မှတ် ဘတ်ဂျက် ပမာဏ' : 'TOTAL SPENDING LIMIT'}
                   </span>
 
-                  <div className="relative flex items-center justify-center max-w-sm mx-auto">
+                  <div className="relative flex items-center justify-center max-w-xs mx-auto">
                     <input
                       id="budget-amount-input"
                       type="number"
@@ -366,9 +398,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                       value={budgetLimit}
                       onChange={(e) => {
                         setBudgetLimit(e.target.value);
-                        if (error) {
-                          setError(undefined);
-                        }
+                        if (error) setError(undefined);
                       }}
                       className="w-full text-4xl sm:text-5xl font-mono font-black text-center text-[#1c1c1e] dark:text-white bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff]"
                       style={{ width: `${Math.max(budgetLimit.length * 24 + 40, 120)}px`, maxWidth: '100%' }}
@@ -380,7 +410,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                           setBudgetLimit('');
                           setError(undefined);
                         }}
-                        className="w-6 h-6 flex items-center justify-center rounded-full bg-black/[0.06] hover:bg-black/[0.1] dark:bg-white/[0.1] dark:hover:bg-white/[0.15] text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 text-[10px] ml-1 shrink-0"
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 text-[10px] ml-1 shrink-0"
                         title="Clear Amount"
                       >
                         ✕
@@ -392,7 +422,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-[11px] text-red-500 font-extrabold flex items-center justify-center gap-1.5 animate-bounce mt-1"
+                      className="text-[11px] text-[#ff3b30] font-extrabold flex items-center justify-center gap-1.5 pt-1"
                     >
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>{error}</span>
@@ -401,11 +431,11 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 </div>
 
                 {/* Quick Selection Presets */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="block text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
-                    {language === 'en' ? 'Quick suggestions' : 'အကြံပြုချက်များ'}
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] text-[#8e8e93] font-black uppercase tracking-wider">
+                    {language === 'en' ? 'Quick preset suggestions' : 'အကြံပြုချက် ပမာဏများ'}
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {getSuggestedBudgets().map((amount) => (
                       <button
                         key={amount}
@@ -414,28 +444,28 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                           setBudgetLimit(amount.toString());
                           setError(undefined);
                         }}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer active:scale-95 ${
+                        className={`py-2.5 px-3 rounded-2xl text-xs font-black transition-all border cursor-pointer active:scale-95 ${
                           budgetLimit === amount.toString()
-                            ? 'bg-[#007aff] text-white border-transparent shadow-xs'
-                            : 'bg-transparent text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5'
+                            ? 'bg-[#007aff] text-white border-transparent shadow-sm'
+                            : 'bg-black/5 dark:bg-white/5 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white border-transparent hover:bg-black/10'
                         }`}
                       >
-                        {amount.toLocaleString()}
+                        {amount.toLocaleString()} {currencySymbol}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Budget Period Selection (Monthly vs Custom Range) */}
-                <div className="ios-glass p-4 rounded-2xl space-y-3 border border-black/5 dark:border-white/5">
-                  <span className="block text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider">
+                {/* Budget Period Selection */}
+                <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] space-y-3 border border-black/5 dark:border-white/5">
+                  <span className="block text-[10px] text-[#8e8e93] font-black uppercase tracking-wider">
                     {t('budgetPeriod')}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setBudgetType('monthly')}
-                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                      className={`p-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
                         budgetType === 'monthly'
                           ? 'bg-[#007aff] text-white border-transparent shadow-xs'
                           : 'bg-black/5 dark:bg-white/5 text-[#8e8e93] border-transparent hover:text-[#1c1c1e] dark:hover:text-white'
@@ -446,7 +476,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                     <button
                       type="button"
                       onClick={() => setBudgetType('custom')}
-                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                      className={`p-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
                         budgetType === 'custom'
                           ? 'bg-[#007aff] text-white border-transparent shadow-xs'
                           : 'bg-black/5 dark:bg-white/5 text-[#8e8e93] border-transparent hover:text-[#1c1c1e] dark:hover:text-white'
@@ -470,464 +500,544 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-3 pt-2 border-t border-black/5 dark:border-white/5">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-5 py-2.5 bg-[#f2f2f7] hover:bg-[#e5e5ea] dark:bg-[#2c2c2e] dark:hover:bg-[#38383a] text-[#1c1c1e] dark:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer"
-                >
-                  {activeBudget ? t('save') : (language === 'my' ? 'ဘတ်ဂျက် သတ်မှတ်မည်' : 'Set Budget Limit')}
-                </button>
-              </div>
-            </form>
-          </motion.div>
+                {/* Submit Controls */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5 dark:border-white/5">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-5 py-2.5 bg-black/5 dark:bg-white/10 hover:bg-black/10 text-[#1c1c1e] dark:text-white rounded-xl text-xs font-bold transition-all cursor-pointer border-0"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-xl text-xs font-bold shadow-md shadow-[#007aff]/20 transition-all cursor-pointer border-0 active:scale-95"
+                  >
+                    {activeBudget ? t('save') : (language === 'my' ? 'ဘတ်ဂျက် သတ်မှတ်မည်' : 'Set Budget Limit')}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* Main Budget Dashboard Display */}
-      <div className="grid grid-cols-1 gap-6">
-        {!activeBudget ? (
-          !isEditing ? (
-            <div className="py-16 px-6 text-center ios-glass rounded-[2.5rem] shadow-2xs">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
-                <ShieldAlert className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-black text-[#1c1c1e] dark:text-[#f2f2f7] mb-1.5">
+      {/* Main Budget Section Body */}
+      {!activeBudget ? (
+        /* Empty State Card - Professional Vault Invitation */
+        <div className="p-8 sm:p-12 text-center ios-glass rounded-[2.5rem] border border-black/5 dark:border-white/5 shadow-sm space-y-6 relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#007aff]/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-lg mx-auto space-y-4">
+            <div className="w-20 h-20 rounded-3xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center mx-auto shadow-inner">
+              <PiggyBank className="w-10 h-10 stroke-[1.8]" />
+            </div>
+
+            <div>
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#007aff]/10 text-[#007aff] inline-block mb-2">
+                {language === 'my' ? 'ဘတ်ဂျက် ကန့်သတ်ချက် မရှိသေးပါ' : 'No Limit Set'}
+              </span>
+              <h3 className="text-xl font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
                 {t('noBudgetConfigured')} ({getRangeLabel()})
               </h3>
-              <p className="text-xs text-[#8e8e93] max-w-sm mx-auto mb-6 leading-relaxed">
+              <p className="text-xs text-[#8e8e93] leading-relaxed mt-1">
                 {t('keepFinancesInCheck')}
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  id="set-budget-empty-btn"
-                  onClick={() => setIsEditing(true)}
-                  className="px-6 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs hover:shadow-md inline-flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Plus className="w-4 h-4" />
-                  {t('setBudgetLimitNow')} ({getRangeLabel()})
-                </button>
+            </div>
 
-                {previousMonthBudget && (
-                  <button
-                    id="copy-previous-budget-btn"
-                    onClick={() => {
-                      onSaveBudget('Total', previousMonthBudget.limit, currentMonthKey);
-                    }}
-                    className="px-5 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border-0 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    {t('copyPreviousBudget')} ({formatAmount(previousMonthBudget.limit)})
-                  </button>
-                )}
+            {/* Benefit Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left py-2">
+              <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5">
+                <Flame className="w-4 h-4 text-[#ff9500] mb-1" />
+                <h4 className="text-[11px] font-bold text-[#1c1c1e] dark:text-white">{language === 'my' ? 'နေ့စဉ် သုံးနှုန်းစံနှုန်း' : 'Daily Burn Rate'}</h4>
+                <p className="text-[10px] text-[#8e8e93]">{language === 'my' ? 'တစ်နေ့လျှင် အန္တရာယ်ကင်းစွာ သုံးစွဲနိုင်သော ပမာဏ' : 'Safe spend target per day'}</p>
+              </div>
+              <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5">
+                <Target className="w-4 h-4 text-[#007aff] mb-1" />
+                <h4 className="text-[11px] font-bold text-[#1c1c1e] dark:text-white">{language === 'my' ? 'စမတ် သတိပေးချက်' : 'Smart Alerts'}</h4>
+                <p className="text-[10px] text-[#8e8e93]">{language === 'my' ? 'ဘတ်ဂျက်၈၅% ရောက်လျှင် သတိပေးချက်' : 'Early warnings before limit'}</p>
+              </div>
+              <div className="p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5">
+                <BarChart3 className="w-4 h-4 text-[#34c759] mb-1" />
+                <h4 className="text-[11px] font-bold text-[#1c1c1e] dark:text-white">{language === 'my' ? 'လကုန် ခန့်မှန်းချက်' : 'End-of-Month Forecast'}</h4>
+                <p className="text-[10px] text-[#8e8e93]">{language === 'my' ? 'လက်ရှိနှုန်းဖြင့် လကုန်သုံးစွဲမှု ခန့်မှန်း' : 'AI spending trajectory'}</p>
               </div>
             </div>
-          ) : null
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Primary overall status column (7 cols) */}
-            {!isEditing && (
-              <div className="lg:col-span-7 ios-glass rounded-[2.5rem] p-6 shadow-sm flex flex-col justify-between relative overflow-hidden min-h-[360px]">
-                {/* Background ambient mesh */}
-                <div className={`absolute top-0 right-0 w-44 h-44 rounded-full filter blur-[60px] opacity-[0.06] pointer-events-none -mr-16 -mt-16 transition-colors duration-300 ${
-                  isExceeded ? 'bg-[#ff3b30]' : percent > 85 ? 'bg-amber-500' : 'bg-[#34c759]'
-                }`} />
 
-                <div>
-                  {/* Vault Card Title Bar */}
-                  <div className="relative z-10 flex items-start justify-between">
-                    <div className="space-y-1">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/5 dark:bg-white/5 text-[#8e8e93]">
-                        <Clock className="w-3 h-3" />
-                        {getRangeLabel()}
-                      </span>
-                      <h4 className="text-xs font-bold text-[#8e8e93] pt-1">
-                        {t('overallMonthlyBudget')}
-                      </h4>
-                    </div>
-                    
-                    {/* Action controls */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        id="edit-overall-budget"
-                        onClick={handleEditClick}
-                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-full transition-all cursor-pointer"
-                        title={t('edit')}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        id="delete-overall-budget"
-                        onClick={() => onDeleteBudget('Total', currentMonthKey)}
-                        className="w-9 h-9 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-full transition-all cursor-pointer"
-                        title={t('delete')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+            {/* Quick Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                id="set-budget-empty-btn"
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="w-full sm:w-auto px-7 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#007aff]/20 flex items-center justify-center gap-2 active:scale-95 border-0"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>{t('setBudgetLimitNow')} ({getRangeLabel()})</span>
+              </button>
 
-                  {/* Amount display and Ring Progress layout */}
-                  <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 mt-4 mb-6">
-                    <div className="text-center sm:text-left space-y-1">
-                      <div className="text-4xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight">
-                        {formatAmount(activeBudget?.limit || 0)}
-                      </div>
-                      <div className="text-xs text-[#8e8e93] font-medium">
-                        {language === 'en' ? 'Limit target setup' : 'သတ်မှတ်ဘတ်ဂျက် ပမာဏ'}
-                      </div>
-                    </div>
+              {previousMonthBudget && (
+                <button
+                  id="copy-previous-budget-btn"
+                  type="button"
+                  onClick={() => {
+                    onSaveBudget('Total', previousMonthBudget.limit, currentMonthKey);
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 border border-[#007aff]/20 active:scale-95"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{t('copyPreviousBudget')} ({formatAmount(previousMonthBudget.limit)})</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Active Dashboard Grid */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Primary Overall Vault Status (7 Cols) */}
+          <div className="lg:col-span-7 ios-glass rounded-[2.5rem] p-6 sm:p-7 shadow-sm border border-black/5 dark:border-white/5 flex flex-col justify-between relative overflow-hidden space-y-6">
+            {/* Ambient blur sphere */}
+            <div className={`absolute top-0 right-0 w-60 h-60 rounded-full filter blur-[80px] opacity-10 pointer-events-none -mr-20 -mt-20 transition-colors duration-500 ${
+              isExceeded ? 'bg-[#ff3b30]' : percent > 85 ? 'bg-[#ff9500]' : 'bg-[#34c759]'
+            }`} />
 
-                    {/* Circular SVG Ring Gauge */}
-                    <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-                      <svg className="w-full h-full transform -rotate-90">
-                        {/* Tracking loop */}
-                        <circle
-                          cx="56"
-                          cy="56"
-                          r={radius}
-                          className="stroke-black/[0.06] dark:stroke-white/[0.06]"
-                          strokeWidth="10"
-                          fill="transparent"
-                        />
-                        {/* Active progress indicator */}
-                        <motion.circle
-                          cx="56"
-                          cy="56"
-                          r={radius}
-                          className={`${
-                            isExceeded
-                              ? 'stroke-[#ff3b30]'
-                              : percent > 85
-                              ? 'stroke-amber-500'
-                              : 'stroke-[#34c759]'
-                          }`}
-                          strokeWidth="10"
-                          fill="transparent"
-                          strokeDasharray={circumference}
-                          initial={{ strokeDashoffset: circumference }}
-                          animate={{ strokeDashoffset }}
-                          transition={{ duration: 1.2, ease: 'easeOut' }}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      {/* Ring interior label */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-xl font-black text-[#1c1c1e] dark:text-white font-mono">
-                          {percent.toFixed(0)}%
-                        </span>
-                        <span className="text-[9px] text-[#8e8e93] font-bold uppercase tracking-wider">
-                          {t('spent')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+            {/* Header Status Bar */}
+            <div className="relative z-10 flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
+              <div className="flex items-center gap-2">
+                {isExceeded ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-[#ff3b30]/15 text-[#ff3b30] border border-[#ff3b30]/20 uppercase tracking-wider">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {t('overBudget')}
+                  </span>
+                ) : percent > 85 ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-[#ff9500]/15 text-[#ff9500] border border-[#ff9500]/20 uppercase tracking-wider">
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    {language === 'my' ? 'ဘတ်ဂျက် ၈၅% ကျော်လွန်ပြီ' : 'Near Budget Limit'}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-[#34c759]/15 text-[#34c759] border border-[#34c759]/20 uppercase tracking-wider">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {t('budgetSpendingIsSafe')}
+                  </span>
+                )}
 
-                  {/* Linear tracking information */}
-                  <div className="relative z-10 space-y-2 border-t border-black/5 dark:border-white/5 pt-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#8e8e93] font-medium">
-                        {t('totalExpenseSpent')}
-                      </span>
-                      <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7] font-mono">
-                        {formatAmount(totalSpent)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[#8e8e93] font-medium">
-                        {isExceeded ? t('overBudgetLimit') : t('availableRemainingSpend')}
-                      </span>
-                      <span className={`font-black font-mono ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                        {isExceeded ? '-' : ''}{formatAmount(Math.abs(remaining))}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status bar block */}
-                <div className="relative z-10 flex items-center justify-between border-t border-black/5 dark:border-white/5 pt-4 mt-4">
-                  <div className="flex items-center gap-1.5">
-                    {isExceeded ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#ff3b30]/10 text-[#ff3b30] uppercase tracking-wider">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        {t('overBudgetLimit')}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-[#34c759]/10 text-[#34c759] uppercase tracking-wider">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        {t('budgetSpendingIsSafe')}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-[#8e8e93] font-mono">
-                    {daysRemaining} {language === 'en' ? 'days left' : 'ရက်ကျန်ရှိ'}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Smart Daily Allowance, Burn Rate & Projections (5 cols or 12 cols when editing) */}
-            <div className={isEditing ? "lg:col-span-12 flex flex-col gap-6" : "lg:col-span-5 flex flex-col gap-6"}>
-              {/* Burn Rate & Smart Projections Details Card */}
-              <div className="ios-glass rounded-[2.5rem] p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
-                    {language === 'en' ? 'Smart Analytics & Forecast' : 'စမတ် သုံးသပ်ချက်နှင့် ခန့်မှန်းချက်'}
-                  </h4>
-
-                  {/* Segment controller */}
-                  <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => setBentoTab('burn')}
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                        bentoTab === 'burn'
-                          ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-white shadow-xs'
-                          : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
-                      }`}
-                    >
-                      {language === 'en' ? 'Daily' : 'နေ့စဉ်စံနှုန်း'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBentoTab('projection')}
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer border-none ${
-                        bentoTab === 'projection'
-                          ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-white shadow-xs'
-                          : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
-                      }`}
-                    >
-                      {language === 'en' ? 'Forecast' : 'ခန့်မှန်းချက်'}
-                    </button>
-                  </div>
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {bentoTab === 'burn' ? (
-                    <motion.div
-                      key="burn-tab"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.15 }}
-                      className="space-y-4"
-                    >
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Daily target allowance */}
-                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Daily Allowance' : 'နေ့စဉ်သုံးငွေ'}
-                          </span>
-                          <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono">
-                            {formatAmount(dailyAllowanceRemaining)}
-                          </span>
-                        </div>
-
-                        {/* Burn rate speed */}
-                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Average Spent' : 'နေ့စဉ်ပျမ်းမျှ'}
-                          </span>
-                          <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono flex items-center gap-1">
-                            {formatAmount(currentDailyAvgSpent)}
-                            {currentDailyAvgSpent > dailyLimitAllowed ? (
-                              <TrendingUp className="w-3.5 h-3.5 text-[#ff3b30]" />
-                            ) : (
-                              <TrendingDown className="w-3.5 h-3.5 text-[#34c759]" />
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* AI / Coach Insight Bubble */}
-                      {advice && (
-                        <div className={`p-4 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed transition-all ${
-                          advice.type === 'error'
-                            ? 'bg-[#ff3b30]/5 border-[#ff3b30]/10 text-[#ff3b30]'
-                            : advice.type === 'warning'
-                            ? 'bg-amber-500/5 border-amber-500/10 text-amber-500'
-                            : 'bg-[#34c759]/5 border-[#34c759]/10 text-[#34c759]'
-                        }`}>
-                          <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                          <p className="font-medium text-black/80 dark:text-white/80">
-                            {language === 'en' ? advice.en : advice.my}
-                          </p>
-                        </div>
-                      )}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="projection-tab"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.15 }}
-                      className="space-y-4"
-                    >
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Recommended Daily Limit */}
-                        <div className="p-3.5 bg-gradient-to-br from-[#007aff]/5 to-[#5856d6]/5 dark:from-[#007aff]/10 dark:to-[#5856d6]/10 border border-[#007aff]/15 rounded-2xl space-y-1">
-                          <span className="block text-[9px] text-[#007aff] dark:text-[#64d2ff] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Daily Target' : 'တစ်နေ့တာ စံနှုန်း'}
-                          </span>
-                          <span className="block text-sm font-black font-mono text-[#007aff] dark:text-[#64d2ff]">
-                            {(activeBudget?.limit || 0) > 0 ? `${formatAmount(forecast.dailyAllowanceRemaining)}/day` : 'N/A'}
-                          </span>
-                        </div>
-
-                        {/* Projected Spent EOM */}
-                        <div className="p-3.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-2xl space-y-1">
-                          <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
-                            {language === 'en' ? 'Projected EOM' : 'လကုန် ခန့်မှန်းခြေ'}
-                          </span>
-                          <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > (activeBudget?.limit || 0) && (activeBudget?.limit || 0) > 0 ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
-                            {formatAmount(forecast.projectedSpent)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Mini Trajectory Path Chart */}
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
-                          <span>{language === 'en' ? 'MONTHLY PACING TRAJECTORY' : 'တစ်လတာ သုံးစွဲမှု လမ်းကြောင်း'}</span>
-                          <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#007aff]/10 text-[#007aff]">
-                            {language === 'en' ? `Target: ${formatAmount(forecast.dailyAllowanceRemaining)}/day` : `စံနှုန်း: ${formatAmount(forecast.dailyAllowanceRemaining)}/ရက်`}
-                          </span>
-                        </div>
-
-                        <div className="h-32 w-full pt-1.5 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-black/[0.02] dark:border-white/[0.02] overflow-hidden">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={forecast.dailyPacingPoints} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.06} />
-                              <XAxis dataKey="day" stroke="#8e8e93" fontSize={9} tickLine={false} />
-                              <YAxis stroke="#8e8e93" fontSize={9} tickLine={false} />
-                              <Tooltip 
-                                content={({ active, payload }: any) => {
-                                  if (active && payload && payload.length) {
-                                    const data = payload[0].payload;
-                                    return (
-                                      <div className="p-2 bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-xl shadow-sm text-[9px] space-y-0.5 leading-none">
-                                        <p className="font-extrabold text-[#1c1c1e] dark:text-white">Day {data.day}</p>
-                                        {data.actual !== null && (
-                                          <p className="text-[#007aff] font-bold">Act: {formatAmount(data.actual)}</p>
-                                        )}
-                                        <p className="text-[#af52de] font-bold">Proj: {formatAmount(data.projected)}</p>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                }}
-                              />
-                              {(activeBudget?.limit || 0) > 0 && (
-                                <ReferenceLine y={activeBudget?.limit || 0} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'Ceiling', fill: '#ff3b30', fontSize: 8, position: 'insideTopLeft' }} />
-                              )}
-                              <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls style={{ outline: 'none' }} isAnimationActive={false} />
-                              <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} style={{ outline: 'none' }} isAnimationActive={false} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-
-                      {/* Detail pacing message */}
-                      <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] text-[11px] leading-relaxed">
-                        {forecast.projectedSpent > (activeBudget?.limit || 0) && (activeBudget?.limit || 0) > 0 ? (
-                          <p className="text-red-500 font-bold flex items-center gap-1.5">
-                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>
-                              {language === 'my' ? forecast.actionableAdviceMy : forecast.actionableAdviceEn}
-                            </span>
-                          </p>
-                        ) : (
-                          <p className="text-[#34c759] font-bold flex items-center gap-1.5">
-                            <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>
-                              {language === 'my' ? forecast.actionableAdviceMy : forecast.actionableAdviceEn}
-                            </span>
-                          </p>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <span className="text-[10px] text-[#8e8e93] font-bold font-mono">
+                  {daysRemaining} {language === 'my' ? 'ရက်ကျန်' : 'days left'}
+                </span>
               </div>
 
-              {/* Mini category distributions */}
-              <div className="ios-glass rounded-[2.5rem] p-6 shadow-sm flex flex-col space-y-4 flex-1">
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-[#34c759]" />
-                  {t('budgetExpenseDistribution')}
-                </h4>
+              {/* Edit/Delete Actions */}
+              <div className="flex items-center gap-1">
+                <button
+                  id="edit-overall-budget"
+                  type="button"
+                  onClick={handleEditClick}
+                  className="w-8 h-8 flex items-center justify-center text-[#8e8e93] hover:text-[#007aff] hover:bg-[#007aff]/10 rounded-full transition-all cursor-pointer border-0"
+                  title={t('edit')}
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  id="delete-overall-budget"
+                  type="button"
+                  onClick={() => onDeleteBudget('Total', currentMonthKey)}
+                  className="w-8 h-8 flex items-center justify-center text-[#8e8e93] hover:text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-full transition-all cursor-pointer border-0"
+                  title={t('delete')}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-                <div className="flex-1 overflow-y-auto max-h-[170px] pr-1 space-y-4 scrollbar-thin">
-                  {categorySpentList.length === 0 ? (
-                    <div className="text-center py-8 text-xs text-[#8e8e93]">
-                      {t('noExpenseDataFound')} {getRangeLabel()}
-                    </div>
-                  ) : (
-                    categorySpentList.map(({ category, spent }) => {
-                      const relativePercent = (activeBudget?.limit || 0) > 0 ? (spent / (activeBudget?.limit || 0)) * 100 : 0;
-                      const catStyle = getCategoryStyle(category, categoryColors);
-                      const CatIcon = getCategoryIcon(category, categoryIcons);
-                      const isHighWarn = relativePercent > (100 / (categorySpentList.length || 1)) * 1.5;
-
-                      return (
-                        <div key={category} className="space-y-1.5 fast-render-row">
-                          <div className="flex justify-between items-center text-xs">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`p-1.5 rounded-lg border ${catStyle.bg} ${catStyle.text} ${catStyle.border}`}
-                                style={catStyle.style}
-                              >
-                                <CatIcon className="w-4 h-4" />
-                              </div>
-                              <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{tc(category)}</span>
-                            </div>
-                            <div className="flex items-center gap-2 font-mono">
-                              <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7]">
-                                {formatAmount(spent)}
-                              </span>
-                              <span className="text-[10px] text-[#8e8e93] font-bold">
-                                {relativePercent.toFixed(0)}%
-                              </span>
-                              {isHighWarn && spent > 0 && (
-                                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-red-500/10 text-red-500 tracking-wider">
-                                  {language === 'en' ? 'High' : 'မြင့်'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Polished progress tracking bar */}
-                          <div className="w-full h-1.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min((spent / (totalSpent || 1)) * 100, 100)}%` }}
-                              transition={{ duration: 0.6, ease: 'easeOut' }}
-                              className="h-full rounded-full gpu-layer bg-[#007aff]"
-                              style={catStyle.hex ? { backgroundColor: catStyle.hex } : undefined}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
+            {/* Main Limit Hero & Circular Ring Progress */}
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 my-2">
+              <div className="text-center sm:text-left space-y-1">
+                <span className="text-[10px] font-black text-[#8e8e93] uppercase tracking-wider block">
+                  {t('overallMonthlyBudget')}
+                </span>
+                <div className="text-3xl sm:text-4xl font-black text-[#1c1c1e] dark:text-white font-sans tracking-tight">
+                  {formatAmount(activeBudget.limit)}
                 </div>
+                <div className="text-xs text-[#8e8e93] font-medium flex items-center justify-center sm:justify-start gap-1">
+                  <Clock className="w-3.5 h-3.5 text-[#007aff]" />
+                  <span>{getRangeLabel()}</span>
+                </div>
+              </div>
+
+              {/* Circular SVG Progress Ring Gauge */}
+              <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r={radius}
+                    className="stroke-black/5 dark:stroke-white/10"
+                    strokeWidth="11"
+                    fill="transparent"
+                  />
+                  <motion.circle
+                    cx="64"
+                    cy="64"
+                    r={radius}
+                    className={
+                      isExceeded
+                        ? 'stroke-[#ff3b30]'
+                        : percent > 85
+                        ? 'stroke-[#ff9500]'
+                        : 'stroke-[#34c759]'
+                    }
+                    strokeWidth="11"
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    initial={{ strokeDashoffset: circumference }}
+                    animate={{ strokeDashoffset }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                    strokeLinecap="round"
+                  />
+                </svg>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span className="text-2xl font-black text-[#1c1c1e] dark:text-white font-mono leading-none">
+                    {percent.toFixed(0)}%
+                  </span>
+                  <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider mt-1">
+                    {t('spent')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Linear Milestone Progress Bar */}
+            <div className="relative z-10 space-y-1.5">
+              <div className="flex justify-between items-center text-[10px] font-bold text-[#8e8e93]">
+                <span>0%</span>
+                <span>25%</span>
+                <span>50%</span>
+                <span>75%</span>
+                <span>100%</span>
+              </div>
+              <div className="w-full h-2.5 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-black/5 dark:border-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(percent, 100)}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  className={`h-full rounded-full ${
+                    isExceeded
+                      ? 'bg-[#ff3b30]'
+                      : percent > 85
+                      ? 'bg-[#ff9500]'
+                      : 'bg-[#34c759]'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Financial Health 4 KPI Micro Cards */}
+            <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
+                  {t('spent')}
+                </span>
+                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-mono block truncate">
+                  {formatAmount(totalSpent)}
+                </span>
+                <span className="text-[9px] text-[#8e8e93] font-bold block">
+                  {percent.toFixed(1)}% of limit
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
+                  {isExceeded ? t('overBudget') : t('remaining')}
+                </span>
+                <span className={`text-xs font-black font-mono block truncate ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                  {isExceeded ? '-' : ''}{formatAmount(Math.abs(remaining))}
+                </span>
+                <span className="text-[9px] text-[#8e8e93] font-bold block">
+                  {isExceeded ? 'Exceeded' : 'Available'}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
+                  {language === 'my' ? 'နေ့စဉ် သုံးငွေ' : 'Daily Safe'}
+                </span>
+                <span className="text-xs font-black text-[#007aff] font-mono block truncate">
+                  {formatAmount(dailyAllowanceRemaining)}
+                </span>
+                <span className="text-[9px] text-[#8e8e93] font-bold block">
+                  / day left
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
+                  {language === 'my' ? 'နေ့စဉ် ပျမ်းမျှ' : 'Daily Burn'}
+                </span>
+                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-mono block truncate flex items-center gap-1">
+                  {formatAmount(currentDailyAvgSpent)}
+                  {currentDailyAvgSpent > dailyLimitAllowed ? (
+                    <TrendingUp className="w-3 h-3 text-[#ff3b30] shrink-0" />
+                  ) : (
+                    <TrendingDown className="w-3 h-3 text-[#34c759] shrink-0" />
+                  )}
+                </span>
+                <span className="text-[9px] text-[#8e8e93] font-bold block">
+                  / day actual
+                </span>
               </div>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Right Column: Smart Analytics Bento Box (5 Cols) */}
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <div className="ios-glass rounded-[2.5rem] p-6 shadow-sm border border-black/5 dark:border-white/5 space-y-4 flex-1 flex flex-col justify-between">
+              {/* Bento Navigation Bar */}
+              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
+                  {language === 'my' ? 'ဘတ်ဂျက် သုံးသပ်ချက်' : 'Budget Analytics'}
+                </h4>
+
+                {/* Segment Switcher */}
+                <div className="flex bg-black/5 dark:bg-white/10 p-0.5 rounded-full">
+                  <button
+                    type="button"
+                    onClick={() => setBentoTab('burn')}
+                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer border-0 ${
+                      bentoTab === 'burn'
+                        ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs'
+                        : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'my' ? 'နှုန်း' : 'Pace'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBentoTab('projection')}
+                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer border-0 ${
+                      bentoTab === 'projection'
+                        ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs'
+                        : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'my' ? 'ခန့်မှန်း' : 'Forecast'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBentoTab('categories')}
+                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer border-0 ${
+                      bentoTab === 'categories'
+                        ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs'
+                        : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'my' ? 'ကဏ္ဍ' : 'Categories'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Bento Content */}
+              <AnimatePresence mode="wait">
+                {bentoTab === 'burn' && (
+                  <motion.div
+                    key="burn-tab"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4 flex-1 flex flex-col justify-between"
+                  >
+                    {/* Burn Pace Comparison */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                        <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                          {language === 'my' ? 'ခွင့်ပြု ပရိမာဏ/ရက်' : 'Target Daily Cap'}
+                        </span>
+                        <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono">
+                          {formatAmount(dailyLimitAllowed)}
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 space-y-1">
+                        <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                          {language === 'my' ? 'လက်ရှိ သုံးနှုန်း/ရက်' : 'Actual Daily Burn'}
+                        </span>
+                        <span className={`block text-sm font-black font-mono flex items-center gap-1 ${
+                          currentDailyAvgSpent > dailyLimitAllowed ? 'text-[#ff3b30]' : 'text-[#34c759]'
+                        }`}>
+                          {formatAmount(currentDailyAvgSpent)}
+                          {currentDailyAvgSpent > dailyLimitAllowed ? (
+                            <TrendingUp className="w-3.5 h-3.5 text-[#ff3b30]" />
+                          ) : (
+                            <TrendingDown className="w-3.5 h-3.5 text-[#34c759]" />
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* AI Advisor Bubble */}
+                    {advice && (
+                      <div className={`p-4 rounded-2xl border flex items-start gap-3 text-xs leading-relaxed transition-all ${
+                        advice.type === 'error'
+                          ? 'bg-[#ff3b30]/5 border-[#ff3b30]/15 text-[#ff3b30]'
+                          : advice.type === 'warning'
+                          ? 'bg-[#ff9500]/5 border-[#ff9500]/15 text-[#ff9500]'
+                          : 'bg-[#34c759]/5 border-[#34c759]/15 text-[#34c759]'
+                      }`}>
+                        <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                        <p className="font-medium text-[#1c1c1e] dark:text-[#f2f2f7]">
+                          {language === 'en' ? advice.en : advice.my}
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
+                {bentoTab === 'projection' && (
+                  <motion.div
+                    key="projection-tab"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-4 flex-1"
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3.5 bg-[#007aff]/10 border border-[#007aff]/20 rounded-2xl space-y-1">
+                        <span className="block text-[9px] text-[#007aff] font-black uppercase tracking-wider">
+                          {language === 'my' ? 'နေ့စဉ် သုံးရန် အကြံပြုချက်' : 'Target Daily'}
+                        </span>
+                        <span className="block text-sm font-black font-mono text-[#007aff]">
+                          {formatAmount(dailyAllowanceRemaining)}
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 rounded-2xl space-y-1">
+                        <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
+                          {language === 'my' ? 'လကုန် သုံးစွဲမှု ခန့်မှန်း' : 'Projected EOM'}
+                        </span>
+                        <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                          {formatAmount(forecast.projectedSpent)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Chart Trajectory */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-bold">
+                        <span>{language === 'my' ? 'သုံးစွဲမှု လမ်းကြောင်း' : 'MONTHLY PACING TRAJECTORY'}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#007aff]/10 text-[#007aff]">
+                          {formatAmount(dailyAllowanceRemaining)} / day
+                        </span>
+                      </div>
+
+                      <div className="h-32 w-full pt-1.5 rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-black/5 dark:border-white/5 overflow-hidden">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={forecast.dailyPacingPoints} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
+                            <XAxis dataKey="day" stroke="#8e8e93" fontSize={9} tickLine={false} />
+                            <YAxis stroke="#8e8e93" fontSize={9} tickLine={false} />
+                            <Tooltip 
+                              content={({ active, payload }: any) => {
+                                if (active && payload && payload.length) {
+                                  const data = payload[0].payload;
+                                  return (
+                                    <div className="p-2 bg-white dark:bg-[#1c1c1e] border border-black/10 dark:border-white/10 rounded-xl shadow-md text-[9px] space-y-0.5 leading-none">
+                                      <p className="font-extrabold text-[#1c1c1e] dark:text-white">Day {data.day}</p>
+                                      {data.actual !== null && (
+                                        <p className="text-[#007aff] font-bold">Act: {formatAmount(data.actual)}</p>
+                                      )}
+                                      <p className="text-[#af52de] font-bold">Proj: {formatAmount(data.projected)}</p>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
+                            {activeBudget.limit > 0 && (
+                              <ReferenceLine y={activeBudget.limit} stroke="#ff3b30" strokeDasharray="3 3" strokeOpacity={0.6} />
+                            )}
+                            <Line type="monotone" dataKey="actual" stroke="#007aff" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} connectNulls isAnimationActive={false} />
+                            <Line type="monotone" dataKey="projected" stroke="#af52de" strokeWidth={1.5} strokeDasharray="3 3" dot={false} isAnimationActive={false} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {bentoTab === 'categories' && (
+                  <motion.div
+                    key="categories-tab"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="space-y-3 flex-1 flex flex-col"
+                  >
+                    <div className="flex-1 overflow-y-auto max-h-[220px] pr-1 space-y-3">
+                      {categorySpentList.length === 0 ? (
+                        <div className="text-center py-8 text-xs text-[#8e8e93]">
+                          {t('noExpenseDataFound')} {getRangeLabel()}
+                        </div>
+                      ) : (
+                        categorySpentList.map(({ category, spent }) => {
+                          const relativePercent = activeBudget.limit > 0 ? (spent / activeBudget.limit) * 100 : 0;
+                          const catStyle = getCategoryStyle(category, categoryColors);
+                          const CatIcon = getCategoryIcon(category, categoryIcons);
+                          const isHigh = relativePercent > 20;
+
+                          return (
+                            <div key={category} className="space-y-1.5">
+                              <div className="flex justify-between items-center text-xs">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`p-1.5 rounded-lg border ${catStyle.bg} ${catStyle.text} ${catStyle.border}`}
+                                    style={catStyle.style}
+                                  >
+                                    <CatIcon className="w-3.5 h-3.5" />
+                                  </div>
+                                  <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{tc(category)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 font-mono">
+                                  <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                                    {formatAmount(spent)}
+                                  </span>
+                                  <span className="text-[10px] text-[#8e8e93] font-bold">
+                                    {relativePercent.toFixed(0)}%
+                                  </span>
+                                  {isHigh && (
+                                    <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-[#ff3b30]/10 text-[#ff3b30]">
+                                      High
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="w-full h-1.5 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-[#007aff]"
+                                  style={{
+                                    width: `${Math.min((spent / (totalSpent || 1)) * 100, 100)}%`,
+                                    ...(catStyle.hex ? { backgroundColor: catStyle.hex } : {})
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
-

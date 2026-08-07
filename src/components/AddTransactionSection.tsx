@@ -296,20 +296,22 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
       {/* Header Panel */}
       <div className="flex items-center justify-between border-b border-black/[0.05] dark:border-white/[0.05] pb-4">
         <div>
-          <h2 className="text-lg font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <Coins className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <Coins className="w-4.5 h-4.5" />
+            </div>
             {initialTransaction ? t('editTransaction') : t('addTransaction')}
           </h2>
-          <p className="text-[11px] text-[#8e8e93] font-medium">
+          <p className="text-[11px] text-[#8e8e93] font-medium mt-0.5">
             {initialTransaction
-              ? (language === 'my' ? 'မှတ်တမ်းအချက်အလက်များကို ပြင်ဆင်ပါ' : 'Modify the existing transaction details')
-              : (language === 'my' ? 'မှတ်တမ်းသစ်တစ်ခု ထည့်သွင်းပါ' : 'Establish a high-fidelity record in your ledger')}
+              ? (language === 'my' ? 'မှတ်တမ်းအချက်အလက်များကို ပြင်ဆင်ပါ' : 'Modify existing transaction details')
+              : (language === 'my' ? 'ဝင်ငွေ/ထွက်ငွေ မှတ်တမ်းသစ် ထည့်သွင်းပါ' : 'Record your income or expense entry')}
           </p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="w-11 h-11 flex items-center justify-center bg-[#f2f2f7] dark:bg-[#2c2c2e] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full hover:opacity-80 transition-all cursor-pointer border-0 shrink-0"
+          className="w-10 h-10 flex items-center justify-center bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white rounded-full transition-all cursor-pointer border-0 shrink-0"
           title="Close"
           id="close-transaction-form-btn"
         >
@@ -319,94 +321,127 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         
-        {/* Centered Large Immersive Amount Section */}
-        <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] shadow-xs text-center space-y-4">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#8e8e93] block">
-            {language === 'my' ? 'သွင်းငွေ/ထုတ်ငွေ ပမာဏ' : 'TRANSACTION VOLUME'}
-          </span>
-
-          <div className="relative flex items-center justify-center max-w-sm mx-auto">
-            <input
-              type="number"
-              min="0"
-              step="any"
-              placeholder="0"
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                if (errors.amount) {
-                  setErrors(prev => ({ ...prev, amount: undefined }));
-                }
-              }}
-              className="w-full text-4xl sm:text-5xl font-mono font-black text-center text-[#1c1c1e] dark:text-white bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff]"
-              style={{ width: `${Math.max(amount.length * 24 + 40, 120)}px`, maxWidth: '100%' }}
-            />
-            {amount && (
-              <button
-                type="button"
-                onClick={handleClearAmount}
-                className="w-6 h-6 flex items-center justify-center rounded-full bg-black/[0.06] hover:bg-black/[0.1] dark:bg-white/[0.1] dark:hover:bg-white/[0.15] text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 text-[10px] ml-1 shrink-0"
-                title="Clear Amount"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {errors.amount && (
-            <div className="text-[11px] text-red-500 font-extrabold flex items-center justify-center gap-1.5 animate-bounce mt-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{errors.amount}</span>
-            </div>
-          )}
-
-          {/* iOS Segmented Control for Expense vs Income */}
-          <div className="max-w-xs mx-auto p-1 bg-black/[0.03] dark:bg-white/[0.04] rounded-full border border-black/[0.02] dark:border-white/[0.02] grid grid-cols-2 gap-1">
+        {/* Type Toggle + Hero Amount Card */}
+        <div className="ios-glass p-6 rounded-[2.25rem] border border-black/[0.04] dark:border-white/[0.08] shadow-lg shadow-black/[0.02] space-y-6 text-center">
+          
+          {/* iOS Master Segmented Control (Expense vs Income) */}
+          <div className="max-w-xs mx-auto p-1.5 bg-black/[0.04] dark:bg-white/[0.06] rounded-2xl border border-black/[0.03] dark:border-white/[0.04] grid grid-cols-2 gap-1.5 shadow-inner">
             <button
               type="button"
               onClick={() => handleTypeToggle('expense')}
-              className={`py-2 text-xs font-black rounded-full transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+              className={`py-2.5 px-4 text-xs font-black rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0 ${
                 type === 'expense'
-                  ? 'bg-white dark:bg-[#38383a] text-[#ff3b30] shadow-xs'
+                  ? 'bg-white dark:bg-[#2c2c2e] text-[#ff3b30] shadow-md shadow-black/5 scale-[1.02]'
                   : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7] bg-transparent'
               }`}
             >
-              <ArrowDownLeft className="w-3.5 h-3.5" />
+              <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />
               {t('expense')}
             </button>
             <button
               type="button"
               onClick={() => handleTypeToggle('income')}
-              className={`py-2 text-xs font-black rounded-full transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+              className={`py-2.5 px-4 text-xs font-black rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-0 ${
                 type === 'income'
-                  ? 'bg-white dark:bg-[#38383a] text-[#34c759] shadow-xs'
+                  ? 'bg-white dark:bg-[#2c2c2e] text-[#34c759] shadow-md shadow-black/5 scale-[1.02]'
                   : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7] bg-transparent'
               }`}
             >
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
               {t('income')}
             </button>
           </div>
+
+          {/* Large Hero Amount Input */}
+          <div className="space-y-2">
+            <span className="text-[10px] uppercase tracking-widest font-extrabold text-[#8e8e93] block">
+              {language === 'my' ? 'ပမာဏ ထည့်သွင်းရန်' : 'AMOUNT'}
+            </span>
+
+            <div className="relative flex items-center justify-center max-w-md mx-auto">
+              <span className={`text-2xl sm:text-3xl font-black font-mono mr-2 ${type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                {type === 'income' ? '+' : '-'}{currencySymbol || currencyCode}
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                placeholder="0"
+                value={amount}
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  if (errors.amount) {
+                    setErrors(prev => ({ ...prev, amount: undefined }));
+                  }
+                }}
+                className={`w-auto min-w-[120px] max-w-full text-4xl sm:text-5xl md:text-6xl font-mono font-black text-center bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff] tracking-tight ${
+                  type === 'income' ? 'text-[#34c759]' : 'text-[#1c1c1e] dark:text-white'
+                }`}
+                style={{ width: `${Math.max(amount.length * 28 + 40, 140)}px` }}
+              />
+              {amount && (
+                <button
+                  type="button"
+                  onClick={handleClearAmount}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0 text-xs ml-2 shrink-0 shadow-2xs"
+                  title="Clear Amount"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {errors.amount && (
+              <div className="text-xs text-[#ff3b30] font-extrabold flex items-center justify-center gap-1.5 animate-bounce pt-1">
+                <AlertCircle className="w-4 h-4" />
+                <span>{errors.amount}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Amount Pill Presets */}
+          <div className="pt-2">
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-wider mr-1">
+                {language === 'my' ? 'အမြန်ပေါင်း:' : 'Quick Add:'}
+              </span>
+              {quickAmountPresets.map((val) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => handleQuickAmount(val)}
+                  className="px-3 py-1.5 rounded-xl bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-xs font-extrabold font-mono text-[#1c1c1e] dark:text-[#f2f2f7] transition-all cursor-pointer border border-black/[0.03] dark:border-white/[0.05] active:scale-95 shadow-2xs"
+                >
+                  +{val >= 1000 ? `${val / 1000}k` : val}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Dynamic Category GRID Selector (No plain select dropdowns) */}
-        <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] space-y-4 shadow-xs">
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#007aff]" />
-              {t('selectCategory')}
-            </h3>
-            <p className="text-[10px] text-[#8e8e93] font-medium mt-1">
-              {language === 'my' ? 'ငွေလွှဲကဏ္ဍတစ်ခုကို နှိပ်ပြီးရွေးချယ်ပါ' : 'Select a thematic classification label'}
-            </p>
+        {/* Dynamic Category GRID Selector */}
+        <div className="ios-glass p-6 rounded-[2.25rem] border border-black/[0.04] dark:border-white/[0.08] space-y-4 shadow-lg shadow-black/[0.02]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-[#007aff]" />
+                {t('selectCategory')}
+              </h3>
+              <p className="text-[11px] text-[#8e8e93] font-medium mt-0.5">
+                {language === 'my' ? 'ငွေလွှဲ အမျိုးအစားတစ်ခုကို ရွေးချယ်ပါ' : 'Choose a category for this transaction'}
+              </p>
+            </div>
+            <span className="text-[10px] font-extrabold text-[#007aff] bg-[#007aff]/10 px-2.5 py-1 rounded-full border border-[#007aff]/20">
+              {tc(category)}
+            </span>
           </div>
 
           {currentCategories.length === 0 ? (
             <div className="text-center py-6 text-xs text-[#8e8e93]">
-              No categories setup.
+              No categories configured.
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {currentCategories.map((cat) => {
                 const isSelected = category === cat;
                 const IconComponent = getCategoryIcon(cat, categoryIcons);
@@ -424,20 +459,28 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
                           : undefined
                         : catStyle.style
                     }
-                    className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all duration-200 cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? catStyle.style
-                          ? 'shadow-md scale-[1.02] border-2 font-black'
-                          : 'bg-[#007aff] text-white border-[#007aff] shadow-md scale-[1.02] font-black'
-                        : `${catStyle.bg} ${catStyle.text} ${catStyle.border} hover:scale-[1.02]`
+                          ? 'shadow-md scale-[1.02] border-2 font-black ring-2 ring-offset-2 ring-[#007aff]/30 dark:ring-offset-[#1c1c1e]'
+                          : 'bg-[#007aff] text-white border-[#007aff] shadow-md shadow-[#007aff]/25 scale-[1.02] font-black'
+                        : `${catStyle.bg} ${catStyle.text} ${catStyle.border} hover:scale-[1.02] hover:shadow-xs`
                     }`}
                   >
-                    <div className="shrink-0">
-                      <IconComponent className="w-5 h-5" />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-black/5 dark:bg-white/10'}`}>
+                        <IconComponent className="w-4.5 h-4.5" />
+                      </div>
+                      <span className="text-xs font-black truncate leading-tight">
+                        {tc(cat)}
+                      </span>
                     </div>
-                    <span className="text-xs font-black truncate leading-none">
-                      {tc(cat)}
-                    </span>
+
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-white/25 text-white flex items-center justify-center shrink-0 ml-1">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -445,15 +488,39 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
           )}
         </div>
 
-        {/* Date, Time, and Description Shortcuts */}
+        {/* Date Selector & Smart Description Suggestions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           
-          {/* Left: Date Selector shortcuts & Input */}
-          <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] space-y-4 shadow-xs h-full">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-[#007aff]" />
-              {t('date')}
-            </h3>
+          {/* Left: Date Selector & Quick Date Chips */}
+          <div className="ios-glass p-6 rounded-[2.25rem] border border-black/[0.04] dark:border-white/[0.08] space-y-4 shadow-lg shadow-black/[0.02] h-full">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-[#007aff]" />
+                {t('date')}
+              </h3>
+
+              {/* Quick Date Chips */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(0)}
+                  className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                    date === getLocalDateStr()
+                      ? 'bg-[#007aff] text-white border-[#007aff] shadow-2xs'
+                      : 'bg-black/5 dark:bg-white/10 text-[#8e8e93] border-transparent hover:text-[#1c1c1e] dark:hover:text-white'
+                  }`}
+                >
+                  {language === 'my' ? 'ယနေ့' : 'Today'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDate(1)}
+                  className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 text-[#8e8e93] border border-transparent hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer"
+                >
+                  {language === 'my' ? 'မနေ့က' : 'Yesterday'}
+                </button>
+              </div>
+            </div>
 
             <IOSDatePicker
               value={date}
@@ -468,34 +535,75 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
             />
           </div>
 
-          {/* Right: Smart Description suggestions & Input */}
-          <div className="ios-glass p-6 rounded-[2rem] border border-black/[0.03] dark:border-white/[0.03] space-y-4 shadow-xs h-full">
+          {/* Right: Smart Description Input & Interactive Suggestion Chips */}
+          <div className="ios-glass p-6 rounded-[2.25rem] border border-black/[0.04] dark:border-white/[0.08] space-y-4 shadow-lg shadow-black/[0.02] h-full">
             <h3 className="text-xs font-black uppercase tracking-wider text-[#8e8e93] flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-[#007aff]" />
               {t('description')} ({t('optional')})
             </h3>
 
             <div className="space-y-3.5">
-              {/* Plain Input field */}
               <input
                 type="text"
                 placeholder={language === 'my' ? 'မှတ်စုရေးရန် (ဥပမာ- ထမင်းစားစရိတ်)' : 'e.g. Lunch with friends'}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full h-11 px-4 bg-black/[0.03] dark:bg-white/[0.04] border border-transparent rounded-2xl text-xs sm:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-4 focus:ring-[#007aff]/15 transition-all duration-200"
+                className="w-full h-12 px-4 bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.08] rounded-2xl text-xs sm:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-4 focus:ring-[#007aff]/15 transition-all duration-200"
               />
+
+              {/* Interactive Suggestion Chips */}
+              {getSuggestions().length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] font-bold text-[#8e8e93] uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[#007aff]" />
+                    {language === 'my' ? 'အမြန် ရွေးချယ်စရာများ:' : 'Suggestions:'}
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {getSuggestions().map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setDescription(suggestion)}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                          description === suggestion
+                            ? 'bg-[#007aff]/15 text-[#007aff] border-[#007aff]/30 font-bold'
+                            : 'bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-[#8e8e93] border-black/[0.03] dark:border-white/[0.05] hover:text-[#1c1c1e] dark:hover:text-white'
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Save button */}
-        <div className="pt-2">
+        {/* Action Buttons (Save & Cancel) */}
+        <div className="pt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-1/3 h-13 flex items-center justify-center bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 text-[#1c1c1e] dark:text-[#f2f2f7] rounded-2xl text-sm font-bold transition-all cursor-pointer border-0 active:scale-[0.98]"
+          >
+            {language === 'my' ? 'မလုပ်တော့ပါ' : 'Cancel'}
+          </button>
+          
           <button
             type="submit"
-            className="w-full h-12 flex items-center justify-center gap-2 bg-[#007aff] hover:bg-[#0066d6] text-white rounded-2xl text-sm font-bold transition-all shadow-md shadow-[#007aff]/10 cursor-pointer border-0 active:scale-[0.98]"
+            className={`w-2/3 h-13 flex items-center justify-center gap-2 rounded-2xl text-sm font-black text-white transition-all shadow-lg cursor-pointer border-0 active:scale-[0.98] ${
+              type === 'income'
+                ? 'bg-[#34c759] hover:bg-[#30d158] shadow-[#34c759]/25'
+                : 'bg-[#007aff] hover:bg-[#0062cc] shadow-[#007aff]/25'
+            }`}
           >
-            <Check className="w-5 h-5" />
-            <span>{language === 'my' ? 'သိမ်းဆည်းမည်' : 'Save'}</span>
+            <Check className="w-5 h-5 stroke-[3]" />
+            <span>
+              {initialTransaction 
+                ? (language === 'my' ? 'ပြင်ဆင်ချက် သိမ်းမည်' : 'Save Changes') 
+                : (language === 'my' ? 'မှတ်တမ်း သိမ်းဆည်းမည်' : 'Save Transaction')}
+            </span>
           </button>
         </div>
 

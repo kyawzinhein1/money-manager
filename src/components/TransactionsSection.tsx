@@ -216,8 +216,8 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     return dateString;
   }, []);
 
-  // View Mode & Calendar State
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  // Calendar Modal State
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const todayObj = new Date();
   const [calendarYear, setCalendarYear] = useState<number>(todayObj.getFullYear());
   const [calendarMonth, setCalendarMonth] = useState<number>(todayObj.getMonth() + 1); // 1-12
@@ -703,19 +703,19 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
           {/* Export Report Action */}
-          <div className="relative font-sans animate-fade-in flex-1 sm:flex-none" id="export-menu-container">
+          <div className="relative font-sans animate-fade-in w-full sm:w-auto" id="export-menu-container">
             <button
               id="export-dropdown-btn"
               onClick={() => setShowExportMenu(!showExportMenu)}
               disabled={filteredTransactions.length === 0}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 h-11 px-4 border border-black/10 dark:border-white/10 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-40 rounded-full text-xs font-bold transition-all cursor-pointer bg-transparent"
+              className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-11 px-2 sm:px-4 border border-black/10 dark:border-white/10 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-40 rounded-full text-xs font-bold transition-all cursor-pointer bg-transparent active:scale-95"
               title={language === 'my' ? 'ငွေစာရင်းအစီရင်ခံစာထုတ်ရန်' : 'Export Ledger Report'}
             >
-              <Download className="w-4 h-4 text-[#007aff]" />
-              <span>{language === 'my' ? 'ထုတ်ယူရန်' : 'Export'}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#8e8e93]" />
+              <Download className="w-4 h-4 text-[#007aff] shrink-0" />
+              <span className="truncate">{language === 'my' ? 'ထုတ်ယူရန်' : 'Export'}</span>
+              <ChevronDown className="w-3 h-3 text-[#8e8e93] shrink-0 hidden xs:inline" />
             </button>
 
             <AnimatePresence>
@@ -776,419 +776,320 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             </AnimatePresence>
           </div>
 
+          {/* Dedicated Calendar Action Button */}
+          <button
+            id="calendar-modal-btn"
+            type="button"
+            onClick={() => setIsCalendarModalOpen(true)}
+            className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-11 px-2 sm:px-4 border border-black/10 dark:border-white/10 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-[#1c1c1e] dark:text-[#f2f2f7] rounded-full text-xs font-bold transition-all cursor-pointer bg-transparent active:scale-95"
+            title={language === 'my' ? 'နေ့စဉ် ပြက္ခဒိန် ကြည့်ရန်' : 'Daily Calendar View'}
+          >
+            <Calendar className="w-4 h-4 text-[#007aff] shrink-0" />
+            <span className="truncate">{language === 'my' ? 'ပြက္ခဒိန်' : 'Calendar'}</span>
+          </button>
+
           {/* Primary Call to Action */}
           <button
             id="add-tx-btn"
             onClick={handleOpenAdd}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-11 px-5.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold shadow-sm transition-all duration-200 cursor-pointer border-0 active:scale-95 shrink-0"
+            className="w-full sm:w-auto flex items-center justify-center gap-1 sm:gap-2 h-10 sm:h-11 px-2.5 sm:px-5.5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold shadow-md shadow-[#007aff]/20 transition-all duration-200 cursor-pointer border-0 active:scale-95 shrink-0"
           >
-            <Plus className="w-4.5 h-4.5" />
-            {t('addTransaction')}
+            <Plus className="w-4 h-4 stroke-[3] shrink-0" />
+            <span className="truncate">{t('addTransaction')}</span>
           </button>
         </div>
       </div>
 
-      {/* View Mode Segmented Control Bar */}
-      <div className="flex justify-center sm:justify-start">
-        <div className="inline-flex items-center p-1 bg-black/[0.04] dark:bg-white/[0.05] rounded-2xl border border-black/[0.04] dark:border-white/[0.06] h-11 w-full sm:w-auto shadow-xs">
-          <button
-            id="view-mode-list-btn"
-            type="button"
-            onClick={() => setViewMode('list')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 h-9 rounded-xl text-xs transition-all border-0 cursor-pointer ${
-              viewMode === 'list'
-                ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-extrabold border border-black/5 dark:border-white/10'
-                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white font-semibold'
-            }`}
+      {/* Dedicated Calendar Screen Modal */}
+      <AnimatePresence>
+        {isCalendarModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-fade-in"
+            onClick={() => setIsCalendarModalOpen(false)}
           >
-            <List className="w-4 h-4" />
-            <span>{t('listView')}</span>
-          </button>
-          <button
-            id="view-mode-calendar-btn"
-            type="button"
-            onClick={() => setViewMode('calendar')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 h-9 rounded-xl text-xs transition-all border-0 cursor-pointer ${
-              viewMode === 'calendar'
-                ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-extrabold border border-black/5 dark:border-white/10'
-                : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white font-semibold'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>{t('calendarView')}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Render View depending on viewMode (list vs calendar) */}
-      {viewMode === 'calendar' ? (
-        <div className="space-y-6">
-          {/* iOS Style Calendar Card */}
-          <div className="p-3.5 sm:p-6 ios-glass rounded-[2rem] sm:rounded-[2.5rem] border border-black/5 dark:border-white/5 space-y-4 sm:space-y-5 shadow-xs">
-            {/* Calendar Header with Month/Year Navigation */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
-                  <Calendar className="w-5 h-5" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl p-4 sm:p-6 border border-white/20 dark:border-white/10 space-y-4 max-h-[90vh] overflow-y-auto flex flex-col"
+            >
+              {/* Modal Header & Controls */}
+              <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
+                      {new Date(calendarYear, calendarMonth - 1, 1).toLocaleString(language === 'my' ? 'my-MM' : 'en-US', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <p className="text-[11px] text-[#8e8e93] font-medium">
+                      {language === 'my' ? 'နေ့စဉ် ဝင်ငွေ/ထွက်ငွေ ပြက္ခဒိန်' : 'Daily Income and Expense overview'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
-                    {new Date(calendarYear, calendarMonth - 1, 1).toLocaleString(language === 'my' ? 'my-MM' : 'en-US', { month: 'long', year: 'numeric' })}
-                  </h3>
-                  <p className="text-[11px] text-[#8e8e93] font-medium">
-                    {language === 'my' ? 'နေ့စဉ် ဝင်ငွေ/ထွက်ငွေ ပြက္ခဒိန်' : 'Daily Income and Expense overview'}
-                  </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (calendarMonth === 1) {
+                        setCalendarMonth(12);
+                        setCalendarYear(calendarYear - 1);
+                      } else {
+                        setCalendarMonth(calendarMonth - 1);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
+                    title="Previous Month"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      setCalendarYear(now.getFullYear());
+                      setCalendarMonth(now.getMonth() + 1);
+                    }}
+                    className="px-3 py-1 rounded-full bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] text-xs font-extrabold transition-all cursor-pointer border-0"
+                  >
+                    {language === 'my' ? 'ယနေ့' : 'Today'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (calendarMonth === 12) {
+                        setCalendarMonth(1);
+                        setCalendarYear(calendarYear + 1);
+                      } else {
+                        setCalendarMonth(calendarMonth + 1);
+                      }
+                    }}
+                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
+                    title="Next Month"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsCalendarModalOpen(false)}
+                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0 ml-1"
+                    title="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (calendarMonth === 1) {
-                      setCalendarMonth(12);
-                      setCalendarYear(calendarYear - 1);
-                    } else {
-                      setCalendarMonth(calendarMonth - 1);
-                    }
-                  }}
-                  className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-[#1c1c1e] dark:text-white transition-all cursor-pointer border-0"
-                  title="Previous Month"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
+              {/* Calendar Day Header Row */}
+              <div className="grid grid-cols-7 gap-1 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider shrink-0">
+                <div>{language === 'my' ? 'တနင်္ဂနွေ' : 'Sun'}</div>
+                <div>{language === 'my' ? 'တနင်္လာ' : 'Mon'}</div>
+                <div>{language === 'my' ? 'အင်္ဂါ' : 'Tue'}</div>
+                <div>{language === 'my' ? 'ဗုဒ္ဓဟူး' : 'Wed'}</div>
+                <div>{language === 'my' ? 'ကြာသပတေး' : 'Thu'}</div>
+                <div>{language === 'my' ? 'သောကြာ' : 'Fri'}</div>
+                <div>{language === 'my' ? 'စနေ' : 'Sat'}</div>
+              </div>
+
+              {/* Calendar Days Grid */}
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 flex-1 overflow-y-auto">
+                {Array.from({ length: new Date(calendarYear, calendarMonth - 1, 1).getDay() }).map((_, idx) => (
+                  <div key={`offset-${idx}`} className="w-full aspect-square min-h-0 rounded-xl bg-black/[0.01] dark:bg-white/[0.01]" />
+                ))}
+
+                {Array.from({ length: new Date(calendarYear, calendarMonth, 0).getDate() }).map((_, idx) => {
+                  const dayNum = idx + 1;
+                  const monthStr = calendarMonth.toString().padStart(2, '0');
+                  const dayStr = dayNum.toString().padStart(2, '0');
+                  const dateKey = `${calendarYear}-${monthStr}-${dayStr}`;
+
+                  const dayTxs = transactions.filter(tx => tx.date === dateKey);
+                  let dayIncome = 0;
+                  let dayExpense = 0;
+                  dayTxs.forEach(tx => {
+                    if (tx.type === 'income') dayIncome += tx.amount;
+                    else dayExpense += tx.amount;
+                  });
+
+                  const isToday = dateKey === getLocalDateStr();
+
+                  return (
+                    <button
+                      key={dateKey}
+                      type="button"
+                      onClick={() => setSelectedCalendarDay(dateKey)}
+                      className={`w-full aspect-square min-h-0 p-1 sm:p-2 rounded-xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:scale-[1.02] ${
+                        isToday
+                          ? 'bg-[#007aff]/10 border-[#007aff]/40 shadow-xs'
+                          : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full min-w-0">
+                        <span className={`text-[10px] sm:text-xs font-black w-4.5 h-4.5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full shrink-0 ${
+                          isToday ? 'bg-[#007aff] text-white' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                        }`}>
+                          {dayNum}
+                        </span>
+                        {dayTxs.length > 0 && (
+                          <span className="text-[8px] sm:text-[9px] font-black px-1 py-0.2 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0">
+                            {dayTxs.length}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-0.5 w-full min-w-0 overflow-hidden">
+                        {dayIncome > 0 && (
+                          <span className="block text-[7.5px] sm:text-[9px] font-black text-[#34c759] bg-[#34c759]/15 px-0.5 sm:px-1 py-0.2 rounded-md truncate leading-tight">
+                            +{formatAmount(dayIncome)}
+                          </span>
+                        )}
+                        {dayExpense > 0 && (
+                          <span className="block text-[7.5px] sm:text-[9px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-0.5 sm:px-1 py-0.2 rounded-md truncate leading-tight">
+                            -{formatAmount(dayExpense)}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Day Detail Pop-up Sheet / Modal */}
+      <AnimatePresence>
+        {selectedCalendarDay && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in"
+            onClick={() => setSelectedCalendarDay(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl p-6 border border-white/20 dark:border-white/10 space-y-5 max-h-[85vh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl bg-[#007aff]/10 text-[#007aff]">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
+                      {t('dailyTransactionsFor')}
+                    </h3>
+                    <p className="text-xs font-bold text-[#8e8e93] font-mono">
+                      {selectedCalendarDay}
+                    </p>
+                  </div>
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => {
-                    const now = new Date();
-                    setCalendarYear(now.getFullYear());
-                    setCalendarMonth(now.getMonth() + 1);
-                  }}
-                  className="px-3.5 py-1.5 rounded-full bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] text-xs font-extrabold transition-all cursor-pointer border-0"
+                  onClick={() => setSelectedCalendarDay(null)}
+                  className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0"
                 >
-                  {language === 'my' ? 'ယနေ့' : 'Today'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (calendarMonth === 12) {
-                      setCalendarMonth(1);
-                      setCalendarYear(calendarYear + 1);
-                    } else {
-                      setCalendarMonth(calendarMonth + 1);
-                    }
-                  }}
-                  className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-[#1c1c1e] dark:text-white transition-all cursor-pointer border-0"
-                  title="Next Month"
-                >
-                  <ChevronRight className="w-5 h-5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </div>
 
-            {/* Calendar Day Header Row */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider">
-              <div>{language === 'my' ? 'တနင်္ဂနွေ' : 'Sun'}</div>
-              <div>{language === 'my' ? 'တနင်္လာ' : 'Mon'}</div>
-              <div>{language === 'my' ? 'အင်္ဂါ' : 'Tue'}</div>
-              <div>{language === 'my' ? 'ဗုဒ္ဓဟူး' : 'Wed'}</div>
-              <div>{language === 'my' ? 'ကြာသပတေး' : 'Thu'}</div>
-              <div>{language === 'my' ? 'သောကြာ' : 'Fri'}</div>
-              <div>{language === 'my' ? 'စနေ' : 'Sat'}</div>
-            </div>
-
-            {/* Calendar Days Grid */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3">
-              {/* Offset empty cells */}
-              {Array.from({ length: new Date(calendarYear, calendarMonth - 1, 1).getDay() }).map((_, idx) => (
-                <div key={`offset-${idx}`} className="w-full aspect-square min-h-0 rounded-xl sm:rounded-2xl bg-black/[0.01] dark:bg-white/[0.01]" />
-              ))}
-
-              {/* Month days */}
-              {Array.from({ length: new Date(calendarYear, calendarMonth, 0).getDate() }).map((_, idx) => {
-                const dayNum = idx + 1;
-                const monthStr = calendarMonth.toString().padStart(2, '0');
-                const dayStr = dayNum.toString().padStart(2, '0');
-                const dateKey = `${calendarYear}-${monthStr}-${dayStr}`;
-
-                const dayTxs = transactions.filter(tx => tx.date === dateKey);
-                let dayIncome = 0;
-                let dayExpense = 0;
-                dayTxs.forEach(tx => {
-                  if (tx.type === 'income') dayIncome += tx.amount;
-                  else dayExpense += tx.amount;
-                });
-
-                const isToday = dateKey === getLocalDateStr();
+              {/* Daily Totals Summary Row */}
+              {(() => {
+                const dayTxs = transactions.filter(tx => tx.date === selectedCalendarDay);
+                const dayIncome = dayTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0);
+                const dayExpense = dayTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0);
+                const dayNet = dayIncome - dayExpense;
 
                 return (
-                  <button
-                    key={dateKey}
-                    type="button"
-                    onClick={() => setSelectedCalendarDay(dateKey)}
-                    className={`w-full aspect-square min-h-0 p-1 sm:p-1.5 md:p-2.5 rounded-xl sm:rounded-2xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:scale-[1.02] ${
-                      isToday
-                        ? 'bg-[#007aff]/10 border-[#007aff]/40 shadow-xs z-1'
-                        : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full min-w-0">
-                      <span className={`text-[10px] sm:text-xs md:text-sm font-black w-4.5 h-4.5 sm:w-6 sm:h-6 md:w-7 md:h-7 flex items-center justify-center rounded-full shrink-0 ${
-                        isToday ? 'bg-[#007aff] text-white' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
-                      }`}>
-                        {dayNum}
+                  <div className="grid grid-cols-3 gap-2 shrink-0">
+                    <div className="p-3 rounded-2xl bg-[#34c759]/10 border border-[#34c759]/20 text-center">
+                      <span className="block text-[9px] font-black uppercase text-[#34c759]">{t('income')}</span>
+                      <span className="block text-xs font-black text-[#34c759] font-mono mt-0.5">+{formatAmount(dayIncome)}</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/20 text-center">
+                      <span className="block text-[9px] font-black uppercase text-[#ff3b30]">{t('expense')}</span>
+                      <span className="block text-xs font-black text-[#ff3b30] font-mono mt-0.5">-{formatAmount(dayExpense)}</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 text-center">
+                      <span className="block text-[9px] font-black uppercase text-[#8e8e93]">{t('netSavings')}</span>
+                      <span className={`block text-xs font-black font-mono mt-0.5 ${dayNet >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                        {formatAmount(dayNet)}
                       </span>
-                      {dayTxs.length > 0 && (
-                        <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0">
-                          {dayTxs.length}
-                        </span>
-                      )}
                     </div>
-
-                    <div className="space-y-0.5 w-full min-w-0 overflow-hidden">
-                      {dayIncome > 0 && (
-                        <span className="block text-[7.5px] sm:text-[9px] md:text-[10px] font-black text-[#34c759] bg-[#34c759]/15 px-0.5 sm:px-1 py-0.2 sm:py-0.5 rounded-md truncate leading-tight">
-                          +{formatAmount(dayIncome)}
-                        </span>
-                      )}
-                      {dayExpense > 0 && (
-                        <span className="block text-[7.5px] sm:text-[9px] md:text-[10px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-0.5 sm:px-1 py-0.2 sm:py-0.5 rounded-md truncate leading-tight">
-                          -{formatAmount(dayExpense)}
-                        </span>
-                      )}
-                    </div>
-                  </button>
+                  </div>
                 );
-              })}
-            </div>
-          </div>
+              })()}
 
-          {/* Day Detail Pop-up Sheet / Modal */}
-          <AnimatePresence>
-            {selectedCalendarDay && (
-              <div 
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md"
-                onClick={() => setSelectedCalendarDay(null)}
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full max-w-lg bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl p-6 border border-white/20 dark:border-white/10 space-y-5 max-h-[85vh] flex flex-col"
-                >
-                  {/* Header */}
-                  <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3 shrink-0">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2.5 rounded-2xl bg-[#007aff]/10 text-[#007aff]">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
-                          {t('dailyTransactionsFor')}
-                        </h3>
-                        <p className="text-xs font-bold text-[#8e8e93] font-mono">
-                          {selectedCalendarDay}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCalendarDay(null)}
-                      className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+              {/* Transactions List */}
+              <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                {transactions.filter(tx => tx.date === selectedCalendarDay).length === 0 ? (
+                  <div className="py-12 text-center text-[#8e8e93]">
+                    <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs font-bold">{t('noTransactions')}</p>
                   </div>
-
-                  {/* Daily Totals Summary Row */}
-                  {(() => {
-                    const dayTxs = transactions.filter(tx => tx.date === selectedCalendarDay);
-                    const dayIncome = dayTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0);
-                    const dayExpense = dayTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0);
-                    const dayNet = dayIncome - dayExpense;
-
+                ) : (
+                  transactions.filter(tx => tx.date === selectedCalendarDay).map(tx => {
+                    const style = getCategoryStyle(tx.category, categoryColors);
                     return (
-                      <div className="grid grid-cols-3 gap-2 shrink-0">
-                        <div className="p-3 rounded-2xl bg-[#34c759]/10 border border-[#34c759]/20 text-center">
-                          <span className="block text-[9px] font-black uppercase text-[#34c759]">{t('income')}</span>
-                          <span className="block text-xs font-black text-[#34c759] font-mono mt-0.5">+{formatAmount(dayIncome)}</span>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/20 text-center">
-                          <span className="block text-[9px] font-black uppercase text-[#ff3b30]">{t('expense')}</span>
-                          <span className="block text-xs font-black text-[#ff3b30] font-mono mt-0.5">-{formatAmount(dayExpense)}</span>
-                        </div>
-                        <div className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 text-center">
-                          <span className="block text-[9px] font-black uppercase text-[#8e8e93]">{t('netSavings')}</span>
-                          <span className={`block text-xs font-black font-mono mt-0.5 ${dayNet >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
-                            {formatAmount(dayNet)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Transactions List */}
-                  <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
-                    {transactions.filter(tx => tx.date === selectedCalendarDay).length === 0 ? (
-                      <div className="py-12 text-center text-[#8e8e93]">
-                        <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                        <p className="text-xs font-bold">{t('noTransactions')}</p>
-                      </div>
-                    ) : (
-                      transactions.filter(tx => tx.date === selectedCalendarDay).map(tx => {
-                        const style = getCategoryStyle(tx.category, categoryColors);
-                        return (
-                          <div
-                            key={tx.id}
-                            className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 flex items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className={`p-2 rounded-xl text-xs font-extrabold border shrink-0 ${style.bg} ${style.text} ${style.border}`}>
-                                {tx.category}
-                              </span>
-                              <p className="text-xs font-bold text-[#1c1c1e] dark:text-white truncate">
-                                {tx.description || tx.category}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className={`text-xs font-black font-mono ${tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
-                                {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedCalendarDay(null);
-                                  handleOpenEdit(tx);
-                                }}
-                                className="p-1.5 text-[#8e8e93] hover:text-[#007aff] cursor-pointer border-0 bg-transparent"
-                                title="Edit"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  onDeleteTransaction(tx.id);
-                                }}
-                                className="p-1.5 text-[#8e8e93] hover:text-[#ff3b30] cursor-pointer border-0 bg-transparent"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Advanced Search & Segmented Mode Control Panel */}
-          <div className="p-4 sm:p-5 ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 space-y-3.5 shadow-xs">
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
-              
-              {/* Refined Search Input */}
-              <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8e8e93] pointer-events-none" />
-                <input
-                  id="search-input"
-                  type="text"
-                  placeholder={t('searchDescription')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-11 pl-10 pr-9 bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.04] dark:border-white/[0.06] hover:border-black/10 dark:hover:border-white/10 rounded-2xl text-xs sm:text-sm font-medium text-[#1c1c1e] dark:text-[#f2f2f7] placeholder-[#8e8e93] focus:outline-none focus:ring-2 focus:ring-[#007aff]/25 focus:border-[#007aff]/40 focus:bg-white dark:focus:bg-[#1c1c1e] transition-all duration-200"
-                />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all cursor-pointer border-0"
-                    title="Clear search"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* 3-Toggle Mode Switch & Reset Controls */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                {/* Apple Inset 3-Toggle Segment Control */}
-                <div className="flex items-center p-1 bg-black/[0.04] dark:bg-white/[0.05] rounded-2xl border border-black/[0.04] dark:border-white/[0.06] h-11 w-full sm:w-auto shrink-0 shadow-xs">
-                  {(['all', 'income', 'expense'] as const).map((type) => {
-                    const isActive = typeFilter === type;
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setTypeFilter(type)}
-                        className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 h-9 px-3.5 sm:px-4 rounded-xl text-xs transition-all duration-200 cursor-pointer border-0 select-none ${
-                          isActive
-                            ? type === 'income'
-                              ? 'bg-white dark:bg-[#2c2c2e] text-[#34c759] shadow-xs font-black border border-black/5 dark:border-white/10'
-                              : type === 'expense'
-                                ? 'bg-white dark:bg-[#2c2c2e] text-[#ff3b30] shadow-xs font-black border border-black/5 dark:border-white/10'
-                                : 'bg-white dark:bg-[#2c2c2e] text-[#007aff] shadow-xs font-black border border-black/5 dark:border-white/10'
-                            : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-[#f2f2f7] font-semibold hover:bg-black/[0.03] dark:hover:bg-white/[0.03]'
-                        }`}
+                      <div
+                        key={tx.id}
+                        className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 flex items-center justify-between gap-3"
                       >
-                        {type === 'all' && <Filter className="w-3.5 h-3.5 opacity-75" />}
-                        {type === 'income' && <ArrowUpRight className="w-3.5 h-3.5" />}
-                        {type === 'expense' && <ArrowDownLeft className="w-3.5 h-3.5" />}
-                        <span>
-                          {type === 'all'
-                            ? t('allTypes')
-                            : type === 'income'
-                              ? t('income')
-                              : t('expense')}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`p-2 rounded-xl text-xs font-extrabold border shrink-0 ${style.bg} ${style.text} ${style.border}`}>
+                            {tx.category}
+                          </span>
+                          <p className="text-xs font-bold text-[#1c1c1e] dark:text-white truncate">
+                            {tx.description || tx.category}
+                          </p>
+                        </div>
 
-                {/* Reset / Clear Filters Action Button */}
-                {hasActiveFilters && (
-                  <button
-                    id="clear-filters-btn"
-                    onClick={handleClearFilters}
-                    className="h-11 px-4 rounded-2xl flex items-center justify-center gap-1.5 text-xs font-bold text-[#ff3b30] bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 border border-[#ff3b30]/20 transition-all duration-200 cursor-pointer shrink-0"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>{language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset'}</span>
-                  </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-xs font-black font-mono ${tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                            {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCalendarDay(null);
+                              setIsCalendarModalOpen(false);
+                              handleOpenEdit(tx);
+                            }}
+                            className="p-1.5 text-[#8e8e93] hover:text-[#007aff] cursor-pointer border-0 bg-transparent"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onDeleteTransaction(tx.id);
+                            }}
+                            className="p-1.5 text-[#8e8e93] hover:text-[#ff3b30] cursor-pointer border-0 bg-transparent"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
-            </div>
-
-            {/* Match Results Status Bar */}
-            <div className="flex items-center justify-between text-[11px] font-bold text-[#8e8e93] pt-1.5 border-t border-black/5 dark:border-white/5">
-              <div className="flex items-center gap-1.5">
-                <span className="uppercase tracking-wider text-[10px]">
-                  {language === 'my' ? 'ရလဒ်တွေ့ရှိမှု:' : 'Ledger Records:'}
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff] font-mono font-extrabold text-xs">
-                  {filteredTransactions.length}
-                </span>
-              </div>
-
-              {hasActiveFilters && (
-                <span className="text-amber-500 font-medium text-[11px] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  {language === 'my' ? 'စီစစ်မှုအသုံးပြုထားသည်' : 'Active filters applied'}
-                </span>
-              )}
-            </div>
+            </motion.div>
           </div>
+        )}
+      </AnimatePresence>
 
       {/* Transaction List - iOS Table Style */}
       <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 overflow-hidden shadow-xs">
@@ -1397,8 +1298,6 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
           </div>
         )}
       </div>
-      </div>
-      )}
 
       {/* Slide-over or Modal for Add/Edit Transaction */}
       <AnimatePresence>
