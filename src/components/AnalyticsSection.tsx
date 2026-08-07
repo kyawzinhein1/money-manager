@@ -492,130 +492,145 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
         </div>
       </div>
 
-      {/* Combined & Collapsible Financial Summary Card */}
-      <div className="ios-glass rounded-[2rem] p-5 shadow-xs relative overflow-hidden transition-all duration-300 border border-slate-200/80 dark:border-neutral-800">
-        <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-[#007aff]/5 filter blur-3xl pointer-events-none -mr-8 -mt-8" />
+      {/* Executive Cash Flow Summary Card */}
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/80 dark:border-white/10 transition-all duration-300">
         
-        {/* Header Bar with Toggle Button */}
-        <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/5 dark:border-white/5 relative z-10">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] bg-[#007aff]/10 text-[#007aff] px-2.5 py-1 rounded-full font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-              <Landmark className="w-3.5 h-3.5" />
-              <span className="truncate">{language === 'en' ? 'Cash Flow Summary' : 'ငွေကြေးစီးဆင်းမှု အနှစ်ချုပ်'}</span>
-            </span>
-            <span className="text-[10px] text-[#8e8e93] font-bold truncate hidden sm:inline-block">
-              {t('savingRate')}: {summary.savingRate.toFixed(1)}%
-            </span>
+        {/* Card Header Bar */}
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 text-[#007aff]">
+              <Landmark className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white leading-tight">
+                {language === 'en' ? 'Cash Flow Summary' : 'ငွေကြေးစီးဆင်းမှု အနှစ်ချုပ်'}
+              </h3>
+              <p className="text-[11px] text-[#8e8e93] font-medium">
+                {chartHeaderLabel}
+              </p>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsSummaryCollapsed(!isSummaryCollapsed)}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-[#007aff] text-xs font-bold leading-none transition-all cursor-pointer border border-slate-200/50 dark:border-neutral-700/50 active:scale-95 shrink-0 whitespace-nowrap select-none"
-            aria-label={isSummaryCollapsed ? 'Expand Summary' : 'Collapse Summary'}
-          >
-            <span className="whitespace-nowrap leading-none flex items-center">{isSummaryCollapsed ? (language === 'en' ? 'Expand' : 'ဖြန့်ပါ') : (language === 'en' ? 'Collapse' : 'ခေါက်ပါ')}</span>
-            {isSummaryCollapsed ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronUp className="w-3.5 h-3.5 shrink-0" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsSummaryCollapsed(!isSummaryCollapsed)}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-[#007aff] text-xs font-semibold transition-all cursor-pointer active:scale-95 select-none"
+              aria-label={isSummaryCollapsed ? 'Expand Summary' : 'Collapse Summary'}
+            >
+              <span>{isSummaryCollapsed ? (language === 'en' ? 'Expand' : 'ဖြန့်ပါ') : (language === 'en' ? 'Collapse' : 'ခေါက်ပါ')}</span>
+              {isSummaryCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Collapsed Compact Row View */}
+        {/* Collapsed Compact View */}
         {isSummaryCollapsed ? (
-          <div className="pt-3.5 flex flex-wrap items-center justify-between gap-4 relative z-10 animate-fade-in">
-            <div>
-              <span className="text-[10px] text-[#8e8e93] font-bold block uppercase tracking-wider">
-                {t('netSavings')}
+          <div className="pt-4 flex flex-wrap items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#8e8e93] font-medium">{t('netSavings')}:</span>
+              <span className={`text-base font-bold font-mono ${summary.netSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                {summary.netSavings < 0 ? '-' : '+'}{formatAmount(Math.abs(summary.netSavings))}
               </span>
-              <h3 className={`text-xl font-black font-sans tracking-tight ${summary.netSavings >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
-                {summary.netSavings < 0 ? '-' : ''}{formatAmount(Math.abs(summary.netSavings))}
-              </h3>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-bold font-mono">
-              <div className="flex items-center gap-1 bg-[#34c759]/10 text-[#34c759] px-2.5 py-1 rounded-xl">
+            <div className="flex items-center gap-3 text-xs font-medium font-mono text-[#8e8e93]">
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                 <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>{formatAmount(summary.totalIncome)}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-[#ff3b30]/10 text-[#ff3b30] px-2.5 py-1 rounded-xl">
+                {formatAmount(summary.totalIncome)}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
                 <ArrowDownLeft className="w-3.5 h-3.5" />
-                <span>{formatAmount(summary.totalExpense)}</span>
-              </div>
+                {formatAmount(summary.totalExpense)}
+              </span>
             </div>
           </div>
         ) : (
-          /* Expanded Full Combined Grid View */
-          <div className="pt-4 space-y-4 relative z-10 animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Net Savings Metric Card */}
-              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
-                <div>
-                  <span className="text-[10px] text-[#8e8e93] font-black uppercase tracking-wider block mb-1">
+          /* Expanded Clean Metric Grid View */
+          <div className="pt-5 space-y-6 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              {/* Income */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-[#8e8e93] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    {t('income')}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#8e8e93]">
+                    {filteredData.filter(tx => tx.type === 'income').length} {language === 'en' ? 'txns' : 'ခု'}
+                  </span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-[#1c1c1e] dark:text-white">
+                  {formatAmount(summary.totalIncome)}
+                </div>
+              </div>
+
+              {/* Expense */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-[#8e8e93] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    {t('expense')}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#8e8e93]">
+                    {filteredData.filter(tx => tx.type === 'expense').length} {language === 'en' ? 'txns' : 'ခု'}
+                  </span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-[#1c1c1e] dark:text-white">
+                  {formatAmount(summary.totalExpense)}
+                </div>
+              </div>
+
+              {/* Net Cash Flow */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-[#8e8e93] flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${summary.netSavings >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                     {t('netSavings')}
                   </span>
-                  <h3 className={`text-2xl font-black font-sans tracking-tight ${summary.netSavings >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
-                    {summary.netSavings < 0 ? '-' : ''}{formatAmount(Math.abs(summary.netSavings))}
-                  </h3>
-                </div>
-                <div className="w-full pt-3">
-                  <div className="w-full h-1.5 bg-slate-200 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${summary.netSavings >= 0 ? 'bg-[#34c759]' : 'bg-[#ff3b30]'}`}
-                      style={{ width: `${Math.min(Math.max(summary.savingRate, 0), 100)}%` }}
-                    />
-                  </div>
-                  <span className="block text-[9px] text-[#8e8e93] pt-1.5 font-bold">
-                    {language === 'en' ? 'Cashflow safety index' : 'ငွေကြေးလုံခြုံမှု အညွှန်းကိန်း'}
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    summary.netSavings >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                  }`}>
+                    {summary.savingRate.toFixed(0)}% {language === 'en' ? 'Saved' : 'စုဆောင်းငွေ'}
                   </span>
                 </div>
+                <div className={`text-xl sm:text-2xl font-bold font-sans tracking-tight ${
+                  summary.netSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                }`}>
+                  {summary.netSavings < 0 ? '-' : '+'}{formatAmount(Math.abs(summary.netSavings))}
+                </div>
               </div>
 
-              {/* Total Income Metric Card */}
-              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-[#34c759] font-black uppercase tracking-wider flex items-center gap-1">
-                      <ArrowUpRight className="w-3 h-3" />
-                      {t('income')}
-                    </span>
-                    <span className="text-[10px] text-[#8e8e93] font-bold">
-                      {filteredData.filter(tx => tx.type === 'income').length} {language === 'en' ? 'entries' : 'ခု'}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-black font-sans tracking-tight text-[#34c759]">
-                    {formatAmount(summary.totalIncome)}
-                  </h3>
-                </div>
-                <span className="text-[9px] text-[#8e8e93] font-bold pt-2 block">
-                  {language === 'en' ? 'Total monthly funds received' : 'စုစုပေါင်းလက်ခံရရှိသော ဝင်ငွေ'}
-                </span>
-              </div>
-
-              {/* Total Expense Metric Card */}
-              <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/60 border border-slate-100 dark:border-neutral-800 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-[#ff3b30] font-black uppercase tracking-wider flex items-center gap-1">
-                      <ArrowDownLeft className="w-3 h-3" />
-                      {t('expense')}
-                    </span>
-                    <span className="text-[10px] text-[#8e8e93] font-bold">
-                      {filteredData.filter(tx => tx.type === 'expense').length} {language === 'en' ? 'entries' : 'ခု'}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-black font-sans tracking-tight text-[#ff3b30]">
-                    {formatAmount(summary.totalExpense)}
-                  </h3>
-                </div>
-                <div className="flex items-center justify-between text-[9px] text-[#8e8e93] font-bold pt-2">
-                  <span>{language === 'en' ? 'Disbursed funds' : 'သုံးစွဲပြီးသော အသုံးစရိတ်'}</span>
-                  {mostExpensiveDay && (
-                    <span className="text-[#ff3b30] font-mono">
-                      {language === 'en' ? 'Peak' : 'အများဆုံးနေ့'}: {mostExpensiveDay.date}
-                    </span>
-                  )}
-                </div>
-              </div>
             </div>
+
+            {/* Streamlined Cash Flow Proportion Bar */}
+            {summary.totalIncome > 0 && (
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-xs font-medium text-[#8e8e93]">
+                  <span>{language === 'en' ? 'Income Breakdown' : 'ဝင်ငွေ ခွဲဝေမှု ခွဲခြမ်းစိတ်ဖြာချက်'}</span>
+                  <div className="flex items-center gap-3 text-[11px] font-mono">
+                    <span className="text-rose-500">
+                      {language === 'en' ? 'Spent' : 'သုံးစွဲ'}: {((summary.totalExpense / summary.totalIncome) * 100).toFixed(1)}%
+                    </span>
+                    <span className="text-emerald-500">
+                      {language === 'en' ? 'Saved' : 'စုဆောင်း'}: {Math.max(summary.savingRate, 0).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full h-2.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden flex">
+                  <div
+                    className="h-full bg-rose-500 transition-all duration-500"
+                    style={{ width: `${Math.min((summary.totalExpense / summary.totalIncome) * 100, 100)}%` }}
+                  />
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-500 flex-1"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

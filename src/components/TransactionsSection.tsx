@@ -26,7 +26,8 @@ import {
   HelpCircle,
   FolderOpen,
   Tag,
-  Info
+  Info,
+  Check
 } from 'lucide-react';
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
@@ -107,32 +108,32 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
     <tr
       id={`tx-row-${tx.id}`}
       onClick={() => onClick(tx)}
-      className="hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-sm fast-render-row transition-colors cursor-pointer group"
+      className="hover:bg-slate-50 dark:hover:bg-white/5 text-sm fast-render-row transition-colors cursor-pointer group"
     >
-      <td className="p-3.5 pl-4 font-mono text-xs text-[#8e8e93] font-medium">
+      <td className="p-3.5 pl-4 font-mono text-xs text-[#8e8e93] font-medium whitespace-nowrap">
         {formattedDate}
       </td>
       <td className="p-3.5 whitespace-nowrap">
         <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
           style={categoryStyle.style}
         >
           <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
           {translatedCategory}
         </span>
       </td>
-      <td className="p-3.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold max-w-[240px] truncate">
+      <td className="p-3.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold max-w-[280px] truncate">
         {tx.description || translatedCategory}
       </td>
       <td
-        className={`p-3.5 text-right font-bold font-mono whitespace-nowrap text-base ${
-          tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+        className={`p-3.5 text-right font-bold font-mono whitespace-nowrap text-sm sm:text-base ${
+          tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
         }`}
       >
         {tx.type === 'income' ? '+' : '-'}{formattedAmount}
       </td>
       <td className="p-3.5 pr-4 text-right">
-        <ChevronRight className="w-4 h-4 text-[#8e8e93] opacity-40 group-hover:opacity-100 transition-opacity inline-block" />
+        <ChevronRight className="w-4 h-4 text-[#8e8e93] opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all inline-block" />
       </td>
     </tr>
   );
@@ -140,6 +141,7 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
 
 const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
   tx,
+  formattedDate,
   categoryStyle,
   translatedCategory,
   formattedAmount,
@@ -151,15 +153,15 @@ const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
     <div
       id={`tx-card-${tx.id}`}
       onClick={() => onClick(tx)}
-      className="p-3.5 flex items-center justify-between gap-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer fast-render-row active:bg-black/5 dark:active:bg-white/5"
+      className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer fast-render-row active:bg-slate-100 dark:active:bg-white/10"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {/* Category Icon Badge */}
         <div
-          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
           style={categoryStyle.style}
         >
-          <CategoryIcon className="w-4 h-4 shrink-0" />
+          <CategoryIcon className="w-4.5 h-4.5 shrink-0" />
         </div>
 
         {/* Title & Category Subtitle */}
@@ -167,9 +169,11 @@ const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
           <p className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
             {tx.description || translatedCategory}
           </p>
-          <span className="text-xs font-medium text-[#8e8e93] block truncate">
-            {translatedCategory}
-          </span>
+          <div className="flex items-center gap-2 text-xs text-[#8e8e93]">
+            <span className="font-medium truncate">{translatedCategory}</span>
+            <span>•</span>
+            <span className="font-mono text-[11px] shrink-0">{formattedDate}</span>
+          </div>
         </div>
       </div>
 
@@ -177,7 +181,7 @@ const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
       <div className="flex items-center gap-2 shrink-0">
         <span
           className={`text-sm sm:text-base font-bold font-mono ${
-            tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+            tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
           }`}
         >
           {tx.type === 'income' ? '+' : '-'}{formattedAmount}
@@ -229,6 +233,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
   // Modal / Form State
   const [isOpenForm, setIsOpenForm] = useState(false);
@@ -363,6 +368,15 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
     const start = (currentPage - 1) * pageSize;
     return filteredTransactions.slice(start, start + pageSize);
   }, [filteredTransactions, currentPage, pageSize]);
+
+  // Unique combined categories list for search & filter
+  const allCategories = useMemo(() => {
+    const cats = new Set<string>();
+    incomeCategories.forEach((c) => cats.add(c));
+    expenseCategories.forEach((c) => cats.add(c));
+    transactions.forEach((t) => cats.add(t.category));
+    return ['All', ...Array.from(cats)];
+  }, [incomeCategories, expenseCategories, transactions]);
 
   // Reset Filters trigger
   const hasActiveFilters = useMemo(() => searchTerm !== '' || categoryFilter !== 'All' || typeFilter !== 'all', [searchTerm, categoryFilter, typeFilter]);
@@ -1090,6 +1104,31 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
           </div>
         )}
       </AnimatePresence>
+
+      {/* Clean & Professional Search Bar */}
+      <div className="ios-glass rounded-2xl p-3 sm:p-3.5 border border-black/5 dark:border-white/5 shadow-xs">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-[#8e8e93] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            id="tx-search-input"
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={language === 'my' ? 'မှတ်စု သို့မဟုတ် အမျိုးအစား ရှာဖွေရန်...' : 'Search transactions by description, category...'}
+            className="w-full pl-10 pr-9 py-2.5 bg-black/[0.03] dark:bg-white/[0.04] border border-black/5 dark:border-white/5 rounded-xl text-xs sm:text-sm text-[#1c1c1e] dark:text-[#f2f2f7] placeholder-[#8e8e93] focus:outline-none focus:ring-2 focus:ring-[#007aff]/35 focus:border-[#007aff] transition-all font-medium"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              id="tx-search-clear-btn"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white p-0.5 rounded-full cursor-pointer bg-transparent border-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Transaction List - iOS Table Style */}
       <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 overflow-hidden shadow-xs">
