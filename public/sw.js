@@ -114,7 +114,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match('/version.json', { ignoreSearch: true }).then((res) => {
             if (res) return res;
-            return new Response(JSON.stringify({ version: 'v2.1.2', buildHash: 'offline' }), {
+            return new Response(JSON.stringify({ version: 'v2.1.5', buildHash: 'offline' }), {
               headers: { 'Content-Type': 'application/json' }
             });
           });

@@ -18,26 +18,42 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v2.1.5';
-export const BUILD_HASH = 'v2.1.5-20260810';
+export const APP_VERSION = 'v2.1.6';
+export const BUILD_HASH = 'v2.1.6-20260810';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v2.1.5',
-  buildHash: 'v2.1.5-20260810',
-  buildTime: '2026-08-10 11:05:00',
-  titleEn: 'Release v2.1.5: Clean Plus Jakarta Sans Typography & Unified Title Styling',
-  titleMy: 'ဗားရှင်းအသစ် v2.1.5: Plus Jakarta Sans စာလုံးဒီဇိုင်းနှင့် ညီညာဆွဲဆောင်မှုရှိသော ခေါင်းစဉ်ဒီဇိုင်း',
+  version: 'v2.1.6',
+  buildHash: 'v2.1.6-20260810',
+  buildTime: '2026-08-10 11:35:00',
+  titleEn: 'Release v2.1.6: Currency & Format Settings Label Update & Financial Statement PDF Styling',
+  titleMy: 'ဗားရှင်းအသစ် v2.1.6: ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက် အမည်အသစ် ပြောင်းလဲခြင်းနှင့် ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ရုပ်ထွက် မွမ်းမံချက်',
   changelogEn: [
-    'Upgraded global typography to Plus Jakarta Sans for a clean, modern, and beautiful UI aesthetic',
-    'Standardized all page headers and title typography across all tabs, modals, and subviews with matching icon frames and font weights',
-    'Ensured crisp rendering for Myanmar and numeric characters with optimized fallback font stacks'
+    'Updated Settings navigation item label to "Currency & Format Settings" for enhanced clarity and precision',
+    'Refined financial statement PDF generation styling, colors, and executive layout structure',
+    'Updated application release version and update distribution metadata'
   ],
   changelogMy: [
-    'အက်ပ်တစ်ခုလုံး၏ စာလုံးဒီဇိုင်းကို ပိုမိုသန့်ရှင်းဆန်းသစ်သော Plus Jakarta Sans သို့ အဆင့်မြှင့်တင်ခဲ့ပါသည်',
-    'စာမျက်နှာ ခေါင်းစဉ်များ၊ အိုင်ကွန်ကွက်များနှင့် စာလုံးဆိုဒ်များအားလုံးကို တညီတညွတ်တည်း ဖြစ်စေရန် ပြန်လည်စနစ်တကျ ပြင်ဆင်ခဲ့ပါသည်',
-    'မြန်မာစာနှင့် ကိန်းဂဏန်းများ သန့်ရှင်းပြတ်သားစွာ ပေါ်လွင်စေရန် ဖောင့်စနစ်ကို မြှင့်တင်ထားပါသည်'
+    'ဆက်တင်စခရင်ရှိ ငွေကြေးသတ်မှတ်ချက် ခလုတ်အမည်အား ပိုမိုရှင်းလင်းထင်ရှားသော "ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက်များ" ဟု ပြောင်းလဲခဲ့ပါသည်',
+    'ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ထုတ်ယူမှုဒီဇိုင်းနှင့် အရောင်အသွေးများကို ပိုမိုသပ်ရပ်လှပအောင် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်',
+    'အက်ပ်၏ ဗားရှင်းအသစ် v2.1.6 ကို အဆင့်မြှင့်တင်ပေးခဲ့ပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.1.6',
+      date: '2026-08-10',
+      titleEn: 'Release v2.1.6: Currency & Format Settings Label Update & Financial Statement PDF Styling',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.6: ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက် အမည်အသစ် ပြောင်းလဲခြင်းနှင့် ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ရုပ်ထွက် မွမ်းမံချက်',
+      itemsEn: [
+        'Updated Settings navigation item label to "Currency & Format Settings" for enhanced clarity and precision',
+        'Refined financial statement PDF generation styling, colors, and executive layout structure',
+        'Updated application release version and update distribution metadata'
+      ],
+      itemsMy: [
+        'ဆက်တင်စခရင်ရှိ ငွေကြေးသတ်မှတ်ချက် ခလုတ်အမည်အား ပိုမိုရှင်းလင်းထင်ရှားသော "ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက်များ" ဟု ပြောင်းလဲခဲ့ပါသည်',
+        'ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ထုတ်ယူမှုဒီဇိုင်းနှင့် အရောင်အသွေးများကို ပိုမိုသပ်ရပ်လှပအောင် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်',
+        'အက်ပ်၏ ဗားရှင်းအသစ် v2.1.6 ကို အဆင့်မြှင့်တင်ပေးခဲ့ပါသည်'
+      ]
+    },
     {
       version: 'v2.1.5',
       date: '2026-08-10',
@@ -244,6 +260,42 @@ export const LOCAL_VERSION_INFO: AppVersionInfo = {
 /**
  * Fetch latest version metadata from server directly with cache-busting
  */
+export function isVersionNewer(
+  serverVersion?: string,
+  localVersion?: string,
+  serverHash?: string,
+  localHash?: string
+): boolean {
+  if (!serverVersion || !localVersion) return false;
+
+  const cleanS = serverVersion.replace(/^v/i, '').trim();
+  const cleanL = localVersion.replace(/^v/i, '').trim();
+
+  const sParts = cleanS.split('.').map((n) => parseInt(n, 10) || 0);
+  const lParts = cleanL.split('.').map((n) => parseInt(n, 10) || 0);
+
+  const maxLength = Math.max(sParts.length, lParts.length);
+  for (let i = 0; i < maxLength; i++) {
+    const s = sParts[i] || 0;
+    const l = lParts[i] || 0;
+    if (s > l) return true;
+    if (s < l) return false;
+  }
+
+  // Same major.minor.patch versions -> check build hash if non-offline and different
+  if (
+    serverHash &&
+    localHash &&
+    serverHash !== localHash &&
+    serverHash !== 'offline' &&
+    localHash !== 'offline'
+  ) {
+    return serverHash > localHash;
+  }
+
+  return false;
+}
+
 export async function fetchServerVersionInfo(): Promise<AppVersionInfo | null> {
   try {
     let requestUrl = `/version.json?t=${Date.now()}`;

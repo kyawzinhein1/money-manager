@@ -16,6 +16,7 @@ import {
   LOCAL_VERSION_INFO,
   fetchServerVersionInfo,
   forceApplyAppUpdate,
+  isVersionNewer,
   AppVersionInfo,
   ReleaseNote
 } from '../../version';
@@ -57,7 +58,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
       fetchServerVersionInfo().then(data => {
         if (data) {
           setServerInfo(data);
-          if (data.buildHash !== LOCAL_VERSION_INFO.buildHash || data.version !== LOCAL_VERSION_INFO.version) {
+          if (isVersionNewer(data.version, LOCAL_VERSION_INFO.version, data.buildHash, LOCAL_VERSION_INFO.buildHash)) {
             setUpdateAvailable(true);
           }
         }
@@ -96,8 +97,13 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
 
     if (serverData) {
       setServerInfo(serverData);
-      const isNewVersion = serverData.buildHash !== LOCAL_VERSION_INFO.buildHash || serverData.version !== LOCAL_VERSION_INFO.version;
-      if (isNewVersion) {
+      const isNew = isVersionNewer(
+        serverData.version,
+        LOCAL_VERSION_INFO.version,
+        serverData.buildHash,
+        LOCAL_VERSION_INFO.buildHash
+      );
+      if (isNew) {
         setUpdateAvailable(true);
         setStatusMessage(
           language === 'my'

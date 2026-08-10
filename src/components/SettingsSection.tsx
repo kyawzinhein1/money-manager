@@ -335,7 +335,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
           id: 'currency-settings-item',
           icon: Coins,
           iconBg: 'bg-[#34c759]',
-          title: isMy ? 'ငွေကြေး အမျိုးအစား' : 'Currency & Formatting',
+          title: isMy ? 'ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက်များ' : 'Currency & Format Settings',
           subtitle: `${customCurrency.code} (${customCurrency.symbol}) - ${customCurrency.name}`,
           action: () => navigateTo('currency'),
           keywords: 'currency mmk usd symbol ks dollar format'

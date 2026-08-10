@@ -44,6 +44,7 @@ import { findActiveBudget } from './utils/budgetUtils';
 import { getLocalDateStr, getLocalMonthStr, getLocalYearStr, getLocalMonthYearKey } from './utils/dateUtils';
 import { DateFilterSwitcher } from './components/DateFilterSwitcher';
 import { generateForecastReport } from './utils/forecasting';
+import { generateLedgerPDF } from './utils/pdfGenerator';
 import { getCategoryStyle } from './utils/categoryStyle';
 import { getCategoryIcon } from './utils/categoryIcon';
 import {
@@ -1158,14 +1159,8 @@ export default function App() {
     showToast("CSV report downloaded successfully!");
   }, [t, customCurrency.code, dashboardFilteredTransactions, selectedYear, selectedMonth]);
 
-  // PDF Report layout generator triggering Native print-to-PDF flow
+  // PDF Report layout generator utilizing direct jsPDF document generation
   const handleExportPDF = React.useCallback(() => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast("Please allow popups to generate the report", 'error');
-      return;
-    }
-
     const getMonthName = (monthValue: string) => {
       const months: Record<string, string> = {
         'all': settings.language === 'en' ? 'All Months' : 'လအားလုံး',
@@ -1189,231 +1184,69 @@ export default function App() {
       return yearValue === 'all' ? (settings.language === 'en' ? 'All Years' : 'နှစ်အားလုံး') : yearValue;
     };
 
-    const pdfDateRangeText = (dateFilterMode === 'dateRange' || startDate || endDate)
-      ? (startDate || endDate ? `${startDate || '...'} → ${endDate || '...'}` : (settings.language === 'en' ? 'All Time' : 'အချိန်တိုင်း'))
-      : `${getMonthName(selectedMonth)} / ${getYearName(selectedYear)}`;
+    const formatDisplayDate = (dStr?: string) => {
+      if (!dStr) return '';
+      const parts = dStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dStr;
+    };
+
+    let pdfDateRangeText = '';
+    if (dateFilterMode === 'dateRange') {
+      if (startDate && endDate) {
+        pdfDateRangeText = `${formatDisplayDate(startDate)} → ${formatDisplayDate(endDate)}`;
+      } else if (startDate) {
+        pdfDateRangeText = `From ${formatDisplayDate(startDate)}`;
+      } else if (endDate) {
+        pdfDateRangeText = `Until ${formatDisplayDate(endDate)}`;
+      } else if (dashboardFilteredTransactions.length > 0) {
+        const sorted = dashboardFilteredTransactions.map((t) => t.date).filter(Boolean).sort();
+        const minD = sorted[0];
+        const maxD = sorted[sorted.length - 1];
+        pdfDateRangeText = minD === maxD ? formatDisplayDate(minD) : `${formatDisplayDate(minD)} → ${formatDisplayDate(maxD)}`;
+      } else {
+        pdfDateRangeText = settings.language === 'en' ? 'All Time' : 'အချိန်တိုင်း';
+      }
+    } else if (dateFilterMode === 'monthly') {
+      if (selectedMonth === 'all' && selectedYear === 'all') {
+        pdfDateRangeText = settings.language === 'en' ? 'All Time' : 'အချိန်တိုင်း';
+      } else {
+        const mName = getMonthName(selectedMonth);
+        const yName = getYearName(selectedYear);
+        pdfDateRangeText = `${mName} ${yName}`.trim();
+      }
+    } else if (dateFilterMode === 'yearly') {
+      pdfDateRangeText = getYearName(selectedYear);
+    } else {
+      if (dashboardFilteredTransactions.length > 0) {
+        const sorted = dashboardFilteredTransactions.map((t) => t.date).filter(Boolean).sort();
+        const minD = sorted[0];
+        const maxD = sorted[sorted.length - 1];
+        pdfDateRangeText = minD === maxD ? formatDisplayDate(minD) : `${formatDisplayDate(minD)} → ${formatDisplayDate(maxD)}`;
+      } else {
+        pdfDateRangeText = settings.language === 'en' ? 'All Time' : 'အချိန်တိုင်း';
+      }
+    }
 
     const totalIncome = dashboardFilteredTransactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalExpense = dashboardFilteredTransactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const netSavings = totalIncome - totalExpense;
-    const savingRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
 
-    const rows = dashboardFilteredTransactions
-      .map(
-        (tx) => `
-      <tr>
-        <td style="font-family: monospace;">${tx.date}</td>
-        <td><span class="badge ${tx.type === 'income' ? 'badge-income' : 'badge-expense'}">${tc(tx.category)}</span></td>
-        <td>${tx.description}</td>
-        <td class="amount ${tx.type === 'income' ? 'text-income' : 'text-expense'}">
-          ${tx.type === 'income' ? '+' : '-'}${formatAmount(tx.amount)}
-        </td>
-      </tr>
-    `
-      )
-      .join('');
+    generateLedgerPDF({
+      transactions: dashboardFilteredTransactions,
+      incomeTotal: totalIncome,
+      expenseTotal: totalExpense,
+      netBalance: netSavings,
+      currencySymbol: customCurrency.symbol,
+      language: settings.language,
+      formatAmount,
+      dateRangeText: pdfDateRangeText
+    });
 
-    const budgetRows = budgets
-      .map((b) => {
-        const spent = dashboardFilteredTransactions
-          .filter((tx) => tx.type === 'expense' && tx.category === b.category)
-          .reduce((sum, tx) => sum + tx.amount, 0);
-        const isExceeded = spent > b.limit;
-        const percent = b.limit > 0 ? ((spent / b.limit) * 100).toFixed(0) : '0';
-        return `
-        <tr>
-          <td><strong>${tc(b.category)}</strong></td>
-          <td class="amount">${formatAmount(b.limit)}</td>
-          <td class="amount">${formatAmount(spent)}</td>
-          <td>
-            <span class="badge ${isExceeded ? 'badge-danger' : 'badge-success'}">
-              ${percent}% ${isExceeded ? 'Exceeded' : 'Safe'}
-            </span>
-          </td>
-        </tr>
-      `;
-      })
-      .join('');
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${t('appName')} - PDF Statement</title>
-          <style>
-            body {
-              font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-              color: #1e293b;
-              margin: 40px;
-              line-height: 1.5;
-            }
-            .header-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 30px;
-              border-bottom: 3px solid #6366f1;
-              padding-bottom: 20px;
-            }
-            .title {
-              font-size: 26px;
-              font-weight: 800;
-              color: #1e293b;
-            }
-            .subtitle {
-              font-size: 13px;
-              color: #64748b;
-              margin-top: 5px;
-            }
-            .summary-grid {
-              display: table;
-              width: 100%;
-              table-layout: fixed;
-              border-collapse: separate;
-              border-spacing: 15px;
-              margin-bottom: 35px;
-            }
-            .summary-card {
-              display: table-cell;
-              background-color: #f8fafc;
-              border: 1px solid #e2e8f0;
-              border-radius: 14px;
-              padding: 20px;
-              text-align: center;
-            }
-            .summary-card .label {
-              font-size: 11px;
-              color: #64748b;
-              font-weight: 700;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-            }
-            .summary-card .value {
-              font-size: 20px;
-              font-weight: 800;
-              margin-top: 8px;
-            }
-            .section-title {
-              font-size: 16px;
-              font-weight: 800;
-              color: #0f172a;
-              border-left: 4px solid #6366f1;
-              padding-left: 10px;
-              margin: 30px 0 15px 0;
-            }
-            table.data-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 30px;
-            }
-            table.data-table th {
-              background-color: #f1f5f9;
-              color: #475569;
-              font-size: 12px;
-              font-weight: 700;
-              text-align: left;
-              padding: 12px;
-              border-bottom: 2px solid #cbd5e1;
-            }
-            table.data-table td {
-              padding: 12px;
-              font-size: 13px;
-              border-bottom: 1px solid #e2e8f0;
-            }
-            .amount {
-              text-align: right;
-              font-family: monospace;
-              font-weight: 700;
-            }
-            .text-income { color: #10b981; }
-            .text-expense { color: #f43f5e; }
-            .badge {
-              display: inline-block;
-              padding: 4px 8px;
-              border-radius: 9999px;
-              font-size: 11px;
-              font-weight: 600;
-            }
-            .badge-income { background-color: #ecfdf5; color: #065f46; }
-            .badge-expense { background-color: #fff1f2; color: #9f1239; }
-            .badge-success { background-color: #f0fdf4; color: #166534; }
-            .badge-danger { background-color: #fef2f2; color: #991b1b; }
-          </style>
-        </head>
-        <body>
-          <table class="header-table">
-            <tr>
-              <td>
-                <div class="title">${t('appName')}</div>
-                <div class="subtitle">Official Financial Report &amp; Balance Sheet</div>
-                <div style="font-size: 12px; color: #475569; margin-top: 5px; font-weight: 600;">
-                  Date Range / Period: ${pdfDateRangeText}
-                </div>
-              </td>
-              <td style="text-align: right; font-size: 12px; color: #64748b;">
-                <strong>Date:</strong> ${new Date().toLocaleDateString()}<br/>
-                <strong>Currency:</strong> ${customCurrency.name} (${customCurrency.code})<br/>
-                <strong>Language:</strong> ${settings.language === 'en' ? 'English' : 'Myanmar'}
-              </td>
-            </tr>
-          </table>
-
-          <div class="summary-grid">
-            <div class="summary-card">
-              <div class="label">${t('income')}</div>
-              <div class="value text-income">+${formatAmount(totalIncome)}</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">${t('expense')}</div>
-              <div class="value text-expense">-${formatAmount(totalExpense)}</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">${t('netSavings')}</div>
-              <div class="value" style="color: ${netSavings >= 0 ? '#10b981' : '#f43f5e'}">${netSavings < 0 ? '-' : ''}${formatAmount(Math.abs(netSavings))}</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">${t('savingRate')}</div>
-              <div class="value">${savingRate.toFixed(1)}%</div>
-            </div>
-          </div>
-
-          <div class="section-title">${t('budgets')} (${getMonthName(selectedMonth)} ${getYearName(selectedYear)})</div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>${t('category')}</th>
-                <th style="text-align: right;">${t('budget')}</th>
-                <th style="text-align: right;">${t('spent')}</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${budgetRows ? budgetRows : `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">No budget limits configured.</td></tr>`}
-            </tbody>
-          </table>
-
-          <div class="section-title">${t('transactions')}</div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>${t('date')}</th>
-                <th>${t('category')}</th>
-                <th>${t('description')}</th>
-                <th style="text-align: right;">${t('amount')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows ? rows : `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">No transaction logs found.</td></tr>`}
-            </tbody>
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 600);
-  }, [settings.language, dashboardFilteredTransactions, selectedMonth, selectedYear, customCurrency, t, formatAmount, budgets]);
+    showToast(settings.language === 'my' ? "PDF အစီရင်ခံစာ ထုတ်ယူပြီးပါပြီ" : "PDF Report downloaded successfully!");
+  }, [dateFilterMode, startDate, endDate, selectedMonth, selectedYear, dashboardFilteredTransactions, settings.language, customCurrency.symbol, formatAmount, showToast]);
 
   // List of active categories for warning calculations
   const categoriesExceeded = React.useMemo(() => {

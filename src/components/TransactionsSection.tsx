@@ -472,6 +472,21 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   const handleExportPDF = () => {
     if (filteredTransactions.length === 0) return;
     setShowExportMenu(false);
+
+    let rangeText = '';
+    if (filteredTransactions.length > 0) {
+      const dates = filteredTransactions.map((t) => t.date).filter(Boolean).sort();
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      const formatDMY = (dStr: string) => {
+        const p = dStr.split('-');
+        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dStr;
+      };
+      rangeText = minDate === maxDate ? formatDMY(minDate) : `${formatDMY(minDate)} → ${formatDMY(maxDate)}`;
+    } else {
+      rangeText = language === 'my' ? 'အချိန်တိုင်း' : 'All Time';
+    }
+
     generateLedgerPDF({
       transactions: filteredTransactions,
       incomeTotal: filteredIncomeTotal,
@@ -479,7 +494,8 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
       netBalance: filteredNetBalance,
       currencySymbol,
       language,
-      formatAmount
+      formatAmount,
+      dateRangeText: rangeText
     });
   };
 
