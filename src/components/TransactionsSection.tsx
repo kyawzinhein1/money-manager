@@ -50,6 +50,8 @@ interface TransactionsSectionProps {
   onEditTransactionTrigger?: (tx: Transaction) => void;
   categoryColors?: Record<string, string>;
   categoryIcons?: Record<string, string>;
+  selectedTxDetail?: Transaction | null;
+  onSelectTxDetail?: (tx: Transaction | null) => void;
 }
 
 const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Gift', 'Others'];
@@ -94,7 +96,7 @@ interface TransactionRowProps {
   onClick: (tx: Transaction) => void;
 }
 
-const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
+const TransactionCardItem: React.FC<TransactionRowProps> = React.memo(({
   tx,
   formattedDate,
   categoryStyle,
@@ -104,89 +106,40 @@ const DesktopTransactionRow: React.FC<TransactionRowProps> = React.memo(({
   onClick
 }) => {
   const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
-  return (
-    <tr
-      id={`tx-row-${tx.id}`}
-      onClick={() => onClick(tx)}
-      className="hover:bg-slate-50 dark:hover:bg-white/5 text-sm fast-render-row transition-colors cursor-pointer group"
-    >
-      <td className="p-3.5 pl-4 font-mono text-xs text-[#8e8e93] font-medium whitespace-nowrap">
-        {formattedDate}
-      </td>
-      <td className="p-3.5 whitespace-nowrap">
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
-          style={categoryStyle.style}
-        >
-          <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-          {translatedCategory}
-        </span>
-      </td>
-      <td className="p-3.5 text-[#1c1c1e] dark:text-[#f2f2f7] font-semibold max-w-[280px] truncate">
-        {tx.description || translatedCategory}
-      </td>
-      <td
-        className={`p-3.5 text-right font-bold font-mono whitespace-nowrap text-sm sm:text-base ${
-          tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-        }`}
-      >
-        {tx.type === 'income' ? '+' : '-'}{formattedAmount}
-      </td>
-      <td className="p-3.5 pr-4 text-right">
-        <ChevronRight className="w-4 h-4 text-[#8e8e93] opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all inline-block" />
-      </td>
-    </tr>
-  );
-});
 
-const MobileTransactionCard: React.FC<TransactionRowProps> = React.memo(({
-  tx,
-  formattedDate,
-  categoryStyle,
-  translatedCategory,
-  formattedAmount,
-  categoryIcons,
-  onClick
-}) => {
-  const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
   return (
     <div
       id={`tx-card-${tx.id}`}
       onClick={() => onClick(tx)}
-      className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer fast-render-row active:bg-slate-100 dark:active:bg-white/10"
+      className="group flex items-center justify-between px-3.5 sm:px-4 py-3 sm:py-3.5 hover:bg-black/[0.025] dark:hover:bg-white/[0.04] transition-colors cursor-pointer active:bg-black/[0.05] dark:active:bg-white/[0.08]"
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        {/* Category Icon Badge */}
+      <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
         <div
-          className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border shadow-2xs transition-transform duration-200 group-hover:scale-105 ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
           style={categoryStyle.style}
         >
-          <CategoryIcon className="w-4.5 h-4.5 shrink-0" />
+          <CategoryIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
         </div>
-
-        {/* Title & Category Subtitle */}
-        <div className="min-w-0 space-y-0.5 flex-1">
-          <p className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] leading-snug truncate">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight group-hover:text-[#007aff] transition-colors">
             {tx.description || translatedCategory}
           </p>
-          <div className="flex items-center gap-2 text-xs text-[#8e8e93]">
-            <span className="font-medium truncate">{translatedCategory}</span>
-            <span>•</span>
-            <span className="font-mono text-[11px] shrink-0">{formattedDate}</span>
+          <div className="mt-1">
+            <span className="text-[10px] sm:text-[11px] text-[#8e8e93] font-semibold uppercase tracking-wider truncate block">
+              {translatedCategory}
+            </span>
           </div>
         </div>
       </div>
-
-      {/* Amount & Chevron */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-2.5 shrink-0 pl-3">
         <span
-          className={`text-sm sm:text-base font-bold font-mono ${
-            tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+          className={`text-xs sm:text-base font-extrabold font-mono whitespace-nowrap leading-none block ${
+            tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
           }`}
         >
           {tx.type === 'income' ? '+' : '-'}{formattedAmount}
         </span>
-        <ChevronRight className="w-4 h-4 text-[#8e8e93]/50 shrink-0" />
+        <ChevronRight className="w-4 h-4 text-[#8e8e93]/35 group-hover:text-[#007aff] group-hover:translate-x-0.5 transition-all shrink-0" />
       </div>
     </div>
   );
@@ -206,6 +159,8 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   onEditTransactionTrigger,
   categoryColors = {},
   categoryIcons = {},
+  selectedTxDetail: propsSelectedTxDetail,
+  onSelectTxDetail,
 }) => {
   const isMobile = useIsMobile();
   const t = useCallback((key: string) => TRANSLATIONS[language][key] || key, [language]);
@@ -238,7 +193,20 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   // Modal / Form State
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-  const [selectedTxDetail, setSelectedTxDetail] = useState<Transaction | null>(null);
+  const [selectedTxDetail, setSelectedTxDetail] = useState<Transaction | null>(propsSelectedTxDetail || null);
+
+  useEffect(() => {
+    if (propsSelectedTxDetail !== undefined) {
+      setSelectedTxDetail(propsSelectedTxDetail);
+    }
+  }, [propsSelectedTxDetail]);
+
+  const handleSetSelectedTxDetail = useCallback((tx: Transaction | null) => {
+    setSelectedTxDetail(tx);
+    if (onSelectTxDetail) {
+      onSelectTxDetail(tx);
+    }
+  }, [onSelectTxDetail]);
 
   // Form Fields
   const [formType, setFormType] = useState<TransactionType>('expense');
@@ -539,7 +507,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
         <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5 pb-3">
           <button
             id="tx-detail-back-btn"
-            onClick={() => setSelectedTxDetail(null)}
+            onClick={() => handleSetSelectedTxDetail(null)}
             className="inline-flex items-center gap-1 text-[#007aff] hover:opacity-80 font-semibold text-sm transition-opacity cursor-pointer border-0 bg-transparent p-0"
           >
             <ChevronLeft className="w-5 h-5 -ml-1" />
@@ -674,7 +642,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             id={`detail-page-edit-${currentDetailTx.id}`}
             onClick={() => {
               const txToEdit = currentDetailTx;
-              setSelectedTxDetail(null);
+              handleSetSelectedTxDetail(null);
               handleOpenEdit(txToEdit);
             }}
             className="py-2.5 px-4 rounded-xl bg-[#007aff] hover:bg-[#007aff]/90 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border-0 shadow-2xs active:scale-[0.98]"
@@ -688,7 +656,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             onClick={() => {
               const txId = currentDetailTx.id;
               onDeleteTransaction(txId, () => {
-                setSelectedTxDetail(null);
+                handleSetSelectedTxDetail(null);
               });
             }}
             className="py-2.5 px-4 rounded-xl bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 text-[#ff3b30] font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#ff3b30]/20 active:scale-[0.98]"
@@ -826,25 +794,25 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl p-4 sm:p-6 border border-white/20 dark:border-white/10 space-y-4 max-h-[90vh] overflow-y-auto flex flex-col"
+              className="w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl bg-white dark:bg-[#1c1c1e] rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl p-4 sm:p-6 border border-white/20 dark:border-white/10 space-y-3.5 sm:space-y-4 max-h-[92vh] flex flex-col my-auto overflow-hidden"
             >
               {/* Modal Header & Controls */}
               <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
+                  <div className="p-2 sm:p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
+                    <h3 className="text-base sm:text-lg lg:text-xl font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
                       {new Date(calendarYear, calendarMonth - 1, 1).toLocaleString(language === 'my' ? 'my-MM' : 'en-US', { month: 'long', year: 'numeric' })}
                     </h3>
-                    <p className="text-[11px] text-[#8e8e93] font-medium">
+                    <p className="text-[11px] sm:text-xs text-[#8e8e93] font-medium">
                       {language === 'my' ? 'နေ့စဉ် ဝင်ငွေ/ထွက်ငွေ ပြက္ခဒိန်' : 'Daily Income and Expense overview'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -901,7 +869,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               </div>
 
               {/* Calendar Day Header Row */}
-              <div className="grid grid-cols-7 gap-1 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider shrink-0">
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider shrink-0">
                 <div>{language === 'my' ? 'တနင်္ဂနွေ' : 'Sun'}</div>
                 <div>{language === 'my' ? 'တနင်္လာ' : 'Mon'}</div>
                 <div>{language === 'my' ? 'အင်္ဂါ' : 'Tue'}</div>
@@ -912,9 +880,9 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               </div>
 
               {/* Calendar Days Grid */}
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 md:gap-2.5 flex-1 overflow-y-auto p-0.5 custom-scrollbar">
                 {Array.from({ length: new Date(calendarYear, calendarMonth - 1, 1).getDay() }).map((_, idx) => (
-                  <div key={`offset-${idx}`} className="w-full aspect-square min-h-0 rounded-xl bg-black/[0.01] dark:bg-white/[0.01]" />
+                  <div key={`offset-${idx}`} className="w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full rounded-xl sm:rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-transparent" />
                 ))}
 
                 {Array.from({ length: new Date(calendarYear, calendarMonth, 0).getDate() }).map((_, idx) => {
@@ -938,33 +906,33 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                       key={dateKey}
                       type="button"
                       onClick={() => setSelectedCalendarDay(dateKey)}
-                      className={`w-full aspect-square min-h-0 p-1 sm:p-2 rounded-xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:scale-[1.02] ${
+                      className={`w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full p-1.5 sm:p-2 md:p-2.5 rounded-xl sm:rounded-2xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:border-[#007aff]/50 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:shadow-sm active:scale-[0.98] ${
                         isToday
                           ? 'bg-[#007aff]/10 border-[#007aff]/40 shadow-xs'
-                          : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5 hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+                          : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full min-w-0">
-                        <span className={`text-[10px] sm:text-xs font-black w-4.5 h-4.5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full shrink-0 ${
-                          isToday ? 'bg-[#007aff] text-white' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                        <span className={`text-[10px] sm:text-xs md:text-sm font-black w-5 h-5 sm:w-6 sm:h-6 md:w-6.5 md:h-6.5 flex items-center justify-center rounded-full shrink-0 ${
+                          isToday ? 'bg-[#007aff] text-white shadow-xs' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
                         }`}>
                           {dayNum}
                         </span>
                         {dayTxs.length > 0 && (
-                          <span className="text-[8px] sm:text-[9px] font-black px-1 py-0.2 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0">
+                          <span className="text-[8px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0 font-mono">
                             {dayTxs.length}
                           </span>
                         )}
                       </div>
 
-                      <div className="space-y-0.5 w-full min-w-0 overflow-hidden">
+                      <div className="space-y-0.5 sm:space-y-1 w-full min-w-0 overflow-hidden mt-1">
                         {dayIncome > 0 && (
-                          <span className="block text-[7.5px] sm:text-[9px] font-black text-[#34c759] bg-[#34c759]/15 px-0.5 sm:px-1 py-0.2 rounded-md truncate leading-tight">
+                          <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#34c759] bg-[#34c759]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-mono">
                             +{formatAmount(dayIncome)}
                           </span>
                         )}
                         {dayExpense > 0 && (
-                          <span className="block text-[7.5px] sm:text-[9px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-0.5 sm:px-1 py-0.2 rounded-md truncate leading-tight">
+                          <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-mono">
                             -{formatAmount(dayExpense)}
                           </span>
                         )}
@@ -1130,213 +1098,129 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
         </div>
       </div>
 
-      {/* Transaction List - iOS Table Style */}
-      <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 overflow-hidden shadow-xs">
-        {isMobile ? (
-          /* Mobile View Card List Grouped by Date */
-          <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
-            {filteredTransactions.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="flex flex-col items-center justify-center space-y-3">
-                  <FolderOpen className="w-10 h-10 text-[#8e8e93]" />
-                  <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
-                    {t('noTransactions')}
-                  </p>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={handleClearFilters}
-                      className="h-8 px-3 rounded-full bg-[#007aff] text-white text-[11px] font-bold transition-all border-0 cursor-pointer mt-1"
-                    >
-                      {language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters'}
-                    </button>
+      {/* Transaction List - Clean Grouped iOS Style */}
+      {filteredTransactions.length === 0 ? (
+        <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 p-12 text-center shadow-xs">
+          <div className="flex flex-col items-center justify-center space-y-3 max-w-sm mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-center text-[#8e8e93]">
+              <FolderOpen className="w-7 h-7" />
+            </div>
+            <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
+              {t('noTransactions')}
+            </p>
+            <p className="text-xs text-[#8e8e93] leading-relaxed">
+              {language === 'my'
+                ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
+                : 'No entries match your active query. Create a new transaction or reset filters.'}
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={handleClearFilters}
+                className="h-8 px-3 rounded-full bg-[#007aff] text-white text-[11px] font-bold transition-all border-0 cursor-pointer mt-1"
+              >
+                {language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters'}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4 sm:space-y-5">
+          {groupedTransactions.map((group) => (
+            <div
+              key={group.date}
+              className="bg-white dark:bg-[#1c1c1e] rounded-2xl sm:rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden shadow-2xs"
+            >
+              {/* Date Group Header */}
+              <div className="px-3.5 sm:px-4 py-2.5 bg-black/[0.02] dark:bg-white/[0.03] border-b border-black/5 dark:border-white/5 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                  <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
+                  <span className="font-extrabold text-xs sm:text-sm">{formatGroupHeaderDate(group.date)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono font-bold text-xs">
+                  {group.dailyIncome > 0 && (
+                    <span className="text-[#34c759] bg-[#34c759]/10 px-2.5 py-0.5 rounded-full text-[11px]">
+                      +{formatAmount(group.dailyIncome)}
+                    </span>
+                  )}
+                  {group.dailyExpense > 0 && (
+                    <span className="text-[#ff3b30] bg-[#ff3b30]/10 px-2.5 py-0.5 rounded-full text-[11px]">
+                      -{formatAmount(group.dailyExpense)}
+                    </span>
                   )}
                 </div>
               </div>
-            ) : (
-              groupedTransactions.map((group) => (
-                <div key={group.date} className="border-b border-black/5 dark:border-white/5 last:border-b-0">
-                  {/* Sticky Date Group Header */}
-                  <div className="sticky top-0 z-10 px-4 py-2 bg-[#f2f2f7]/95 dark:bg-[#2c2c2e]/95 backdrop-blur-md flex items-center justify-between text-xs border-y border-black/5 dark:border-white/5">
-                    <div className="flex items-center gap-1.5 font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
-                      <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
-                      <span>{formatGroupHeaderDate(group.date)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 font-mono font-bold text-xs">
-                      {group.dailyExpense > 0 && (
-                        <span className="text-[#ff3b30] bg-[#ff3b30]/10 px-2 py-0.5 rounded-full text-[11px]">
-                          -{formatAmount(group.dailyExpense)}
-                        </span>
-                      )}
-                      {group.dailyIncome > 0 && (
-                        <span className="text-[#34c759] bg-[#34c759]/10 px-2 py-0.5 rounded-full text-[11px]">
-                          +{formatAmount(group.dailyIncome)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Transactions under this Date */}
-                  <div className="divide-y divide-black/[0.04] dark:divide-white/[0.04]">
-                    {group.txs.map((tx) => (
-                      <MobileTransactionCard
-                        key={tx.id}
-                        tx={tx}
-                        formattedDate={formatDateDMY(tx.date)}
-                        categoryStyle={getCategoryStyle(tx.category, categoryColors)}
-                        translatedCategory={tc(tx.category)}
-                        formattedAmount={formatAmount(tx.amount)}
-                        categoryIcons={categoryIcons}
-                        onClick={setSelectedTxDetail}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          /* Desktop View Table Grouped by Date */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse" id="transactions-table">
-              <thead>
-                <tr className="bg-black/[0.02] dark:bg-white/[0.02] text-[#8e8e93] font-bold text-[10px] uppercase tracking-wider border-b border-black/5 dark:border-white/5">
-                  <th className="p-4.5">{t('date')}</th>
-                  <th className="p-4.5">{t('category')}</th>
-                  <th className="p-4.5">{t('description')}</th>
-                  <th className="p-4.5 text-right">{t('amount')}</th>
-                  <th className="p-4.5 text-right"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-                {filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="p-16 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-3.5 max-w-sm mx-auto">
-                        <div className="w-14 h-14 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-center text-[#8e8e93]">
-                          <FolderOpen className="w-7 h-7" />
-                        </div>
-                        <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
-                          {t('noTransactions')}
-                        </p>
-                        <p className="text-xs text-[#8e8e93] leading-relaxed">
-                          {language === 'my'
-                            ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
-                            : 'No entries match your active query. Create a new transaction or reset filters.'}
-                        </p>
-                        {hasActiveFilters && (
-                          <button
-                            onClick={handleClearFilters}
-                            className="h-9 px-4 rounded-full bg-[#007aff] hover:opacity-90 text-white text-xs font-bold transition-all border-0 cursor-pointer"
-                          >
-                            {language === 'my' ? 'စီစစ်မှုအားလုံးကို ပြန်လည်စတင်ပါ' : 'Clear Active Filters'}
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  groupedTransactions.map((group) => (
-                    <React.Fragment key={group.date}>
-                      {/* Date Group Section Header Row */}
-                      <tr className="bg-[#f2f2f7]/80 dark:bg-[#2c2c2e]/60 border-y border-black/5 dark:border-white/5">
-                        <td colSpan={3} className="p-2.5 pl-4 font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7]">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
-                            <span>{formatGroupHeaderDate(group.date)}</span>
-                            <span className="text-[11px] text-[#8e8e93] font-normal ml-1">
-                              ({group.txs.length} {group.txs.length === 1 ? (language === 'my' ? 'ခု' : 'entry') : (language === 'my' ? 'ခု' : 'entries')})
-                            </span>
-                          </div>
-                        </td>
-                        <td colSpan={2} className="p-2.5 pr-4 text-right font-mono font-bold text-xs">
-                          <div className="flex items-center justify-end gap-2">
-                            {group.dailyIncome > 0 && (
-                              <span className="text-[#34c759] bg-[#34c759]/10 px-2.5 py-0.5 rounded-full text-xs">
-                                +{formatAmount(group.dailyIncome)}
-                              </span>
-                            )}
-                            {group.dailyExpense > 0 && (
-                              <span className="text-[#ff3b30] bg-[#ff3b30]/10 px-2.5 py-0.5 rounded-full text-xs">
-                                -{formatAmount(group.dailyExpense)}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Transaction Rows for this Date */}
-                      {group.txs.map((tx) => (
-                        <DesktopTransactionRow
-                          key={tx.id}
-                          tx={tx}
-                          formattedDate={formatDateDMY(tx.date)}
-                          categoryStyle={getCategoryStyle(tx.category, categoryColors)}
-                          translatedCategory={tc(tx.category)}
-                          formattedAmount={formatAmount(tx.amount)}
-                          categoryIcons={categoryIcons}
-                          onClick={setSelectedTxDetail}
-                        />
-                      ))}
-                    </React.Fragment>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* High-Performance Pagination Bar Controls */}
-        {filteredTransactions.length > 0 && (
-          <div className="p-4 bg-black/[0.015] dark:bg-white/[0.015] border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8e8e93] font-bold">
-            {/* Rows Per Page Selector */}
-            <div className="flex items-center gap-2">
-              <span>{language === 'my' ? 'တစ်မျက်နှာလျှင် အရေအတွက်:' : 'Rows per page:'}</span>
-              <select
-                value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="px-2.5 py-1 bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 rounded-lg font-mono font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-1 focus:ring-[#007aff]"
-              >
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={0}>{language === 'my' ? 'အားလုံး' : 'All'}</option>
-              </select>
-              {pageSize > 0 && (
-                <span className="font-mono text-[11px]">
-                  {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)} -{' '}
-                  {Math.min(currentPage * pageSize, filteredTransactions.length)} / {filteredTransactions.length}
-                </span>
-              )}
-            </div>
-
-            {/* Pagination Navigation Buttons */}
-            {pageSize > 0 && totalPages > 1 && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
-                  title="Previous Page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="px-3 font-mono text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
-                  {currentPage} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
-                  title="Next Page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+              {/* Transactions List with Hairline Dividers */}
+              <div className="divide-y divide-black/5 dark:divide-white/5">
+                {group.txs.map((tx) => (
+                  <TransactionCardItem
+                    key={tx.id}
+                    tx={tx}
+                    formattedDate={formatDateDMY(tx.date)}
+                    categoryStyle={getCategoryStyle(tx.category, categoryColors)}
+                    translatedCategory={tc(tx.category)}
+                    formattedAmount={formatAmount(tx.amount)}
+                    categoryIcons={categoryIcons}
+                    onClick={handleSetSelectedTxDetail}
+                  />
+                ))}
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* High-Performance Pagination Bar Controls */}
+      {filteredTransactions.length > 0 && (
+        <div className="p-4 bg-white dark:bg-[#1c1c1e] rounded-2xl border border-black/5 dark:border-white/5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8e8e93] font-bold mt-4">
+          {/* Rows Per Page Selector */}
+          <div className="flex items-center gap-2">
+            <span>{language === 'my' ? 'တစ်မျက်နှာလျှင် အရေအတွက်:' : 'Rows per page:'}</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="px-2.5 py-1 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 rounded-lg font-mono font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-1 focus:ring-[#007aff]"
+            >
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={0}>{language === 'my' ? 'အားလုံး' : 'All'}</option>
+            </select>
+            {pageSize > 0 && (
+              <span className="font-mono text-[11px]">
+                {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)} -{' '}
+                {Math.min(currentPage * pageSize, filteredTransactions.length)} / {filteredTransactions.length}
+              </span>
             )}
           </div>
-        )}
-      </div>
+
+          {/* Pagination Navigation Buttons */}
+          {pageSize > 0 && totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-3 font-mono text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 text-[#1c1c1e] dark:text-[#f2f2f7] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#007aff] hover:text-white transition-all cursor-pointer border-0"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Slide-over or Modal for Add/Edit Transaction */}
       <AnimatePresence>

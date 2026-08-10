@@ -274,6 +274,7 @@ export default function App() {
   });
   const [previousTab, setPreviousTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction' | 'notifications'>('dashboard');
   const [editingTxInAddPage, setEditingTxInAddPage] = useState<Transaction | null>(null);
+  const [selectedTxForDetail, setSelectedTxForDetail] = useState<Transaction | null>(null);
   const [lastMainTab, setLastMainTab] = useState<'dashboard' | 'transactions'>('dashboard');
   const [isProfileEditing, setIsProfileEditing] = useState<boolean>(false);
   const [showMonthMenu, setShowMonthMenu] = useState<boolean>(false);
@@ -1643,6 +1644,10 @@ export default function App() {
                     onSelectTab={setActiveTab}
                     onExportPDF={handleExportPDF}
                     setEditingTxInAddPage={setEditingTxInAddPage}
+                    onSelectTxDetail={(tx) => {
+                      setSelectedTxForDetail(tx);
+                      setActiveTab('transactions');
+                    }}
                     categoryColors={categoryColors}
                     categoryIcons={categoryIcons}
                   />
@@ -1662,6 +1667,8 @@ export default function App() {
                     expenseCategories={expenseCategories}
                     categoryColors={categoryColors}
                     categoryIcons={categoryIcons}
+                    selectedTxDetail={selectedTxForDetail}
+                    onSelectTxDetail={setSelectedTxForDetail}
                     onAddTransactionTrigger={() => {
                       setEditingTxInAddPage(null);
                       setActiveTab('add-transaction');

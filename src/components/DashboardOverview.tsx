@@ -59,6 +59,7 @@ interface DashboardOverviewProps {
   onSelectTab: (tab: any) => void;
   onExportPDF: () => void;
   setEditingTxInAddPage: (tx: Transaction | null) => void;
+  onSelectTxDetail?: (tx: Transaction) => void;
   categoryColors?: Record<string, string>;
   categoryIcons?: Record<string, string>;
 }
@@ -152,6 +153,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
   onSelectTab,
   onExportPDF,
   setEditingTxInAddPage,
+  onSelectTxDetail,
   categoryColors = {},
   categoryIcons = {},
 }) => {
@@ -673,8 +675,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
               formattedAmount={formatAmount(tx.amount)}
               categoryIcons={categoryIcons}
               onClick={() => {
-                setEditingTxInAddPage(tx);
-                onSelectTab('add-transaction');
+                if (onSelectTxDetail) {
+                  onSelectTxDetail(tx);
+                } else {
+                  setEditingTxInAddPage(tx);
+                  onSelectTab('add-transaction');
+                }
               }}
             />
           ))}
