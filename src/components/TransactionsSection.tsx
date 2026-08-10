@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDebounce } from '../utils/useDebounce';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -32,9 +33,11 @@ import {
 import { Transaction, TransactionType, Language } from '../types';
 import { TRANSLATIONS, CATEGORY_TRANSLATIONS } from '../translations';
 import { generateLedgerPDF } from '../utils/pdfGenerator';
-import { getCategoryStyle, CategoryStyle } from '../utils/categoryStyle';
+import { getCategoryStyle } from '../utils/categoryStyle';
 import { getLocalDateStr } from '../utils/dateUtils';
 import { getCategoryIcon } from '../utils/categoryIcon';
+import { TransactionCardItem } from './transactions/TransactionCardItem';
+import { EmptyState } from './common/EmptyState';
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
@@ -66,84 +69,6 @@ const EXPENSE_CATEGORIES = [
   'Education',
   'Others'
 ];
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    setIsMobile(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  return isMobile;
-};
-
-interface TransactionRowProps {
-  tx: Transaction;
-  formattedDate: string;
-  categoryStyle: CategoryStyle;
-  translatedCategory: string;
-  formattedAmount: string;
-  categoryIcons?: Record<string, string>;
-  onClick: (tx: Transaction) => void;
-}
-
-const TransactionCardItem: React.FC<TransactionRowProps> = React.memo(({
-  tx,
-  formattedDate,
-  categoryStyle,
-  translatedCategory,
-  formattedAmount,
-  categoryIcons,
-  onClick
-}) => {
-  const CategoryIcon = getCategoryIcon(tx.category, categoryIcons);
-
-  return (
-    <div
-      id={`tx-card-${tx.id}`}
-      onClick={() => onClick(tx)}
-      className="group flex items-center justify-between px-3.5 sm:px-4 py-3 sm:py-3.5 hover:bg-black/[0.025] dark:hover:bg-white/[0.04] transition-colors cursor-pointer active:bg-black/[0.05] dark:active:bg-white/[0.08]"
-    >
-      <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-        <div
-          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border shadow-2xs transition-transform duration-200 group-hover:scale-105 ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
-          style={categoryStyle.style}
-        >
-          <CategoryIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs sm:text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] truncate leading-tight group-hover:text-[#007aff] transition-colors">
-            {tx.description || translatedCategory}
-          </p>
-          <div className="mt-1">
-            <span className="text-[10px] sm:text-[11px] text-[#8e8e93] font-semibold uppercase tracking-wider truncate block">
-              {translatedCategory}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2.5 shrink-0 pl-3">
-        <span
-          className={`text-xs sm:text-base font-extrabold font-mono whitespace-nowrap leading-none block ${
-            tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
-          }`}
-        >
-          {tx.type === 'income' ? '+' : '-'}{formattedAmount}
-        </span>
-        <ChevronRight className="w-4 h-4 text-[#8e8e93]/35 group-hover:text-[#007aff] group-hover:translate-x-0.5 transition-all shrink-0" />
-      </div>
-    </div>
-  );
-});
 
 export const TransactionsSection: React.FC<TransactionsSectionProps> = React.memo(({
   transactions,
@@ -1118,29 +1043,17 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
 
       {/* Transaction List - Clean Grouped iOS Style */}
       {filteredTransactions.length === 0 ? (
-        <div className="ios-glass rounded-[2rem] border border-black/5 dark:border-white/5 p-12 text-center shadow-xs">
-          <div className="flex flex-col items-center justify-center space-y-3 max-w-sm mx-auto">
-            <div className="w-14 h-14 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-center text-[#8e8e93]">
-              <FolderOpen className="w-7 h-7" />
-            </div>
-            <p className="text-xs text-[#8e8e93] font-bold uppercase tracking-wider">
-              {t('noTransactions')}
-            </p>
-            <p className="text-xs text-[#8e8e93] leading-relaxed">
-              {language === 'my'
-                ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
-                : 'No entries match your active query. Create a new transaction or reset filters.'}
-            </p>
-            {hasActiveFilters && (
-              <button
-                onClick={handleClearFilters}
-                className="h-8 px-3 rounded-full bg-[#007aff] text-white text-[11px] font-bold transition-all border-0 cursor-pointer mt-1"
-              >
-                {language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters'}
-              </button>
-            )}
-          </div>
-        </div>
+        <EmptyState
+          icon={FolderOpen}
+          title={t('noTransactions')}
+          description={
+            language === 'my'
+              ? 'ရှာဖွေထားသော အချက်အလက်များ မရှိပါ။ အသစ်ထည့်သွင်းရန် သို့မဟုတ် စီစစ်မှုများကို ပြောင်းလဲပေးပါ။'
+              : 'No entries match your active query. Create a new transaction or reset filters.'
+          }
+          actionLabel={hasActiveFilters ? (language === 'my' ? 'စီစစ်မှုဖျက်ရန်' : 'Reset filters') : undefined}
+          onAction={hasActiveFilters ? handleClearFilters : undefined}
+        />
       ) : (
         <div className="space-y-4 sm:space-y-5">
           {groupedTransactions.map((group) => (

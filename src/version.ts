@@ -18,26 +18,42 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v2.1.6';
-export const BUILD_HASH = 'v2.1.6-20260810';
+export const APP_VERSION = 'v2.1.7';
+export const BUILD_HASH = 'v2.1.7-20260810';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v2.1.6',
-  buildHash: 'v2.1.6-20260810',
-  buildTime: '2026-08-10 11:35:00',
-  titleEn: 'Release v2.1.6: Currency & Format Settings Label Update & Financial Statement PDF Styling',
-  titleMy: 'ဗားရှင်းအသစ် v2.1.6: ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက် အမည်အသစ် ပြောင်းလဲခြင်းနှင့် ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ရုပ်ထွက် မွမ်းမံချက်',
+  version: 'v2.1.7',
+  buildHash: 'v2.1.7-20260810',
+  buildTime: '2026-08-10 11:45:00',
+  titleEn: 'Release v2.1.7: Code Standardization & Reusable Component Optimization',
+  titleMy: 'ဗားရှင်းအသစ် v2.1.7: ကုဒ်စနစ် ပြန်လည်သန့်ရှင်းပြုပြင်ခြင်းနှင့် ဘုံအသုံးပြုနိုင်သော ခလုတ်/ယူနစ်များ မြှင့်တင်ခြင်း',
   changelogEn: [
-    'Updated Settings navigation item label to "Currency & Format Settings" for enhanced clarity and precision',
-    'Refined financial statement PDF generation styling, colors, and executive layout structure',
-    'Updated application release version and update distribution metadata'
+    'Extracted reusable `useIsMobile` viewport hook to eliminate code duplication across components',
+    'Created modular `EmptyState` reusable component and `TransactionCardItem` sub-component for streamlined rendering',
+    'Optimized overall bundle architecture and code quality standards'
   ],
   changelogMy: [
-    'ဆက်တင်စခရင်ရှိ ငွေကြေးသတ်မှတ်ချက် ခလုတ်အမည်အား ပိုမိုရှင်းလင်းထင်ရှားသော "ငွေကြေးနှင့် ပုံစံ သတ်မှတ်ချက်များ" ဟု ပြောင်းလဲခဲ့ပါသည်',
-    'ဘဏ္ဍာရေး အစီရင်ခံစာ PDF ထုတ်ယူမှုဒီဇိုင်းနှင့် အရောင်အသွေးများကို ပိုမိုသပ်ရပ်လှပအောင် ပြန်လည်ပြင်ဆင်ခဲ့ပါသည်',
-    'အက်ပ်၏ ဗားရှင်းအသစ် v2.1.6 ကို အဆင့်မြှင့်တင်ပေးခဲ့ပါသည်'
+    'ကုဒ်ထပ်တလဲလဲ ဖြစ်ပေါ်မှုကို လျှော့ချရန် `useIsMobile` Hook ကို သီးခြားထုတ်ယူ ပြန်လည်အသုံးပြုခဲ့ပါသည်',
+    'စာရင်းအချက်အလက် ကင်းမဲ့ချိန်ပြကွက် `EmptyState` နှင့် Transaction ကတ်ပြကွက်များကို Reusable Component အဖြစ် သီးခြားဖွဲ့စည်း ပြင်ဆင်ခဲ့ပါသည်',
+    'အက်ပ်၏ ကုဒ်စနစ်သန့်ရှင်းမှုနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုမြှင့်တင်ပေးခဲ့ပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.1.7',
+      date: '2026-08-10',
+      titleEn: 'Release v2.1.7: Code Standardization & Reusable Component Optimization',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.7: ကုဒ်စနစ် ပြန်လည်သန့်ရှင်းပြုပြင်ခြင်းနှင့် ဘုံအသုံးပြုနိုင်သော ခလုတ်/ယူနစ်များ မြှင့်တင်ခြင်း',
+      itemsEn: [
+        'Extracted reusable `useIsMobile` viewport hook to eliminate code duplication across components',
+        'Created modular `EmptyState` reusable component and `TransactionCardItem` sub-component for streamlined rendering',
+        'Optimized overall bundle architecture and code quality standards'
+      ],
+      itemsMy: [
+        'ကုဒ်ထပ်တလဲလဲ ဖြစ်ပေါ်မှုကို လျှော့ချရန် `useIsMobile` Hook ကို သီးခြားထုတ်ယူ ပြန်လည်အသုံးပြုခဲ့ပါသည်',
+        'စာရင်းအချက်အလက် ကင်းမဲ့ချိန်ပြကွက် `EmptyState` နှင့် Transaction ကတ်ပြကွက်များကို Reusable Component အဖြစ် သီးခြားဖွဲ့စည်း ပြင်ဆင်ခဲ့ပါသည်',
+        'အက်ပ်၏ ကုဒ်စနစ်သန့်ရှင်းမှုနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုမြှင့်တင်ပေးခဲ့ပါသည်'
+      ]
+    },
     {
       version: 'v2.1.6',
       date: '2026-08-10',
