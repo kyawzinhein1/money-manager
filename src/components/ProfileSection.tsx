@@ -149,8 +149,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = React.memo(({
       {/* Title */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <User className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <User className="w-4.5 h-4.5" />
+            </div>
             {t('profile')}
           </h2>
           <p className="text-xs text-[#8e8e93]">

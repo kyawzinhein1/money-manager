@@ -146,8 +146,10 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <RefreshCw className="w-4.5 h-4.5" />
+            </div>
             {language === 'my' ? 'ဗားရှင်းနှင့် နောက်ဆုံးထွက် ပြင်ဆင်ချက်များ စစ်ဆေးရန်' : 'App Updates & Deployment'}
           </h2>
           <p className="text-xs text-[#8e8e93]">
@@ -285,42 +287,73 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         </div>
       </div>
 
-      {/* Release Notes & Changelog */}
+      {/* Current Release Version Information */}
       <div className="p-5 ios-glass rounded-[2rem] space-y-4">
-        <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-          <Info className="w-4 h-4 text-[#007aff]" />
-          {language === 'my' ? 'မကြာသေးမီက ပြင်ဆင်ချက်များ (Changelog)' : 'Release Notes & Feature Updates'}
-        </h3>
+        <div className="flex items-center justify-between gap-2 border-b border-black/[0.05] dark:border-white/[0.08] pb-3">
+          <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+            <Info className="w-4 h-4 text-[#007aff]" />
+            {language === 'my' ? 'လက်ရှိ ဗားရှင်း သတင်းအချက်အလက်' : 'Current Release Version Information'}
+          </h3>
+          <span className="text-xs font-black text-white bg-[#007aff] px-2.5 py-0.5 rounded-lg font-mono">
+            {currentVersion}
+          </span>
+        </div>
 
-        <div className="space-y-4">
-          {releaseHistory.map((rel) => (
-            <div
-              key={rel.version}
-              className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06] space-y-2"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-white bg-[#007aff] px-2.5 py-0.5 rounded-lg font-mono">
-                    {rel.version}
-                  </span>
-                  <span className="text-xs font-bold text-[#1c1c1e] dark:text-white">
-                    {language === 'my' ? rel.titleMy : rel.titleEn}
-                  </span>
-                </div>
-                <span className="text-[10px] font-medium text-[#8e8e93]">
-                  {rel.date}
-                </span>
-              </div>
-
-              <ul className="space-y-1 pl-4 list-disc text-xs text-[#8e8e93] dark:text-slate-300">
-                {(language === 'my' ? rel.itemsMy : rel.itemsEn).map((item, idx) => (
-                  <li key={idx} className="leading-relaxed">
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        <div className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/[0.04] dark:border-white/[0.06] pb-3">
+            <div>
+              <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
+                {language === 'my' ? 'ခေါင်းစဉ်' : 'RELEASE TITLE'}
+              </span>
+              <p className="text-xs font-extrabold text-[#1c1c1e] dark:text-white mt-0.5">
+                {language === 'my'
+                  ? (serverInfo?.titleMy || LOCAL_VERSION_INFO.titleMy)
+                  : (serverInfo?.titleEn || LOCAL_VERSION_INFO.titleEn)}
+              </p>
             </div>
-          ))}
+            <div className="shrink-0 text-left sm:text-right">
+              <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
+                {language === 'my' ? 'ထုတ်လွှင့်ရက်စွဲ' : 'RELEASE DATE'}
+              </span>
+              <span className="text-xs font-bold text-[#1c1c1e] dark:text-white font-mono block mt-0.5">
+                {serverInfo?.buildTime || LOCAL_VERSION_INFO.buildTime}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03]">
+              <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
+                {language === 'my' ? 'ဗားရှင်း နံပါတ်' : 'VERSION NUMBER'}
+              </span>
+              <span className="text-xs font-mono font-extrabold text-[#007aff] block mt-0.5">
+                {currentVersion}
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-black/[0.02] dark:bg-white/[0.03]">
+              <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
+                {language === 'my' ? 'BUILD HASH' : 'BUILD HASH'}
+              </span>
+              <span className="text-xs font-mono font-extrabold text-[#1c1c1e] dark:text-white block mt-0.5 truncate">
+                {serverInfo?.buildHash || LOCAL_VERSION_INFO.buildHash}
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block mb-2">
+              {language === 'my' ? 'လက်ရှိ ဗားရှင်း ပြင်ဆင်ချက်များ' : 'CHANGELOG & HIGHLIGHTS'}
+            </span>
+            <ul className="space-y-1.5 pl-4 list-disc text-xs text-[#8e8e93] dark:text-slate-300">
+              {((language === 'my'
+                ? (serverInfo?.changelogMy || LOCAL_VERSION_INFO.changelogMy)
+                : (serverInfo?.changelogEn || LOCAL_VERSION_INFO.changelogEn)) || []).map((item, idx) => (
+                <li key={idx} className="leading-relaxed">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 

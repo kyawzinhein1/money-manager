@@ -246,8 +246,10 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.05] dark:border-white/[0.05] pb-5">
         <div className="flex items-start justify-between w-full md:w-auto gap-4">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-              <FolderKanban className="w-5 h-5 text-[#007aff]" />
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+              <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+                <FolderKanban className="w-4.5 h-4.5" />
+              </div>
               {t('manageCategories')}
             </h2>
             <p className="text-xs text-[#8e8e93] font-medium">

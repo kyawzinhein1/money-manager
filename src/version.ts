@@ -18,26 +18,58 @@ export interface AppVersionInfo {
   releaseHistory?: ReleaseNote[];
 }
 
-export const APP_VERSION = 'v2.1.3';
-export const BUILD_HASH = 'v2.1.3-20260805';
+export const APP_VERSION = 'v2.1.5';
+export const BUILD_HASH = 'v2.1.5-20260810';
 
 export const LOCAL_VERSION_INFO: AppVersionInfo = {
-  version: 'v2.1.3',
-  buildHash: 'v2.1.3-20260805',
-  buildTime: '2026-08-05 19:45:00',
-  titleEn: 'Release v2.1.3: Instant Cold Launch & Zero White Screen PWA Offline Engine',
-  titleMy: 'ဗားရှင်းအသစ် v2.1.3: အက်ပ် ပိတ်ပြီး ပြန်ဖွင့်ချိန် စခရင်အဖြူ လုံးဝ မပေါ်စေရန်နှင့် အော့ဖ်လိုင်း ချက်ချင်းပွင့်သည့် စနစ်',
+  version: 'v2.1.5',
+  buildHash: 'v2.1.5-20260810',
+  buildTime: '2026-08-10 11:05:00',
+  titleEn: 'Release v2.1.5: Clean Plus Jakarta Sans Typography & Unified Title Styling',
+  titleMy: 'ဗားရှင်းအသစ် v2.1.5: Plus Jakarta Sans စာလုံးဒီဇိုင်းနှင့် ညီညာဆွဲဆောင်မှုရှိသော ခေါင်းစဉ်ဒီဇိုင်း',
   changelogEn: [
-    'Implemented instant Cache-First navigation strategy with ignoreSearch matching for PWA shortcuts',
-    'Auto-discovered and pre-cached bundled JS/CSS resources during Service Worker installation',
-    'Added seamless native dark/light splash shell inside index.html for zero white screen startup'
+    'Upgraded global typography to Plus Jakarta Sans for a clean, modern, and beautiful UI aesthetic',
+    'Standardized all page headers and title typography across all tabs, modals, and subviews with matching icon frames and font weights',
+    'Ensured crisp rendering for Myanmar and numeric characters with optimized fallback font stacks'
   ],
   changelogMy: [
-    'Recent Apps မှ အက်ပ်ကို ဖြုတ်ပြီး အော့ဖ်လိုင်း ပြန်ဖွင့်ချိန် ချက်ချင်းပွင့်စေရန် Cache-First စနစ် ပြောင်းလဲခဲ့ပါသည်',
-    'Service Worker တပ်ဆင်ချိန်တွင် JavaScript နှင့် CSS ဖိုင်အားလုံးကို လိုအောက် ပရီးကက်ချ် ပြုလုပ်ထားပါသည်',
-    'အက်ပ် စတင်ပွင့်ချိန် စခရင် အဖြူရောင် လုံးဝ မပေါ်စေရန် index.html တွင် Instant Splash Shell ထည့်သွင်းထားပါသည်'
+    'အက်ပ်တစ်ခုလုံး၏ စာလုံးဒီဇိုင်းကို ပိုမိုသန့်ရှင်းဆန်းသစ်သော Plus Jakarta Sans သို့ အဆင့်မြှင့်တင်ခဲ့ပါသည်',
+    'စာမျက်နှာ ခေါင်းစဉ်များ၊ အိုင်ကွန်ကွက်များနှင့် စာလုံးဆိုဒ်များအားလုံးကို တညီတညွတ်တည်း ဖြစ်စေရန် ပြန်လည်စနစ်တကျ ပြင်ဆင်ခဲ့ပါသည်',
+    'မြန်မာစာနှင့် ကိန်းဂဏန်းများ သန့်ရှင်းပြတ်သားစွာ ပေါ်လွင်စေရန် ဖောင့်စနစ်ကို မြှင့်တင်ထားပါသည်'
   ],
   releaseHistory: [
+    {
+      version: 'v2.1.5',
+      date: '2026-08-10',
+      titleEn: 'Release v2.1.5: Clean Plus Jakarta Sans Typography & Unified Title Styling',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.5: Plus Jakarta Sans စာလုံးဒီဇိုင်းနှင့် ညီညာဆွဲဆောင်မှုရှိသော ခေါင်းစဉ်ဒီဇိုင်း',
+      itemsEn: [
+        'Upgraded global typography to Plus Jakarta Sans for a clean, modern, and beautiful UI aesthetic',
+        'Standardized all page headers and title typography across all tabs, modals, and subviews with matching icon frames and font weights',
+        'Ensured crisp rendering for Myanmar and numeric characters with optimized fallback font stacks'
+      ],
+      itemsMy: [
+        'အက်ပ်တစ်ခုလုံး၏ စာလုံးဒီဇိုင်းကို ပိုမိုသန့်ရှင်းဆန်းသစ်သော Plus Jakarta Sans သို့ အဆင့်မြှင့်တင်ခဲ့ပါသည်',
+        'စာမျက်နှာ ခေါင်းစဉ်များ၊ အိုင်ကွန်ကွက်များနှင့် စာလုံးဆိုဒ်များအားလုံးကို တညီတညွတ်တည်း ဖြစ်စေရန် ပြန်လည်စနစ်တကျ ပြင်ဆင်ခဲ့ပါသည်',
+        'မြန်မာစာနှင့် ကိန်းဂဏန်းများ သန့်ရှင်းပြတ်သားစွာ ပေါ်လွင်စေရန် ဖောင့်စနစ်ကို မြှင့်တင်ထားပါသည်'
+      ]
+    },
+    {
+      version: 'v2.1.4',
+      date: '2026-08-10',
+      titleEn: 'Release v2.1.4: Native Apple iOS Typography & Simplified Home Layout',
+      titleMy: 'ဗားရှင်းအသစ် v2.1.4: အမှန်တကယ် iOS ပုံစံ စာလုံးဒီဇိုင်းနှင့် ပိုမိုရှင်းလင်းသော ပင်မစာမျက်နှာ',
+      itemsEn: [
+        'Applied native Apple iOS System Typography (-apple-system, SF Pro Text / Display) across the entire application',
+        'Streamlined Home Dashboard overview by removing daily avg spend, top category, and savings rate metrics',
+        'Substituted Release Notes UI in Check Updates with real-time current release version information details'
+      ],
+      itemsMy: [
+        'အက်ပ်တစ်ခုလုံးကို မူလ Apple iOS ပုံစံ စာလုံးဒီဇိုင်း (SF Pro System Font) သို့ အပြီးသတ် ပြောင်းလဲခဲ့ပါသည်',
+        'ပင်မစာမျက်နှာကို ပိုမိုရှင်းလင်းစေရန် တစ်နေ့ပျမ်းမျှ အသုံးစရိတ်နှင့် စုဆောင်းငွေ အချိုး ကတ်များကို ဖယ်ရှားခဲ့ပါသည်',
+        'ဗားရှင်း စစ်ဆေးသည့် စခရင်တွင် လက်ရှိ ထုတ်လုပ်ထားသော ဗားရှင်း သတင်းအချက်အလက်များကို တိုက်ရိုက် ဖော်ပြပေးထားပါသည်'
+      ]
+    },
     {
       version: 'v2.1.3',
       date: '2026-08-05',

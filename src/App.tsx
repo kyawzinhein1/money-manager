@@ -1242,7 +1242,7 @@ export default function App() {
           <title>${t('appName')} - PDF Statement</title>
           <style>
             body {
-              font-family: 'Inter', -apple-system, sans-serif;
+              font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
               color: #1e293b;
               margin: 40px;
               line-height: 1.5;

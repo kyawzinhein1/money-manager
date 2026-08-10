@@ -348,12 +348,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                 {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-
-            {totals.income > 0 && (
-              <span className="text-xs font-black px-3 py-1 rounded-full bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20 font-mono">
-                {metrics.savingsRatio.toFixed(0)}% {settings.language === 'my' ? 'စုဆောင်းငွေ' : 'Saved'}
-              </span>
-            )}
           </div>
 
           {/* Minimalist Cashflow Summary Strip (Replaces separate bulky income/expense cards) */}
@@ -446,62 +440,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
             </div>
           </div>
         </button>
-      </div>
-
-      {/* Financial Health Insights Grid (3-Metric Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        {/* Metric 1: Daily Average Spend */}
-        <div className="p-4 ios-glass rounded-[1.8rem] border border-black/5 dark:border-white/5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-[#8e8e93]">
-            <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#007aff]" />
-              {settings.language === 'my' ? 'တစ်နေ့ပျမ်းမျှ သုံးစွဲမှု' : 'Daily Avg Spend'}
-            </span>
-          </div>
-          <p className="text-base font-black font-mono text-[#1c1c1e] dark:text-white">
-            {formatAmount(metrics.dailyAvg)}
-          </p>
-          <p className="text-[10px] text-[#8e8e93]">
-            {settings.language === 'my' ? 'ရက်အလိုက် ပျမ်းမျှကုန်ကျစရိတ်' : 'Average pace for selected period'}
-          </p>
-        </div>
-
-        {/* Metric 2: Top Expense Category */}
-        <div className="p-4 ios-glass rounded-[1.8rem] border border-black/5 dark:border-white/5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-[#8e8e93]">
-            <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
-              <TrendingDown className="w-3.5 h-3.5 text-[#ff3b30]" />
-              {settings.language === 'my' ? 'အများဆုံး သုံးစွဲသည့် ကဏ္ဍ' : 'Top Category'}
-            </span>
-            {metrics.topCategoryPercent > 0 && (
-              <span className="text-[10px] font-bold text-[#ff3b30] bg-[#ff3b30]/10 px-1.5 py-0.5 rounded-md">
-                {metrics.topCategoryPercent.toFixed(0)}%
-              </span>
-            )}
-          </div>
-          <p className="text-base font-black text-[#1c1c1e] dark:text-white truncate">
-            {metrics.topCategory ? tc(metrics.topCategory) : '-'}
-          </p>
-          <p className="text-[10px] text-[#8e8e93] font-mono">
-            {metrics.topCategoryAmount > 0 ? formatAmount(metrics.topCategoryAmount) : (settings.language === 'my' ? 'မှတ်တမ်းမရှိပါ' : 'No records')}
-          </p>
-        </div>
-
-        {/* Metric 3: Savings Rate */}
-        <div className="p-4 ios-glass rounded-[1.8rem] border border-black/5 dark:border-white/5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-[#8e8e93]">
-            <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-[#34c759]" />
-              {settings.language === 'my' ? 'စုဆောင်းငွေ အချိုး' : 'Savings Rate'}
-            </span>
-          </div>
-          <p className="text-base font-black font-mono text-[#34c759]">
-            {metrics.savingsRatio.toFixed(1)}%
-          </p>
-          <p className="text-[10px] text-[#8e8e93]">
-            {settings.language === 'my' ? 'ဝင်ငွေအပေါ် စုဆောင်းနိုင်မှု ရာခိုင်နှုန်း' : 'Income retained after expenses'}
-          </p>
-        </div>
       </div>
 
       {/* Budgets & Spending Health Mini Card */}

@@ -233,8 +233,12 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
   const renderSubViewHeader = (title: string, icon?: React.ReactNode, description?: string) => (
     <div className="flex items-center justify-between pb-4 mb-5 border-b border-black/5 dark:border-white/10 gap-3">
       <div>
-        <h2 className="text-base sm:text-lg font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-          {icon}
+        <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+          {icon && (
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              {icon}
+            </div>
+          )}
           <span>{title}</span>
         </h2>
         {description && (
@@ -420,8 +424,10 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
       {/* Root Settings Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <Globe className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <Globe className="w-4.5 h-4.5" />
+            </div>
             {t('settings')}
           </h2>
           <p className="text-xs text-[#8e8e93]">

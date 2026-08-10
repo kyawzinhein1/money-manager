@@ -311,13 +311,13 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-black/5 dark:border-white/5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="p-2.5 rounded-2xl bg-[#34c759]/10 text-[#34c759] shrink-0">
-              <Landmark className="w-5 h-5" />
-            </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+                <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+                  <Landmark className="w-4.5 h-4.5" />
+                </div>
                 {t('budgets')}
-                <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#007aff]/10 text-[#007aff] border border-[#007aff]/20">
                   <Calendar className="w-3 h-3" />
                   {getRangeLabel()}
                 </span>

@@ -176,8 +176,10 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
       {/* Header Row */}
       <div className="flex items-center justify-between border-b border-black/[0.05] dark:border-white/[0.05] pb-5 gap-4">
         <div>
-          <h2 className="text-xl font-black tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <Database className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <Database className="w-4.5 h-4.5" />
+            </div>
             {settings.language === 'my' ? 'ဒေတာဘေ့စ်နှင့် စာရင်းထိန်းသိမ်းမှု' : 'Database & Data Ledger'}
           </h2>
           <p className="text-xs text-[#8e8e93] font-medium">

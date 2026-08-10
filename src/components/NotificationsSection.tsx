@@ -71,8 +71,10 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = React.m
       {/* Title Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2">
-            <Bell className="w-5 h-5 text-[#007aff]" />
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] flex items-center gap-2.5 font-sans">
+            <div className="w-8 h-8 rounded-xl bg-[#007aff]/10 text-[#007aff] flex items-center justify-center shrink-0 border border-[#007aff]/20">
+              <Bell className="w-4.5 h-4.5" />
+            </div>
             {language === 'my' ? 'သတိပေးချက်များ' : 'Notifications'}
           </h2>
           <p className="text-xs text-[#8e8e93]">
