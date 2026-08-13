@@ -56,6 +56,7 @@ interface BudgetSectionProps {
   selectedYear: string;
   categoryColors?: Record<string, string>;
   categoryIcons?: Record<string, string>;
+  onEditBudgetTrigger?: (budgetToEdit?: Budget | null) => void;
 }
 
 export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
@@ -70,6 +71,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   selectedYear,
   categoryColors = {},
   categoryIcons = {},
+  onEditBudgetTrigger,
 }) => {
   const t = (key: string) => TRANSLATIONS[language][key] || key;
   const tc = (cat: string) => CATEGORY_TRANSLATIONS[language][cat] || cat;
@@ -184,6 +186,10 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
   };
 
   const handleEditClick = () => {
+    if (onEditBudgetTrigger) {
+      onEditBudgetTrigger(activeBudget);
+      return;
+    }
     if (activeBudget) {
       setBudgetLimit(activeBudget.limit.toString());
     } else {
@@ -300,11 +306,6 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
 
   const advice = getSmartRecommendation();
 
-  // SVG Circular Ring Gauge setup
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (Math.min(percent, 100) / 100) * circumference;
-
   return (
     <div className="space-y-6" id="budget-section">
       {/* Dynamic Professional Page Header */}
@@ -335,7 +336,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
             <button
               id="set-budget-header-btn"
               type="button"
-              onClick={() => setIsEditing(true)}
+              onClick={handleEditClick}
               className="flex items-center justify-center gap-2 h-10 px-5 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold shadow-md shadow-[#007aff]/20 transition-all cursor-pointer active:scale-95 border-0"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
@@ -400,7 +401,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                         setBudgetLimit(e.target.value);
                         if (error) setError(undefined);
                       }}
-                      className="w-full text-4xl sm:text-5xl font-mono font-black text-center text-[#1c1c1e] dark:text-white bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff]"
+                      className="w-full text-4xl sm:text-5xl font-sans font-black text-center text-[#1c1c1e] dark:text-white bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff]"
                       style={{ width: `${Math.max(budgetLimit.length * 24 + 40, 120)}px`, maxWidth: '100%' }}
                     />
                     {budgetLimit && (
@@ -570,7 +571,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
               <button
                 id="set-budget-empty-btn"
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={handleEditClick}
                 className="w-full sm:w-auto px-7 py-3 bg-[#007aff] hover:bg-[#007aff]/90 text-white rounded-full text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#007aff]/20 flex items-center justify-center gap-2 active:scale-95 border-0"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
@@ -623,7 +624,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                   </span>
                 )}
 
-                <span className="text-[10px] text-[#8e8e93] font-bold font-mono">
+                <span className="text-[10px] text-[#8e8e93] font-bold font-sans">
                   {daysRemaining} {language === 'my' ? 'ရက်ကျန်' : 'days left'}
                 </span>
               </div>
@@ -651,7 +652,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
               </div>
             </div>
 
-            {/* Main Limit Hero & Circular Ring Progress */}
+            {/* Main Limit Hero & Percentage Badge */}
             <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 my-2">
               <div className="text-center sm:text-left space-y-1">
                 <span className="text-[10px] font-black text-[#8e8e93] uppercase tracking-wider block">
@@ -666,46 +667,16 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 </div>
               </div>
 
-              {/* Circular SVG Progress Ring Gauge */}
-              <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className="stroke-black/5 dark:stroke-white/10"
-                    strokeWidth="11"
-                    fill="transparent"
-                  />
-                  <motion.circle
-                    cx="64"
-                    cy="64"
-                    r={radius}
-                    className={
-                      isExceeded
-                        ? 'stroke-[#ff3b30]'
-                        : percent > 85
-                        ? 'stroke-[#ff9500]'
-                        : 'stroke-[#34c759]'
-                    }
-                    strokeWidth="11"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    initial={{ strokeDashoffset: circumference }}
-                    animate={{ strokeDashoffset }}
-                    transition={{ duration: 1.2, ease: 'easeOut' }}
-                    strokeLinecap="round"
-                  />
-                </svg>
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-2xl font-black text-[#1c1c1e] dark:text-white font-mono leading-none">
-                    {percent.toFixed(0)}%
-                  </span>
-                  <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider mt-1">
-                    {t('spent')}
-                  </span>
-                </div>
+              {/* Percentage Spent Stat Badge */}
+              <div className="flex flex-col items-center sm:items-end justify-center px-5 py-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/5 dark:border-white/5 shrink-0">
+                <span className={`text-2xl sm:text-3xl font-black font-sans tracking-tight leading-none ${
+                  isExceeded ? 'text-[#ff3b30]' : percent > 85 ? 'text-[#ff9500]' : 'text-[#1c1c1e] dark:text-white'
+                }`}>
+                  {percent.toFixed(0)}%
+                </span>
+                <span className="text-[10px] text-[#8e8e93] font-black uppercase tracking-wider mt-1">
+                  {t('spent')} ({formatAmount(totalSpent)})
+                </span>
               </div>
             </div>
 
@@ -740,7 +711,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
                   {t('spent')}
                 </span>
-                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-mono block truncate">
+                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-sans block truncate">
                   {formatAmount(totalSpent)}
                 </span>
                 <span className="text-[9px] text-[#8e8e93] font-bold block">
@@ -752,7 +723,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
                   {isExceeded ? t('overBudget') : t('remaining')}
                 </span>
-                <span className={`text-xs font-black font-mono block truncate ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                <span className={`text-xs font-black font-sans block truncate ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                   {isExceeded ? '-' : ''}{formatAmount(Math.abs(remaining))}
                 </span>
                 <span className="text-[9px] text-[#8e8e93] font-bold block">
@@ -764,7 +735,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
                   {language === 'my' ? 'နေ့စဉ် သုံးငွေ' : 'Daily Safe'}
                 </span>
-                <span className="text-xs font-black text-[#007aff] font-mono block truncate">
+                <span className="text-xs font-black text-[#007aff] font-sans block truncate">
                   {formatAmount(dailyAllowanceRemaining)}
                 </span>
                 <span className="text-[9px] text-[#8e8e93] font-bold block">
@@ -776,7 +747,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                 <span className="text-[9px] text-[#8e8e93] font-black uppercase tracking-wider block">
                   {language === 'my' ? 'နေ့စဉ် ပျမ်းမျှ' : 'Daily Burn'}
                 </span>
-                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-mono block truncate flex items-center gap-1">
+                <span className="text-xs font-black text-[#1c1c1e] dark:text-white font-sans block truncate flex items-center gap-1">
                   {formatAmount(currentDailyAvgSpent)}
                   {currentDailyAvgSpent > dailyLimitAllowed ? (
                     <TrendingUp className="w-3 h-3 text-[#ff3b30] shrink-0" />
@@ -856,7 +827,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                         <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                           {language === 'my' ? 'ခွင့်ပြု ပရိမာဏ/ရက်' : 'Target Daily Cap'}
                         </span>
-                        <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-mono">
+                        <span className="block text-sm font-black text-[#1c1c1e] dark:text-white font-sans">
                           {formatAmount(dailyLimitAllowed)}
                         </span>
                       </div>
@@ -865,7 +836,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                         <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                           {language === 'my' ? 'လက်ရှိ သုံးနှုန်း/ရက်' : 'Actual Daily Burn'}
                         </span>
-                        <span className={`block text-sm font-black font-mono flex items-center gap-1 ${
+                        <span className={`block text-sm font-black font-sans flex items-center gap-1 ${
                           currentDailyAvgSpent > dailyLimitAllowed ? 'text-[#ff3b30]' : 'text-[#34c759]'
                         }`}>
                           {formatAmount(currentDailyAvgSpent)}
@@ -910,7 +881,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                         <span className="block text-[9px] text-[#007aff] font-black uppercase tracking-wider">
                           {language === 'my' ? 'နေ့စဉ် သုံးရန် အကြံပြုချက်' : 'Target Daily'}
                         </span>
-                        <span className="block text-sm font-black font-mono text-[#007aff]">
+                        <span className="block text-sm font-black font-sans text-[#007aff]">
                           {formatAmount(dailyAllowanceRemaining)}
                         </span>
                       </div>
@@ -919,7 +890,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                         <span className="block text-[9px] text-[#8e8e93] font-black uppercase tracking-wider">
                           {language === 'my' ? 'လကုန် သုံးစွဲမှု ခန့်မှန်း' : 'Projected EOM'}
                         </span>
-                        <span className={`block text-sm font-black font-mono ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                        <span className={`block text-sm font-black font-sans ${forecast.projectedSpent > activeBudget.limit ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                           {formatAmount(forecast.projectedSpent)}
                         </span>
                       </div>
@@ -1002,7 +973,7 @@ export const BudgetSection: React.FC<BudgetSectionProps> = React.memo(({
                                   </div>
                                   <span className="font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">{tc(category)}</span>
                                 </div>
-                                <div className="flex items-center gap-2 font-mono">
+                                <div className="flex items-center gap-2 font-sans">
                                   <span className="font-extrabold text-[#1c1c1e] dark:text-[#f2f2f7]">
                                     {formatAmount(spent)}
                                   </span>

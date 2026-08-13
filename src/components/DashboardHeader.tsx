@@ -62,7 +62,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({
             <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] font-sans">
               {t('appName')}
             </h1>
-            <p className="text-[10px] text-[#8e8e93] font-mono tracking-wider uppercase font-bold flex items-center gap-1.5">
+            <p className="text-[10px] text-[#8e8e93] font-sans tracking-wider uppercase font-bold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#34c759]" />
               {customCurrency.code} Mode
             </p>

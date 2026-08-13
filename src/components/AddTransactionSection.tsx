@@ -359,7 +359,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
             </span>
 
             <div className="relative flex items-center justify-center max-w-md mx-auto">
-              <span className={`text-2xl sm:text-3xl font-black font-mono mr-2 ${type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+              <span className={`text-2xl sm:text-3xl font-extrabold font-sans mr-2 ${type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
                 {type === 'income' ? '+' : '-'}{currencySymbol || currencyCode}
               </span>
               <input
@@ -374,7 +374,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
                     setErrors(prev => ({ ...prev, amount: undefined }));
                   }
                 }}
-                className={`w-auto min-w-[120px] max-w-full text-4xl sm:text-5xl md:text-6xl font-mono font-black text-center bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff] tracking-tight ${
+                className={`w-auto min-w-[120px] max-w-full text-4xl sm:text-5xl md:text-6xl font-sans font-extrabold text-center bg-transparent border-0 focus:outline-none focus:ring-0 p-0 caret-[#007aff] tracking-tight ${
                   type === 'income' ? 'text-[#34c759]' : 'text-[#1c1c1e] dark:text-white'
                 }`}
                 style={{ width: `${Math.max(amount.length * 28 + 40, 140)}px` }}
@@ -410,7 +410,7 @@ export const AddTransactionSection: React.FC<AddTransactionSectionProps> = React
                   key={val}
                   type="button"
                   onClick={() => handleQuickAmount(val)}
-                  className="px-3 py-1.5 rounded-xl bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-xs font-extrabold font-mono text-[#1c1c1e] dark:text-[#f2f2f7] transition-all cursor-pointer border border-black/[0.03] dark:border-white/[0.05] active:scale-95 shadow-2xs"
+                  className="px-3 py-1.5 rounded-xl bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-xs font-extrabold font-sans text-[#1c1c1e] dark:text-[#f2f2f7] transition-all cursor-pointer border border-black/[0.03] dark:border-white/[0.05] active:scale-95 shadow-2xs"
                 >
                   +{val >= 1000 ? `${val / 1000}k` : val}
                 </button>

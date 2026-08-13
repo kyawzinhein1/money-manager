@@ -65,6 +65,7 @@ import { AnalyticsSection } from './components/AnalyticsSection';
 import { SettingsSection } from './components/SettingsSection';
 import { ProfileSection } from './components/ProfileSection';
 import { AddTransactionSection } from './components/AddTransactionSection';
+import { EditBudgetSection } from './components/EditBudgetSection';
 import { NotificationsSection } from './components/NotificationsSection';
 import { PWAInstallGuideModal } from './components/PWAInstallGuideModal';
 
@@ -267,14 +268,15 @@ export default function App() {
   }, [endDate]);
 
   // Current Active Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction' | 'notifications'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction' | 'edit-budget' | 'notifications'>(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('mm_open_updates_on_load') === 'true') {
       return 'settings';
     }
     return 'dashboard';
   });
-  const [previousTab, setPreviousTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction' | 'notifications'>('dashboard');
+  const [previousTab, setPreviousTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'analytics' | 'settings' | 'profile' | 'add-transaction' | 'edit-budget' | 'notifications'>('dashboard');
   const [editingTxInAddPage, setEditingTxInAddPage] = useState<Transaction | null>(null);
+  const [editingBudgetInEditPage, setEditingBudgetInEditPage] = useState<Budget | null>(null);
   const [selectedTxForDetail, setSelectedTxForDetail] = useState<Transaction | null>(null);
   const [lastMainTab, setLastMainTab] = useState<'dashboard' | 'transactions'>('dashboard');
   const [isProfileEditing, setIsProfileEditing] = useState<boolean>(false);
@@ -1113,6 +1115,11 @@ export default function App() {
     setActiveTab('add-transaction');
   }, []);
 
+  const handleEditBudgetTrigger = React.useCallback((budgetToEdit?: Budget | null) => {
+    setEditingBudgetInEditPage(budgetToEdit || null);
+    setActiveTab('edit-budget');
+  }, []);
+
   const handleCancelAddTransaction = React.useCallback(() => {
     setActiveTab(lastMainTab);
   }, [lastMainTab]);
@@ -1341,7 +1348,7 @@ export default function App() {
               <h1 className="text-base md:text-lg font-extrabold tracking-tight text-[#1c1c1e] dark:text-[#f2f2f7] font-sans">
                 {t('appName')}
               </h1>
-              <p className="text-[10px] text-[#8e8e93] font-mono tracking-wider uppercase font-bold flex items-center gap-1.5">
+              <p className="text-[10px] text-[#8e8e93] font-sans tracking-wider uppercase font-bold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#34c759]" />
                 {customCurrency.code} Mode
               </p>
@@ -1545,6 +1552,25 @@ export default function App() {
                     selectedYear={selectedYear}
                     categoryColors={categoryColors}
                     categoryIcons={categoryIcons}
+                    onEditBudgetTrigger={handleEditBudgetTrigger}
+                  />
+                )}
+
+                {/* 3b. Edit Budget Section */}
+                {activeTab === 'edit-budget' && (
+                  <EditBudgetSection
+                    language={settings.language}
+                    currencySymbol={customCurrency.symbol}
+                    currencyCode={customCurrency.code}
+                    expenseCategories={expenseCategories}
+                    categoryColors={categoryColors}
+                    categoryIcons={categoryIcons}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    activeBudget={editingBudgetInEditPage}
+                    onSaveBudget={handleSaveBudget}
+                    onCancel={() => setActiveTab('budgets')}
+                    formatAmount={formatAmount}
                   />
                 )}
 

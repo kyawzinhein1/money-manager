@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, CalendarRange, ChevronDown, RotateCcw, Filter, ArrowRight, X } from 'lucide-react';
 import { Settings } from '../types';
@@ -279,88 +280,91 @@ export const DateFilterSwitcher: React.FC<DateFilterSwitcherProps> = React.memo(
       </div>
 
       {/* iOS Style Calendar Modal */}
-      <AnimatePresence>
-        {showCalendarModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 no-print">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCalendarModal(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-md"
-            />
-
-            {/* Modal Dialog */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-              className="relative z-10 w-full max-w-md bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl p-4 sm:p-5 border border-white/50 dark:border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-thin font-sans"
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-black/5 dark:border-white/5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-[#007aff]/15 text-[#007aff] flex items-center justify-center shrink-0">
-                    <Calendar className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-[#1c1c1e] dark:text-white leading-tight">
-                      {settings.language === 'my' ? 'ရက်စွဲ စစ်ထုတ်မှု ရွေးချယ်ပါ' : 'Select Date Filter'}
-                    </h3>
-                    <p className="text-[11px] font-bold text-[#8e8e93]">
-                      {settings.language === 'my' ? 'စတင်သည့်ရက် နှင့် ပြီးဆုံးသည့်ရက် ရွေးပါ' : 'Choose Start Date and End Date'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowCalendarModal(false)}
-                  className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 flex items-center justify-center text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all border-0 cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Custom iOS Date Range Picker Component */}
-              <IOSDateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(s, e) => {
-                  setStartDate(s);
-                  setEndDate(e);
-                }}
-                language={settings.language}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showCalendarModal && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 no-print">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowCalendarModal(false)}
+                className="fixed inset-0 bg-black/50 backdrop-blur-md"
               />
 
-              {/* Modal Footer Controls */}
-              <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2">
-                {(startDate || endDate) && (
+              {/* Modal Dialog */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+                className="relative z-10 w-full max-w-md bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-3xl p-4 sm:p-5 border border-white/50 dark:border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-thin font-sans"
+              >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-black/5 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#007aff]/15 text-[#007aff] flex items-center justify-center shrink-0">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-[#1c1c1e] dark:text-white leading-tight">
+                        {settings.language === 'my' ? 'ရက်စွဲ စစ်ထုတ်မှု ရွေးချယ်ပါ' : 'Select Date Filter'}
+                      </h3>
+                      <p className="text-[11px] font-bold text-[#8e8e93]">
+                        {settings.language === 'my' ? 'စတင်သည့်ရက် နှင့် ပြီးဆုံးသည့်ရက် ရွေးပါ' : 'Choose Start Date and End Date'}
+                      </p>
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      handleClearRange();
-                    }}
-                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#ff3b30] bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 transition-all border-0 cursor-pointer flex items-center gap-1.5"
+                    onClick={() => setShowCalendarModal(false)}
+                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 flex items-center justify-center text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white transition-all border-0 cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{t('clearDateRange')}</span>
+                    <X className="w-4 h-4" />
                   </button>
-                )}
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowCalendarModal(false)}
-                  className="ml-auto px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#007aff] hover:bg-[#0063cc] shadow-xs transition-all border-0 cursor-pointer"
-                >
-                  {settings.language === 'my' ? 'ပြီးပြီ' : 'Done'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                {/* Custom iOS Date Range Picker Component */}
+                <IOSDateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(s, e) => {
+                    setStartDate(s);
+                    setEndDate(e);
+                  }}
+                  language={settings.language}
+                />
+
+                {/* Modal Footer Controls */}
+                <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2">
+                  {(startDate || endDate) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleClearRange();
+                      }}
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#ff3b30] bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 transition-all border-0 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>{t('clearDateRange')}</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCalendarModal(false)}
+                    className="ml-auto px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#007aff] hover:bg-[#0063cc] shadow-xs transition-all border-0 cursor-pointer"
+                  >
+                    {settings.language === 'my' ? 'ပြီးပြီ' : 'Done'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 });

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDebounce } from '../utils/useDebounce';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { motion, AnimatePresence } from 'motion/react';
@@ -479,7 +480,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                 : (language === 'my' ? 'အသုံးစရိတ် ပမာဏ' : 'Expense Amount')}
             </p>
             <div
-              className={`text-2xl sm:text-3xl font-bold font-mono tracking-tight ${
+              className={`text-2xl sm:text-3xl font-bold font-sans tracking-tight ${
                 currentDetailTx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
               }`}
             >
@@ -529,7 +530,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                 </span>
               </div>
             </div>
-            <span className="font-mono text-xs text-[#8e8e93] font-medium bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg shrink-0">
+            <span className="font-sans text-xs text-[#8e8e93] font-medium bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg shrink-0">
               {formatDateDMY(currentDetailTx.date)}
             </span>
           </div>
@@ -569,7 +570,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                 <span className="text-[#8e8e93] font-medium block text-[10px] uppercase tracking-wider">
                   {language === 'my' ? 'မှတ်ပုံတင် အိုင်ဒီ' : 'Entry ID'}
                 </span>
-                <span className="font-mono text-xs text-[#1c1c1e] dark:text-[#f2f2f7] font-medium truncate block">
+                <span className="font-sans text-xs text-[#1c1c1e] dark:text-[#f2f2f7] font-medium truncate block">
                   {currentDetailTx.id}
                 </span>
               </div>
@@ -713,7 +714,6 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             <span className="truncate">{language === 'my' ? 'ပြက္ခဒိန်' : 'Calendar'}</span>
           </button>
 
-          {/* Primary Call to Action */}
           <button
             id="add-tx-btn"
             onClick={handleOpenAdd}
@@ -726,176 +726,180 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
       </div>
 
       {/* Dedicated Calendar Screen Modal */}
-      <AnimatePresence>
-        {isCalendarModalOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-fade-in"
-            onClick={() => setIsCalendarModalOpen(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl bg-white dark:bg-[#1c1c1e] rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl p-4 sm:p-6 border border-white/20 dark:border-white/10 space-y-3.5 sm:space-y-4 max-h-[92vh] flex flex-col my-auto overflow-hidden"
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isCalendarModalOpen && (
+            <div
+              className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-black/50 backdrop-blur-md animate-fade-in no-print"
+              onClick={() => setIsCalendarModalOpen(false)}
             >
-              {/* Modal Header & Controls */}
-              <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 sm:p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
-                    <Calendar className="w-5 h-5" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl bg-white dark:bg-[#1c1c1e] rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl p-4 sm:p-6 border border-white/20 dark:border-white/10 space-y-3.5 sm:space-y-4 max-h-[92vh] flex flex-col my-auto overflow-hidden"
+              >
+                {/* Modal Header & Controls */}
+                <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5 shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 sm:p-2.5 bg-[#007aff]/10 text-[#007aff] rounded-2xl">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg lg:text-xl font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
+                        {new Date(calendarYear, calendarMonth - 1, 1).toLocaleString(language === 'my' ? 'my-MM' : 'en-US', { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <p className="text-[11px] sm:text-xs text-[#8e8e93] font-medium">
+                        {language === 'my' ? 'နေ့စဉ် ဝင်ငွေ/ထွက်ငွေ ပြက္ခဒိန်' : 'Daily Income and Expense overview'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg lg:text-xl font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
-                      {new Date(calendarYear, calendarMonth - 1, 1).toLocaleString(language === 'my' ? 'my-MM' : 'en-US', { month: 'long', year: 'numeric' })}
-                    </h3>
-                    <p className="text-[11px] sm:text-xs text-[#8e8e93] font-medium">
-                      {language === 'my' ? 'နေ့စဉ် ဝင်ငွေ/ထွက်ငွေ ပြက္ခဒိန်' : 'Daily Income and Expense overview'}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (calendarMonth === 1) {
-                        setCalendarMonth(12);
-                        setCalendarYear(calendarYear - 1);
-                      } else {
-                        setCalendarMonth(calendarMonth - 1);
-                      }
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
-                    title="Previous Month"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const now = new Date();
-                      setCalendarYear(now.getFullYear());
-                      setCalendarMonth(now.getMonth() + 1);
-                    }}
-                    className="px-3 py-1 rounded-full bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] text-xs font-extrabold transition-all cursor-pointer border-0"
-                  >
-                    {language === 'my' ? 'ယနေ့' : 'Today'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (calendarMonth === 12) {
-                        setCalendarMonth(1);
-                        setCalendarYear(calendarYear + 1);
-                      } else {
-                        setCalendarMonth(calendarMonth + 1);
-                      }
-                    }}
-                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
-                    title="Next Month"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsCalendarModalOpen(false)}
-                    className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0 ml-1"
-                    title="Close"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Calendar Day Header Row */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider shrink-0">
-                <div>{language === 'my' ? 'တနင်္ဂနွေ' : 'Sun'}</div>
-                <div>{language === 'my' ? 'တနင်္လာ' : 'Mon'}</div>
-                <div>{language === 'my' ? 'အင်္ဂါ' : 'Tue'}</div>
-                <div>{language === 'my' ? 'ဗုဒ္ဓဟူး' : 'Wed'}</div>
-                <div>{language === 'my' ? 'ကြာသပတေး' : 'Thu'}</div>
-                <div>{language === 'my' ? 'သောကြာ' : 'Fri'}</div>
-                <div>{language === 'my' ? 'စနေ' : 'Sat'}</div>
-              </div>
-
-              {/* Calendar Days Grid */}
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 md:gap-2.5 flex-1 overflow-y-auto p-0.5 custom-scrollbar">
-                {Array.from({ length: new Date(calendarYear, calendarMonth - 1, 1).getDay() }).map((_, idx) => (
-                  <div key={`offset-${idx}`} className="w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full rounded-xl sm:rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-transparent" />
-                ))}
-
-                {Array.from({ length: new Date(calendarYear, calendarMonth, 0).getDate() }).map((_, idx) => {
-                  const dayNum = idx + 1;
-                  const monthStr = calendarMonth.toString().padStart(2, '0');
-                  const dayStr = dayNum.toString().padStart(2, '0');
-                  const dateKey = `${calendarYear}-${monthStr}-${dayStr}`;
-
-                  const dayTxs = transactions.filter(tx => tx.date === dateKey);
-                  let dayIncome = 0;
-                  let dayExpense = 0;
-                  dayTxs.forEach(tx => {
-                    if (tx.type === 'income') dayIncome += tx.amount;
-                    else dayExpense += tx.amount;
-                  });
-
-                  const isToday = dateKey === getLocalDateStr();
-
-                  return (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
-                      key={dateKey}
                       type="button"
-                      onClick={() => setSelectedCalendarDay(dateKey)}
-                      className={`w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full p-1.5 sm:p-2 md:p-2.5 rounded-xl sm:rounded-2xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:border-[#007aff]/50 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:shadow-sm active:scale-[0.98] ${
-                        isToday
-                          ? 'bg-[#007aff]/10 border-[#007aff]/40 shadow-xs'
-                          : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5'
-                      }`}
+                      onClick={() => {
+                        if (calendarMonth === 1) {
+                          setCalendarMonth(12);
+                          setCalendarYear(calendarYear - 1);
+                        } else {
+                          setCalendarMonth(calendarMonth - 1);
+                        }
+                      }}
+                      className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
+                      title="Previous Month"
                     >
-                      <div className="flex items-center justify-between w-full min-w-0">
-                        <span className={`text-[10px] sm:text-xs md:text-sm font-black w-5 h-5 sm:w-6 sm:h-6 md:w-6.5 md:h-6.5 flex items-center justify-center rounded-full shrink-0 ${
-                          isToday ? 'bg-[#007aff] text-white shadow-xs' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
-                        }`}>
-                          {dayNum}
-                        </span>
-                        {dayTxs.length > 0 && (
-                          <span className="text-[8px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0 font-mono">
-                            {dayTxs.length}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="space-y-0.5 sm:space-y-1 w-full min-w-0 overflow-hidden mt-1">
-                        {dayIncome > 0 && (
-                          <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#34c759] bg-[#34c759]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-mono">
-                            +{formatAmount(dayIncome)}
-                          </span>
-                        )}
-                        {dayExpense > 0 && (
-                          <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-mono">
-                            -{formatAmount(dayExpense)}
-                          </span>
-                        )}
-                      </div>
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const now = new Date();
+                        setCalendarYear(now.getFullYear());
+                        setCalendarMonth(now.getMonth() + 1);
+                      }}
+                      className="px-3 py-1 rounded-full bg-[#007aff]/10 hover:bg-[#007aff]/20 text-[#007aff] text-xs font-extrabold transition-all cursor-pointer border-0"
+                    >
+                      {language === 'my' ? 'ယနေ့' : 'Today'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (calendarMonth === 12) {
+                          setCalendarMonth(1);
+                          setCalendarYear(calendarYear + 1);
+                        } else {
+                          setCalendarMonth(calendarMonth + 1);
+                        }
+                      }}
+                      className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#1c1c1e] dark:text-white flex items-center justify-center transition-all cursor-pointer border-0"
+                      title="Next Month"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarModalOpen(false)}
+                      className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border-0 ml-1"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Calendar Day Header Row */}
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-extrabold text-[10px] sm:text-xs text-[#8e8e93] pb-2 border-b border-black/5 dark:border-white/5 uppercase tracking-wider shrink-0">
+                  <div>{language === 'my' ? 'တနင်္ဂနွေ' : 'Sun'}</div>
+                  <div>{language === 'my' ? 'တနင်္လာ' : 'Mon'}</div>
+                  <div>{language === 'my' ? 'အင်္ဂါ' : 'Tue'}</div>
+                  <div>{language === 'my' ? 'ဗုဒ္ဓဟူး' : 'Wed'}</div>
+                  <div>{language === 'my' ? 'ကြာသပတေး' : 'Thu'}</div>
+                  <div>{language === 'my' ? 'သောကြာ' : 'Fri'}</div>
+                  <div>{language === 'my' ? 'စနေ' : 'Sat'}</div>
+                </div>
+
+                {/* Calendar Days Grid */}
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2 md:gap-2.5 flex-1 overflow-y-auto p-0.5 custom-scrollbar">
+                  {Array.from({ length: new Date(calendarYear, calendarMonth - 1, 1).getDay() }).map((_, idx) => (
+                    <div key={`offset-${idx}`} className="w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full rounded-xl sm:rounded-2xl bg-black/[0.01] dark:bg-white/[0.01] border border-transparent" />
+                  ))}
+
+                  {Array.from({ length: new Date(calendarYear, calendarMonth, 0).getDate() }).map((_, idx) => {
+                    const dayNum = idx + 1;
+                    const monthStr = calendarMonth.toString().padStart(2, '0');
+                    const dayStr = dayNum.toString().padStart(2, '0');
+                    const dateKey = `${calendarYear}-${monthStr}-${dayStr}`;
+
+                    const dayTxs = transactions.filter(tx => tx.date === dateKey);
+                    let dayIncome = 0;
+                    let dayExpense = 0;
+                    dayTxs.forEach(tx => {
+                      if (tx.type === 'income') dayIncome += tx.amount;
+                      else dayExpense += tx.amount;
+                    });
+
+                    const isToday = dateKey === getLocalDateStr();
+
+                    return (
+                      <button
+                        key={dateKey}
+                        type="button"
+                        onClick={() => setSelectedCalendarDay(dateKey)}
+                        className={`w-full min-h-[60px] sm:min-h-[84px] md:min-h-[96px] h-full p-1.5 sm:p-2 md:p-2.5 rounded-xl sm:rounded-2xl border transition-all text-left flex flex-col justify-between overflow-hidden cursor-pointer group hover:border-[#007aff]/50 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:shadow-sm active:scale-[0.98] ${
+                          isToday
+                            ? 'bg-[#007aff]/10 border-[#007aff]/40 shadow-xs'
+                            : 'bg-black/[0.02] dark:bg-white/[0.03] border-black/5 dark:border-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full min-w-0">
+                          <span className={`text-[10px] sm:text-xs md:text-sm font-black w-5 h-5 sm:w-6 sm:h-6 md:w-6.5 md:h-6.5 flex items-center justify-center rounded-full shrink-0 ${
+                            isToday ? 'bg-[#007aff] text-white shadow-xs' : 'text-[#1c1c1e] dark:text-[#f2f2f7]'
+                          }`}>
+                            {dayNum}
+                          </span>
+                          {dayTxs.length > 0 && (
+                            <span className="text-[8px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10 text-[#8e8e93] shrink-0 font-sans">
+                              {dayTxs.length}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="space-y-0.5 sm:space-y-1 w-full min-w-0 overflow-hidden mt-1">
+                          {dayIncome > 0 && (
+                            <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#34c759] bg-[#34c759]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-sans">
+                              +{formatAmount(dayIncome)}
+                            </span>
+                          )}
+                          {dayExpense > 0 && (
+                            <span className="block text-[7.5px] sm:text-[9.5px] md:text-[11px] font-black text-[#ff3b30] bg-[#ff3b30]/15 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md truncate leading-tight font-sans">
+                              -{formatAmount(dayExpense)}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Day Detail Pop-up Sheet / Modal */}
-      <AnimatePresence>
-        {selectedCalendarDay && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in"
-            onClick={() => setSelectedCalendarDay(null)}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedCalendarDay && (
+            <div 
+              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in no-print"
+              onClick={() => setSelectedCalendarDay(null)}
+            >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -913,7 +917,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                     <h3 className="text-sm font-black text-[#1c1c1e] dark:text-[#f2f2f7]">
                       {t('dailyTransactionsFor')}
                     </h3>
-                    <p className="text-xs font-bold text-[#8e8e93] font-mono">
+                    <p className="text-xs font-bold text-[#8e8e93] font-sans">
                       {selectedCalendarDay}
                     </p>
                   </div>
@@ -939,15 +943,15 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   <div className="grid grid-cols-3 gap-2 shrink-0">
                     <div className="p-3 rounded-2xl bg-[#34c759]/10 border border-[#34c759]/20 text-center">
                       <span className="block text-[9px] font-black uppercase text-[#34c759]">{t('income')}</span>
-                      <span className="block text-xs font-black text-[#34c759] font-mono mt-0.5">+{formatAmount(dayIncome)}</span>
+                      <span className="block text-xs font-black text-[#34c759] font-sans mt-0.5">+{formatAmount(dayIncome)}</span>
                     </div>
                     <div className="p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/20 text-center">
                       <span className="block text-[9px] font-black uppercase text-[#ff3b30]">{t('expense')}</span>
-                      <span className="block text-xs font-black text-[#ff3b30] font-mono mt-0.5">-{formatAmount(dayExpense)}</span>
+                      <span className="block text-xs font-black text-[#ff3b30] font-sans mt-0.5">-{formatAmount(dayExpense)}</span>
                     </div>
                     <div className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 text-center">
                       <span className="block text-[9px] font-black uppercase text-[#8e8e93]">{t('netSavings')}</span>
-                      <span className={`block text-xs font-black font-mono mt-0.5 ${dayNet >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                      <span className={`block text-xs font-black font-sans mt-0.5 ${dayNet >= 0 ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
                         {formatAmount(dayNet)}
                       </span>
                     </div>
@@ -980,7 +984,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-xs font-black font-mono ${tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
+                          <span className={`text-xs font-black font-sans ${tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'}`}>
                             {tx.type === 'income' ? '+' : '-'}{formatAmount(tx.amount)}
                           </span>
                           <button
@@ -1014,7 +1018,9 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
 
       {/* Clean & Professional Search Bar */}
       <div className="ios-glass rounded-2xl p-3 sm:p-3.5 border border-black/5 dark:border-white/5 shadow-xs">
@@ -1067,7 +1073,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                   <Calendar className="w-3.5 h-3.5 text-[#007aff]" />
                   <span className="font-extrabold text-xs sm:text-sm">{formatGroupHeaderDate(group.date)}</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-mono font-bold text-xs">
+                <div className="flex items-center gap-1.5 font-sans font-bold text-xs">
                   {group.dailyIncome > 0 && (
                     <span className="text-[#34c759] bg-[#34c759]/10 px-2.5 py-0.5 rounded-full text-[11px]">
                       +{formatAmount(group.dailyIncome)}
@@ -1110,7 +1116,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className="px-2.5 py-1 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 rounded-lg font-mono font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-1 focus:ring-[#007aff]"
+              className="px-2.5 py-1 bg-[#f2f2f7] dark:bg-[#2c2c2e] border border-black/10 dark:border-white/10 rounded-lg font-sans font-bold text-xs text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-1 focus:ring-[#007aff]"
             >
               <option value={15}>15</option>
               <option value={20}>20</option>
@@ -1119,7 +1125,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               <option value={0}>{language === 'my' ? 'အားလုံး' : 'All'}</option>
             </select>
             {pageSize > 0 && (
-              <span className="font-mono text-[11px]">
+              <span className="font-sans text-[11px]">
                 {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)} -{' '}
                 {Math.min(currentPage * pageSize, filteredTransactions.length)} / {filteredTransactions.length}
               </span>
@@ -1137,7 +1143,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-3 font-mono text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
+              <span className="px-3 font-sans text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
                 {currentPage} / {totalPages}
               </span>
               <button
@@ -1244,7 +1250,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
                           setErrors((prev) => ({ ...prev, amount: undefined }));
                         }
                       }}
-                      className={`w-full px-4 py-3 bg-black/[0.03] dark:bg-white/[0.04] border rounded-2xl text-sm text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 font-mono font-black transition-all duration-200 ${
+                      className={`w-full px-4 py-3 bg-black/[0.03] dark:bg-white/[0.04] border rounded-2xl text-sm text-[#1c1c1e] dark:text-[#f2f2f7] focus:outline-none focus:ring-2 font-sans font-black transition-all duration-200 ${
                         errors.amount
                           ? 'border-red-500/70 focus:ring-red-500/20'
                           : 'border-transparent focus:ring-[#007aff]/35'

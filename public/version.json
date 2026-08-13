@@ -1,20 +1,36 @@
 {
-  "version": "v2.1.7",
-  "buildHash": "v2.1.7-20260810",
-  "buildTime": "2026-08-10 11:45:00",
-  "titleEn": "Release v2.1.7: Code Standardization & Reusable Component Optimization",
-  "titleMy": "ဗားရှင်းအသစ် v2.1.7: ကုဒ်စနစ် ပြန်လည်သန့်ရှင်းပြုပြင်ခြင်းနှင့် ဘုံအသုံးပြုနိုင်သော ခလုတ်/ယူနစ်များ မြှင့်တင်ခြင်း",
+  "version": "v2.1.8",
+  "buildHash": "v2.1.8-20260812",
+  "buildTime": "2026-08-12 20:30:00",
+  "titleEn": "Release v2.1.8: Dedicated Budget Edit View & Clean Plus Jakarta Sans Typography",
+  "titleMy": "ဗားရှင်းအသစ် v2.1.8: ဘတ်ဂျက် ပြင်ဆင်မှု စခရင်သီးသန့်နှင့် ရှင်းလင်းသော ဖောင့်စနစ် မွမ်းမံချက်",
   "changelogEn": [
-    "Extracted reusable `useIsMobile` viewport hook to eliminate code duplication across components",
-    "Created modular `EmptyState` reusable component and `TransactionCardItem` sub-component for streamlined rendering",
-    "Optimized overall bundle architecture and code quality standards"
+    "Created dedicated full-page Budget Edit section with responsive monthly and custom date range controls",
+    "Substituted all monospace typography across the application with clean Plus Jakarta Sans display font",
+    "Streamlined input design and overall aesthetic consistency"
   ],
   "changelogMy": [
-    "ကုဒ်ထပ်တလဲလဲ ဖြစ်ပေါ်မှုကို လျှော့ချရန် `useIsMobile` Hook ကို သီးခြားထုတ်ယူ ပြန်လည်အသုံးပြုခဲ့ပါသည်",
-    "စာရင်းအချက်အလက် ကင်းမဲ့ချိန်ပြကွက် `EmptyState` နှင့် Transaction ကတ်ပြကွက်များကို Reusable Component အဖြစ် သီးခြားဖွဲ့စည်း ပြင်ဆင်ခဲ့ပါသည်",
-    "အက်ပ်၏ ကုဒ်စနစ်သန့်ရှင်းမှုနှင့် စွမ်းဆောင်ရည်ကို ပိုမိုမြှင့်တင်ပေးခဲ့ပါသည်"
+    "ဘတ်ဂျက် ကန့်သတ်ချက် ပြင်ဆင်ရန် စခရင်ကို သီးသန့် စာမျက်နှာအဖြစ် ပြန်လည်မွမ်းမံ ပြင်ဆင်ခဲ့ပါသည်",
+    "အက်ပ်တစ်ခုလုံးရှိ ကိန်းဂဏန်းနှင့် စာလုံးဒီဇိုင်းများအားလုံးကို သန့်ရှင်းသော Plus Jakarta Sans ဖောင့်သို့ ပြောင်းလဲခဲ့ပါသည်",
+    "အသုံးစရိတ်နှင့် ဘတ်ဂျက် ဖြည့်သွင်းမှုပုံစံများကို ပိုမိုပြေပြစ်သပ်ရပ်အောင် မြှင့်တင်ပေးခဲ့ပါသည်"
   ],
   "releaseHistory": [
+    {
+      "version": "v2.1.8",
+      "date": "2026-08-12",
+      "titleEn": "Release v2.1.8: Dedicated Budget Edit View & Clean Plus Jakarta Sans Typography",
+      "titleMy": "ဗားရှင်းအသစ် v2.1.8: ဘတ်ဂျက် ပြင်ဆင်မှု စခရင်သီးသန့်နှင့် ရှင်းလင်းသော ဖောင့်စနစ် မွမ်းမံချက်",
+      "itemsEn": [
+        "Created dedicated full-page Budget Edit section with responsive monthly and custom date range controls",
+        "Substituted all monospace typography across the application with clean Plus Jakarta Sans display font",
+        "Streamlined input design and overall aesthetic consistency"
+      ],
+      "itemsMy": [
+        "ဘတ်ဂျက် ကန့်သတ်ချက် ပြင်ဆင်ရန် စခရင်ကို သီးသန့် စာမျက်နှာအဖြစ် ပြန်လည်မွမ်းမံ ပြင်ဆင်ခဲ့ပါသည်",
+        "အက်ပ်တစ်ခုလုံးရှိ ကိန်းဂဏန်းနှင့် စာလုံးဒီဇိုင်းများအားလုံးကို သန့်ရှင်းသော Plus Jakarta Sans ဖောင့်သို့ ပြောင်းလဲခဲ့ပါသည်",
+        "အသုံးစရိတ်နှင့် ဘတ်ဂျက် ဖြည့်သွင်းမှုပုံစံများကို ပိုမိုပြေပြစ်သပ်ရပ်အောင် မြှင့်တင်ပေးခဲ့ပါသည်"
+      ]
+    },
     {
       "version": "v2.1.7",
       "date": "2026-08-10",

@@ -478,7 +478,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                     <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
                     {t('selectCategoryIcon')}
                   </label>
-                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
+                  <span className="text-[10px] font-extrabold uppercase font-sans px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
                     {selectedIconName}
                   </span>
                 </div>
@@ -511,7 +511,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                     <Palette className="w-3.5 h-3.5 text-[#007aff]" />
                     {t('categoryColorLabel')}
                   </label>
-                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
+                  <span className="text-[10px] font-extrabold uppercase font-sans px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
                     {selectedColor}
                   </span>
                 </div>
@@ -1040,7 +1040,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                     <Sparkles className="w-3.5 h-3.5 text-[#007aff]" />
                     {t('selectCategoryIcon')}
                   </label>
-                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
+                  <span className="text-[10px] font-extrabold uppercase font-sans px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff]">
                     {editingIconName}
                   </span>
                 </div>
@@ -1090,7 +1090,7 @@ export const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = React.m
                     <Palette className="w-3.5 h-3.5 text-[#007aff]" />
                     {t('categoryColorLabel')}
                   </label>
-                  <span className="text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
+                  <span className="text-[10px] font-extrabold uppercase font-sans px-2 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1c1c1e] dark:text-[#f2f2f7]">
                     {editingColorHex}
                   </span>
                 </div>

@@ -102,11 +102,11 @@ const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo((
             {tx.description}
           </p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] text-[#8e8e93] font-mono uppercase font-extrabold tracking-wider truncate">
+            <span className="text-[10px] text-[#8e8e93] font-sans uppercase font-extrabold tracking-wider truncate">
               {translatedCategory}
             </span>
             <span className="text-[10px] text-[#8e8e93]/60">•</span>
-            <span className="text-[10px] text-[#8e8e93] font-mono">
+            <span className="text-[10px] text-[#8e8e93] font-sans">
               {formattedDate}
             </span>
           </div>
@@ -114,7 +114,7 @@ const DashboardRecentTxItem: React.FC<DashboardRecentTxItemProps> = React.memo((
       </div>
       <div className="text-right shrink-0 pl-3">
         <span
-          className={`text-sm md:text-base font-black font-mono whitespace-nowrap leading-none block ${
+          className={`text-sm md:text-base font-black font-sans tracking-tight whitespace-nowrap leading-none block ${
             tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
           }`}
         >
@@ -361,12 +361,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                   </div>
                   <div>
                     <span className="text-[10px] text-[#8e8e93] uppercase font-extrabold tracking-wider block leading-none">{t('income')}</span>
-                    <span className="text-xs sm:text-sm font-black text-[#34c759] font-mono block mt-0.5">
+                    <span className="text-xs sm:text-sm font-black text-[#34c759] font-sans block mt-0.5">
                       {showBalance ? formatAmount(totals.income) : '••••••••'}
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#34c759] font-mono hidden sm:inline">
+                <span className="text-[10px] font-bold text-[#34c759] font-sans hidden sm:inline">
                   {metrics.incomePercent.toFixed(0)}%
                 </span>
               </div>
@@ -379,12 +379,12 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                   </div>
                   <div>
                     <span className="text-[10px] text-[#8e8e93] uppercase font-extrabold tracking-wider block leading-none">{t('expense')}</span>
-                    <span className="text-xs sm:text-sm font-black text-[#ff3b30] font-mono block mt-0.5">
+                    <span className="text-xs sm:text-sm font-black text-[#ff3b30] font-sans block mt-0.5">
                       {showBalance ? formatAmount(totals.expense) : '••••••••'}
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-[#ff3b30] font-mono hidden sm:inline">
+                <span className="text-[10px] font-bold text-[#ff3b30] font-sans hidden sm:inline">
                   {metrics.expensePercent.toFixed(0)}%
                 </span>
               </div>
@@ -523,7 +523,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
 
               {/* Progress Bar & Amount Summary */}
               <div className="space-y-3 pt-1">
-                <div className="flex items-center justify-between text-xs font-bold font-mono">
+                <div className="flex items-center justify-between text-xs font-bold font-sans">
                   <span className="text-[#8e8e93]">
                     {settings.language === 'my' ? 'သုံးစွဲပြီး:' : 'Spent:'} <span className="text-[#1c1c1e] dark:text-white">{formatAmount(spent)}</span>
                   </span>
@@ -546,10 +546,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = React.memo(({
                 </div>
 
                 <div className="flex items-center justify-between text-[11px] font-semibold text-[#8e8e93]">
-                  <span className="font-mono">
+                  <span className="font-sans">
                     {percent.toFixed(1)}% {settings.language === 'my' ? 'ဘတ်ဂျက်သုံးစွဲပြီး' : 'budget spent'}
                   </span>
-                  <span className={`font-mono font-bold ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+                  <span className={`font-sans font-bold ${isExceeded ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                     {isExceeded 
                       ? `${settings.language === 'my' ? 'ကျော်လွန်:' : 'Over:'} +${formatAmount(Math.abs(remainingAmount))}`
                       : `${settings.language === 'my' ? 'ကျန်ရှိ:' : 'Remaining:'} ${formatAmount(remainingAmount)}`}

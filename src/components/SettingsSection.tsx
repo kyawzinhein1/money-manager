@@ -437,7 +437,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full bg-[#007aff]/10 text-[#007aff] text-xs font-black font-mono">
+          <span className="px-3 py-1 rounded-full bg-[#007aff]/10 text-[#007aff] text-xs font-black font-sans">
             {APP_VERSION}
           </span>
         </div>
@@ -570,13 +570,13 @@ export const SettingsSection: React.FC<SettingsSectionProps> = React.memo(({
               </p>
               <a
                 href="mailto:kyawzinhein.developer@gmail.com"
-                className="text-[11px] text-[#8e8e93] hover:text-[#007aff] transition-colors font-mono"
+                className="text-[11px] text-[#8e8e93] hover:text-[#007aff] transition-colors font-sans"
               >
                 kyawzinhein.developer@gmail.com
               </a>
             </div>
           </div>
-          <span className="text-[10px] font-mono text-[#8e8e93] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+          <span className="text-[10px] font-sans text-[#8e8e93] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-lg self-start sm:self-auto">
             © {new Date().getFullYear()} Money Manager {APP_VERSION}
           </span>
         </div>

@@ -337,7 +337,7 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
                                   : 'bg-slate-50 dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-neutral-800'
                               }`}
                             >
-                              <span className="text-[11px] font-black font-mono">{curr.symbol}</span>
+                              <span className="text-[11px] font-black font-sans">{curr.symbol}</span>
                               <span className={`text-[8px] font-bold uppercase tracking-tight ${isSelected ? 'text-[#007aff]' : 'text-slate-500 dark:text-slate-400'}`}>{curr.code}</span>
                             </button>
                           );
@@ -413,7 +413,7 @@ export const OnboardingModal = React.memo(function OnboardingModal({ isOpen, onC
                       {language === 'en' ? "Initial Starting Balance (Optional)" : "စတင် လက်ကျန်ငွေ (စိတ်ကြိုက်)"}
                     </label>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3 text-xs font-black text-[#007aff] font-mono">
+                      <span className="absolute left-3 text-xs font-black text-[#007aff] font-sans">
                         {selectedCurrency.symbol}
                       </span>
                       <input

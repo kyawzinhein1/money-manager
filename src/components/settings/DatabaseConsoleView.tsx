@@ -361,7 +361,7 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
               <span className="text-[#8e8e93] font-medium">
                 {settings.language === 'my' ? 'စုစုပေါင်း သိုလှောင်မှုပမာဏ' : 'Total DB Payload Size'}
               </span>
-              <span className="font-black text-[#1c1c1e] dark:text-white font-mono bg-black/5 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
+              <span className="font-black text-[#1c1c1e] dark:text-white font-sans bg-black/5 dark:bg-white/5 px-2.5 py-0.5 rounded-md">
                 {calculateTotalStorageSize()}
               </span>
             </div>
@@ -437,14 +437,14 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
                           <h4 className="text-xs font-bold text-[#1c1c1e] dark:text-[#f2f2f7]">
                             {table.name}
                           </h4>
-                          <p className="text-[9px] text-[#8e8e93] font-mono mt-0.5">
+                          <p className="text-[9px] text-[#8e8e93] font-sans mt-0.5">
                             Key: {table.key} • {table.count} {settings.language === 'my' ? 'ခု' : 'records'}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] text-[#8e8e93] font-mono bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">
+                        <span className="text-[9px] text-[#8e8e93] font-sans bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">
                           {sizeStr}
                         </span>
                         <button
@@ -469,7 +469,7 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
                         {!isEditing ? (
                           <>
                             <div className="relative">
-                              <pre className="bg-black/90 dark:bg-black/95 p-4 rounded-xl text-[10px] font-mono text-[#34c759] overflow-x-auto max-h-[180px] leading-relaxed border border-black/10 select-all scrollbar-thin">
+                              <pre className="bg-black/90 dark:bg-black/95 p-4 rounded-xl text-[10px] font-sans text-[#34c759] overflow-x-auto max-h-[180px] leading-relaxed border border-black/10 select-all scrollbar-thin">
                                 {JSON.stringify(table.data, null, 2)}
                               </pre>
                             </div>
@@ -504,7 +504,7 @@ export const DatabaseConsoleView: React.FC<DatabaseConsoleViewProps> = React.mem
                             <textarea
                               value={editJsonString}
                               onChange={(e) => setEditJsonString(e.target.value)}
-                              className="w-full h-[180px] p-3 rounded-xl bg-black/90 dark:bg-black/95 text-[10px] font-mono text-[#34c759] leading-relaxed border-0 focus:ring-1 focus:ring-[#007aff] outline-none resize-y scrollbar-thin"
+                              className="w-full h-[180px] p-3 rounded-xl bg-black/90 dark:bg-black/95 text-[10px] font-sans text-[#34c759] leading-relaxed border-0 focus:ring-1 focus:ring-[#007aff] outline-none resize-y scrollbar-thin"
                               spellCheck={false}
                             />
                             {editError && (

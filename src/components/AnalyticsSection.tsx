@@ -107,7 +107,7 @@ const CustomChartTooltip = ({ active, payload, label, formatAmount }: any) => {
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color || entry.fill }} />
                 {entry.name}
               </span>
-              <span className="font-bold font-mono text-[#1c1c1e] dark:text-white">
+              <span className="font-bold font-sans text-[#1c1c1e] dark:text-white">
                 {formatAmount(entry.value)}
               </span>
             </div>
@@ -531,12 +531,12 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
           <div className="pt-4 flex flex-wrap items-center justify-between gap-4 animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="text-xs text-[#8e8e93] font-medium">{t('netSavings')}:</span>
-              <span className={`text-base font-bold font-mono ${summary.netSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              <span className={`text-base font-bold font-sans ${summary.netSavings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {summary.netSavings < 0 ? '-' : '+'}{formatAmount(Math.abs(summary.netSavings))}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-medium font-mono text-[#8e8e93]">
+            <div className="flex items-center gap-3 text-xs font-medium font-sans text-[#8e8e93]">
               <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                 <ArrowUpRight className="w-3.5 h-3.5" />
                 {formatAmount(summary.totalIncome)}
@@ -560,7 +560,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     {t('income')}
                   </span>
-                  <span className="text-[10px] font-mono text-[#8e8e93]">
+                  <span className="text-[10px] font-sans text-[#8e8e93]">
                     {filteredData.filter(tx => tx.type === 'income').length} {language === 'en' ? 'txns' : 'ခု'}
                   </span>
                 </div>
@@ -576,7 +576,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                     <span className="w-2 h-2 rounded-full bg-rose-500" />
                     {t('expense')}
                   </span>
-                  <span className="text-[10px] font-mono text-[#8e8e93]">
+                  <span className="text-[10px] font-sans text-[#8e8e93]">
                     {filteredData.filter(tx => tx.type === 'expense').length} {language === 'en' ? 'txns' : 'ခု'}
                   </span>
                 </div>
@@ -612,7 +612,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-2">
                 <div className="flex items-center justify-between text-xs font-medium text-[#8e8e93]">
                   <span>{language === 'en' ? 'Income Breakdown' : 'ဝင်ငွေ ခွဲဝေမှု ခွဲခြမ်းစိတ်ဖြာချက်'}</span>
-                  <div className="flex items-center gap-3 text-[11px] font-mono">
+                  <div className="flex items-center gap-3 text-[11px] font-sans">
                     <span className="text-rose-500">
                       {language === 'en' ? 'Spent' : 'သုံးစွဲ'}: {((summary.totalExpense / summary.totalIncome) * 100).toFixed(1)}%
                     </span>
@@ -785,7 +785,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                   
                   {/* Center Readout Labels */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-xl font-black text-[#1c1c1e] dark:text-white font-mono">
+                    <span className="text-xl font-black text-[#1c1c1e] dark:text-white font-sans">
                       {categoryData.length}
                     </span>
                     <span className="text-[9px] text-[#8e8e93] font-bold uppercase tracking-wider">
@@ -813,7 +813,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
                         </div>
                         {item.name}
                       </span>
-                      <div className="flex items-center gap-1.5 font-mono">
+                      <div className="flex items-center gap-1.5 font-sans">
                         <span className="font-extrabold text-[#1c1c1e] dark:text-white">
                           {formatAmount(item.value)}
                         </span>
@@ -883,7 +883,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               <span className="block text-xs text-[#007aff] font-semibold">
                 {language === 'en' ? 'Recommended Daily Limit' : 'အကြံပြု တစ်နေ့တာ သုံးစွဲမှု'}
               </span>
-              <span className="block text-lg font-bold font-mono text-[#007aff]">
+              <span className="block text-lg font-bold font-sans text-[#007aff]">
                 {activeBudgetLimit > 0 ? `${formatAmount(forecast.dailyAllowanceRemaining)}/day` : (language === 'en' ? 'No budget set' : 'ဘတ်ဂျက်မသတ်မှတ်ထားပါ')}
               </span>
               <span className="block text-[11px] text-[#8e8e93] font-normal">
@@ -896,7 +896,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               <span className="block text-xs text-[#8e8e93] font-medium">
                 {language === 'en' ? 'Projected Month-End Total' : 'လကုန် ခန့်မှန်းခြေ စုစုပေါင်း'}
               </span>
-              <span className={`block text-lg font-bold font-mono ${forecast.projectedSpent > activeBudgetLimit && activeBudgetLimit > 0 ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
+              <span className={`block text-lg font-bold font-sans ${forecast.projectedSpent > activeBudgetLimit && activeBudgetLimit > 0 ? 'text-[#ff3b30]' : 'text-[#34c759]'}`}>
                 {formatAmount(forecast.projectedSpent)}
               </span>
               <span className="block text-[11px] text-[#8e8e93] font-normal">
@@ -909,7 +909,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
               <span className="block text-xs text-[#8e8e93] font-medium">
                 {language === 'en' ? 'Current Daily Pace' : 'လက်ရှိ တစ်နေ့ ပျမ်းမျှ'}
               </span>
-              <span className="block text-lg font-bold font-mono text-[#1c1c1e] dark:text-white">
+              <span className="block text-lg font-bold font-sans text-[#1c1c1e] dark:text-white">
                 {formatAmount(forecast.currentDailyAvgSpent)}/day
               </span>
               <span className="block text-[11px] text-[#8e8e93] font-normal">

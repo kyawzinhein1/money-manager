@@ -50,7 +50,7 @@ export const TransactionCardItem: React.FC<TransactionCardItemProps> = React.mem
       </div>
       <div className="flex items-center gap-2.5 shrink-0 pl-3">
         <span
-          className={`text-xs sm:text-base font-extrabold font-mono whitespace-nowrap leading-none block ${
+          className={`text-xs sm:text-base font-extrabold font-sans tracking-tight whitespace-nowrap leading-none block ${
             tx.type === 'income' ? 'text-[#34c759]' : 'text-[#ff3b30]'
           }`}
         >

@@ -185,7 +185,7 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
             <span className="text-[9px] uppercase tracking-wider opacity-80">
               {language === 'my' ? 'စတင်သည့်ရက်' : 'Start Date'}
             </span>
-            <span className="text-xs font-extrabold font-mono mt-0.5">
+            <span className="text-xs font-extrabold font-sans mt-0.5">
               {startDate || 'YYYY-MM-DD'}
             </span>
           </button>
@@ -202,7 +202,7 @@ export const IOSDateRangePicker: React.FC<IOSDateRangePickerProps> = ({
             <span className="text-[9px] uppercase tracking-wider opacity-80">
               {language === 'my' ? 'ပြီးဆုံးသည့်ရက်' : 'End Date'}
             </span>
-            <span className="text-xs font-extrabold font-mono mt-0.5">
+            <span className="text-xs font-extrabold font-sans mt-0.5">
               {endDate || 'YYYY-MM-DD'}
             </span>
           </button>

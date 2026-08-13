@@ -211,7 +211,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black text-[#1c1c1e] dark:text-white font-mono">
+                <span className="text-lg font-black text-[#1c1c1e] dark:text-white font-sans">
                   {currentVersion}
                 </span>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
@@ -300,7 +300,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
             <Info className="w-4 h-4 text-[#007aff]" />
             {language === 'my' ? 'လက်ရှိ ဗားရှင်း သတင်းအချက်အလက်' : 'Current Release Version Information'}
           </h3>
-          <span className="text-xs font-black text-white bg-[#007aff] px-2.5 py-0.5 rounded-lg font-mono">
+          <span className="text-xs font-black text-white bg-[#007aff] px-2.5 py-0.5 rounded-lg font-sans">
             {currentVersion}
           </span>
         </div>
@@ -321,7 +321,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
               <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
                 {language === 'my' ? 'ထုတ်လွှင့်ရက်စွဲ' : 'RELEASE DATE'}
               </span>
-              <span className="text-xs font-bold text-[#1c1c1e] dark:text-white font-mono block mt-0.5">
+              <span className="text-xs font-bold text-[#1c1c1e] dark:text-white font-sans block mt-0.5">
                 {serverInfo?.buildTime || LOCAL_VERSION_INFO.buildTime}
               </span>
             </div>
@@ -332,7 +332,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
               <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
                 {language === 'my' ? 'ဗားရှင်း နံပါတ်' : 'VERSION NUMBER'}
               </span>
-              <span className="text-xs font-mono font-extrabold text-[#007aff] block mt-0.5">
+              <span className="text-xs font-sans font-extrabold text-[#007aff] block mt-0.5">
                 {currentVersion}
               </span>
             </div>
@@ -340,7 +340,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
               <span className="text-[10px] text-[#8e8e93] font-bold uppercase tracking-wider block">
                 {language === 'my' ? 'BUILD HASH' : 'BUILD HASH'}
               </span>
-              <span className="text-xs font-mono font-extrabold text-[#1c1c1e] dark:text-white block mt-0.5 truncate">
+              <span className="text-xs font-sans font-extrabold text-[#1c1c1e] dark:text-white block mt-0.5 truncate">
                 {serverInfo?.buildHash || LOCAL_VERSION_INFO.buildHash}
               </span>
             </div>
@@ -371,7 +371,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
         <div>
           <a
             href="mailto:kyawzinhein.developer@gmail.com"
-            className="inline-flex items-center gap-1.5 text-xs text-[#8e8e93] hover:text-[#007aff] transition-colors font-mono"
+            className="inline-flex items-center gap-1.5 text-xs text-[#8e8e93] hover:text-[#007aff] transition-colors font-sans"
           >
             <Mail className="w-3.5 h-3.5" />
             kyawzinhein.developer@gmail.com

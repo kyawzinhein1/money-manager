@@ -242,7 +242,7 @@ export const BottomNavCustomizerView: React.FC<BottomNavCustomizerViewProps> = (
         {/* Mock Phone Stage */}
         <div className="relative w-full h-44 rounded-2xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-950 border border-black/10 dark:border-white/10 flex flex-col justify-between p-4 overflow-hidden shadow-inner">
           {/* Top Status Bar Mock */}
-          <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-mono px-2">
+          <div className="flex items-center justify-between text-[10px] text-[#8e8e93] font-sans px-2">
             <span>09:41</span>
             <div className="flex items-center gap-1">
               <span>5G</span>
@@ -254,7 +254,7 @@ export const BottomNavCustomizerView: React.FC<BottomNavCustomizerViewProps> = (
             <p className="text-xs font-semibold text-[#8e8e93]">
               {language === 'my' ? 'အပလီကေးရှင်း အောက်ခြေ စခရင် အစမ်းကြည့်ရှုမှု' : 'Application Content Area'}
             </p>
-            <p className="text-[11px] text-[#1c1c1e]/60 dark:text-white/60 font-mono">
+            <p className="text-[11px] text-[#1c1c1e]/60 dark:text-white/60 font-sans">
               Selected Tab: <span className="font-bold text-[#007aff]">{previewTab.toUpperCase()}</span>
             </p>
           </div>
@@ -371,7 +371,7 @@ export const BottomNavCustomizerView: React.FC<BottomNavCustomizerViewProps> = (
               <label className="font-bold text-[#8e8e93]">
                 {language === 'my' ? 'နောက်ခံ ကြည်လင်မှု (Transparency / Opacity)' : 'Background Opacity'}
               </label>
-              <span className="font-mono font-bold text-[#007aff]">{navState.opacity}%</span>
+              <span className="font-sans font-bold text-[#007aff]">{navState.opacity}%</span>
             </div>
             <input
               type="range"

@@ -45,7 +45,7 @@ export const CurrencySettingsView: React.FC<CurrencySettingsViewProps> = ({
           className="w-full h-11 px-4.5 bg-[#f2f2f7] dark:bg-[#2c2c2e] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-2xl flex items-center justify-between text-xs md:text-sm font-semibold text-[#1c1c1e] dark:text-[#f2f2f7] transition-all cursor-pointer border-0"
         >
           <div className="flex items-center gap-2.5">
-            <span className="w-7 h-7 rounded-lg bg-[#007aff]/10 text-[#007aff] flex items-center justify-center font-mono font-bold text-xs shrink-0">
+            <span className="w-7 h-7 rounded-lg bg-[#007aff]/10 text-[#007aff] flex items-center justify-center font-sans font-bold text-xs shrink-0">
               {customCurrency.symbol}
             </span>
             <span>
@@ -84,7 +84,7 @@ export const CurrencySettingsView: React.FC<CurrencySettingsViewProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-sans font-bold text-xs shrink-0 ${
                         isSelected ? 'bg-[#007aff]/10 text-[#007aff]' : 'bg-black/[0.03] dark:bg-white/[0.05] text-[#8e8e93]'
                       }`}>
                         {curr.symbol}
