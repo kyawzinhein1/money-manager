@@ -28,8 +28,8 @@ self.addEventListener('message', (event) => {
 });
 
 // Install event - Pre-cache core shell assets & auto-discover bundled assets from index.html
+// Note: DO NOT call skipWaiting() here so updates only take effect when the user explicitly accepts.
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       // 1. Add core static assets
@@ -89,7 +89,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Fetch event listener - Instant Cache-First with Network Revalidation (Zero White Screen Strategy)
+// Fetch event listener - Pure Cache-First for active version (No silent background replacement)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -100,21 +100,17 @@ self.addEventListener('fetch', (event) => {
   // Ignore third-party non-font requests
   if (!isSameOrigin && !isGoogleFont) return;
 
-  // 1. Version checking endpoint -> Network first, fallback to cached or synthetic JSON
+  // 1. Version checking endpoint -> Always Network-First (no-store), fallback to cached version
   if (isSameOrigin && url.pathname === '/version.json') {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' })
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.ok) {
-            const cacheCopy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
-          }
           return networkResponse;
         })
         .catch(() => {
           return caches.match('/version.json', { ignoreSearch: true }).then((res) => {
             if (res) return res;
-            return new Response(JSON.stringify({ version: 'v2.1.5', buildHash: 'offline' }), {
+            return new Response(JSON.stringify({ version: 'v2.1.9', buildHash: 'offline' }), {
               headers: { 'Content-Type': 'application/json' }
             });
           });
@@ -132,25 +128,12 @@ self.addEventListener('fetch', (event) => {
   if (isNavigation) {
     event.respondWith(
       caches.match(event.request, { ignoreSearch: true }).then((cachedIndex) => {
-        // If cached index.html exists, return immediately (0ms start even after app kill)
+        // If cached index.html exists, return it directly for active version
         if (cachedIndex) {
-          // Revalidate in background if online
-          fetch(event.request)
-            .then((networkResponse) => {
-              if (networkResponse && networkResponse.ok) {
-                const cacheCopy = networkResponse.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put('/index.html', cacheCopy.clone());
-                  cache.put('/', cacheCopy.clone());
-                  cache.put(event.request, cacheCopy);
-                });
-              }
-            })
-            .catch(() => {});
           return cachedIndex;
         }
 
-        // Cache miss for index -> Network fetch
+        // Cache miss for index -> Network fetch and store in cache
         return fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.ok) {
@@ -175,23 +158,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Static Assets (JS, CSS, PNG, SVG, Fonts, JSON) -> Cache-First with ignoreSearch
+  // 3. Static Assets (JS, CSS, PNG, SVG, Fonts, JSON) -> Pure Cache-First for active version
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedAsset) => {
       if (cachedAsset) {
-        // Background revalidation
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.ok) {
-              const cacheCopy = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
-            }
-          })
-          .catch(() => {});
         return cachedAsset;
       }
 
-      // Fetch from network if not in cache
+      // Fetch from network if not in cache, then cache it
       return fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.ok) {

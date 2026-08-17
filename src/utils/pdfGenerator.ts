@@ -1,5 +1,7 @@
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Transaction, Language } from '../types';
+import { CATEGORY_TRANSLATIONS } from '../translations';
 import { getLocalDateStr } from './dateUtils';
 
 interface PDFGeneratorParams {
@@ -22,16 +24,28 @@ function formatPdfDate(dateStr: string): string {
   return dateStr;
 }
 
-export function generateLedgerPDF({
+function sanitizeText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export async function generateLedgerPDF({
   transactions,
   incomeTotal,
   expenseTotal,
   netBalance,
-  currencySymbol,
+  currencySymbol: _currencySymbol,
   language,
   formatAmount,
   dateRangeText
-}: PDFGeneratorParams) {
+}: PDFGeneratorParams): Promise<void> {
+  const isMy = language === 'my';
+
   // Determine computed date range cleanly
   let computedDateRange = dateRangeText;
   if (!computedDateRange || computedDateRange.includes('...')) {
@@ -43,298 +57,339 @@ export function generateLedgerPDF({
       const formattedMax = formatPdfDate(maxDate);
       computedDateRange = minDate === maxDate ? formattedMin : `${formattedMin} → ${formattedMax}`;
     } else {
-      computedDateRange = language === 'my' ? 'အချိန်တိုင်း' : 'All Time';
+      computedDateRange = isMy ? 'အချိန်တိုင်း' : 'All Time';
     }
   } else {
-    // Format any raw YYYY-MM-DD occurrences in passed dateRangeText to DD/MM/YYYY
     computedDateRange = computedDateRange.replace(/\b\d{4}-\d{2}-\d{2}\b/g, (match) => formatPdfDate(match));
+    if (isMy) {
+      computedDateRange = computedDateRange
+        .replace(/All Time/gi, 'အချိန်တိုင်း')
+        .replace(/From /gi, 'မှ ')
+        .replace(/Until /gi, 'ထိ ')
+        .replace(/All Months/gi, 'လအားလုံး')
+        .replace(/All Years/gi, 'နှစ်အားလုံး');
+    }
   }
 
-  // Initialize jsPDF (A4, portrait, mm)
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+  // Pagination calculations:
+  // Page 1 has header + summary cards + ~14 transactions
+  // Subsequent pages have mini-header + ~22 transactions
+  const PAGE_1_ROWS = 14;
+  const SUBSEQUENT_PAGE_ROWS = 22;
 
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const margin = 15;
-  const contentWidth = pageWidth - (margin * 2);
-
-  // Colors (RGB)
-  const colors = {
-    primary: { r: 0, g: 122, b: 255 },       // #007aff (Apple / Modern Blue)
-    navy: { r: 15, g: 23, b: 42 },            // #0f172a (Slate 900)
-    dark: { r: 30, g: 41, b: 59 },            // #1e293b (Slate 800)
-    lightBg: { r: 248, g: 250, b: 252 },      // #f8fafc (Slate 50)
-    cardBg: { r: 241, g: 245, b: 249 },       // #f1f5f9 (Slate 100)
-    success: { r: 16, g: 185, b: 129 },       // #10b981 (Emerald 500)
-    danger: { r: 239, g: 68, b: 68 },         // #ef4444 (Red 500)
-    border: { r: 226, g: 232, b: 240 },      // #e2e8f0 (Slate 200)
-    textGray: { r: 100, g: 116, b: 139 }     // #64748b (Slate 500)
-  };
-
-  let currentPage = 1;
-
-  // Header & Footer drawing function
-  const drawHeaderAndFooter = (pageNumber: number) => {
-    // Top primary accent line
-    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
-    doc.rect(0, 0, pageWidth, 3.5, 'F');
-
-    // Title Block
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-    doc.text('FINANCIAL STATEMENT REPORT', margin, 17);
-
-    // Subtitle with Period only (No duplicate blue date range text)
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-    const generatedDateStr = new Date().toLocaleString(language === 'my' ? 'my-MM' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    doc.text(`Generated: ${generatedDateStr}   •   Period: ${computedDateRange}`, margin, 23);
-
-    // Decorative right-side app badge
-    doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-    doc.roundedRect(pageWidth - margin - 38, 11, 38, 8, 2, 2, 'F');
-    doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-    doc.setLineWidth(0.2);
-    doc.roundedRect(pageWidth - margin - 38, 11, 38, 8, 2, 2, 'D');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(colors.primary.r, colors.primary.g, colors.primary.b);
-    doc.text('MONEY MANAGER', pageWidth - margin - 34, 16.2);
-
-    // Top Header separator rule
-    doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-    doc.setLineWidth(0.25);
-    doc.line(margin, 27, pageWidth - margin, 27);
-
-    // Footer rule & text
-    doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-    doc.setLineWidth(0.2);
-    doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-    doc.text('Personal Money Manager • Official Financial Statement', margin, pageHeight - 9);
-    doc.text(`Page ${pageNumber}`, pageWidth - margin - 12, pageHeight - 9);
-  };
-
-  // Draw initial page decoration
-  drawHeaderAndFooter(currentPage);
-
-  // Executive Summary Section
-  let currentY = 33;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  doc.text('EXECUTIVE FINANCIAL SUMMARY', margin, currentY);
-
-  currentY += 4;
-
-  // Draw 3 Summary columns/cards side-by-side
-  const cardWidth = (contentWidth - 8) / 3; // 3 equal cards with 4mm spacing
-  const cardHeight = 22;
-
-  // Card 1: Net Cash Flow
-  const netIsPositive = netBalance >= 0;
-  doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-  doc.roundedRect(margin, currentY, cardWidth, cardHeight, 2.5, 2.5, 'F');
-  
-  // Card border highlight based on balance status
-  doc.setDrawColor(netIsPositive ? colors.success.r : colors.danger.r, netIsPositive ? colors.success.g : colors.danger.g, netIsPositive ? colors.success.b : colors.danger.b);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, currentY, cardWidth, cardHeight, 2.5, 2.5, 'D');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-  doc.text('NET CASH FLOW', margin + 4, currentY + 6);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(netIsPositive ? colors.success.r : colors.danger.r, netIsPositive ? colors.success.g : colors.danger.g, netIsPositive ? colors.success.b : colors.danger.b);
-  const formattedNet = (netIsPositive ? '+' : '') + formatAmount(netBalance);
-  const netText = formattedNet.length > 18 ? formattedNet.slice(0, 16) + '...' : formattedNet;
-  doc.text(netText, margin + 4, currentY + 14);
-
-  // Card 2: Total Revenue / Income
-  const card2X = margin + cardWidth + 4;
-  doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-  doc.roundedRect(card2X, currentY, cardWidth, cardHeight, 2.5, 2.5, 'F');
-  doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(card2X, currentY, cardWidth, cardHeight, 2.5, 2.5, 'D');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-  doc.text('TOTAL REVENUE', card2X + 4, currentY + 6);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(colors.success.r, colors.success.g, colors.success.b);
-  const formattedIncome = formatAmount(incomeTotal);
-  const incomeText = formattedIncome.length > 18 ? formattedIncome.slice(0, 16) + '...' : formattedIncome;
-  doc.text(incomeText, card2X + 4, currentY + 14);
-
-  // Card 3: Total Expenses
-  const card3X = margin + (cardWidth * 2) + 8;
-  doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-  doc.roundedRect(card3X, currentY, cardWidth, cardHeight, 2.5, 2.5, 'F');
-  doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(card3X, currentY, cardWidth, cardHeight, 2.5, 2.5, 'D');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-  doc.text('TOTAL EXPENSES', card3X + 4, currentY + 6);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(colors.danger.r, colors.danger.g, colors.danger.b);
-  const formattedExpense = formatAmount(expenseTotal);
-  const expenseText = formattedExpense.length > 18 ? formattedExpense.slice(0, 16) + '...' : formattedExpense;
-  doc.text(expenseText, card3X + 4, currentY + 14);
-
-  currentY += cardHeight + 9;
-
-  // List section header
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  doc.text(`TRANSACTION LOGS (${transactions.length} ${transactions.length === 1 ? 'entry' : 'entries'})`, margin, currentY);
-  currentY += 4;
-
-  // Table header setup (Total width = 180mm)
-  const colWidths = {
-    date: 26,
-    type: 20,
-    category: 36,
-    description: 63,
-    amount: 35
-  };
-
-  const colPositions = {
-    date: margin,
-    type: margin + colWidths.date,
-    category: margin + colWidths.date + colWidths.type,
-    description: margin + colWidths.date + colWidths.type + colWidths.category,
-    amount: margin + colWidths.date + colWidths.type + colWidths.category + colWidths.description
-  };
-
-  const drawTableHeader = (y: number) => {
-    // Header Bar Background
-    doc.setFillColor(colors.dark.r, colors.dark.g, colors.dark.b);
-    doc.rect(margin, y, contentWidth, 7.5, 'F');
-
-    // Headers Text
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(255, 255, 255);
-
-    doc.text('DATE', colPositions.date + 2, y + 5);
-    doc.text('TYPE', colPositions.type + 2, y + 5);
-    doc.text('CATEGORY', colPositions.category + 2, y + 5);
-    doc.text('DESCRIPTION', colPositions.description + 2, y + 5);
-    doc.text('AMOUNT', colPositions.amount + colWidths.amount - 2, y + 5, { align: 'right' });
-  };
-
-  drawTableHeader(currentY);
-  currentY += 7.5;
-
+  const pagesData: Transaction[][] = [];
   if (transactions.length === 0) {
-    doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-    doc.rect(margin, currentY, contentWidth, 12, 'F');
-    doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-    doc.setLineWidth(0.2);
-    doc.rect(margin, currentY, contentWidth, 12, 'D');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(colors.textGray.r, colors.textGray.g, colors.textGray.b);
-    doc.text('No transaction records found for the selected period.', margin + (contentWidth / 2), currentY + 7.5, { align: 'center' });
+    pagesData.push([]);
   } else {
-    // Draw transaction list
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-
-    transactions.forEach((tx, idx) => {
-      // If we exceed printable height, add page and wrap
-      if (currentY > pageHeight - 22) {
-        doc.addPage();
-        currentPage += 1;
-        drawHeaderAndFooter(currentPage);
-        currentY = 32; // Start table below header on subsequent pages
-        drawTableHeader(currentY);
-        currentY += 7.5;
-      }
-
-      // Zebra striping
-      const isEven = idx % 2 === 0;
-      if (isEven) {
-        doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
-        doc.rect(margin, currentY, contentWidth, 7, 'F');
-      }
-
-      // Bottom row separator
-      doc.setDrawColor(colors.border.r, colors.border.g, colors.border.b);
-      doc.setLineWidth(0.15);
-      doc.line(margin, currentY + 7, pageWidth - margin, currentY + 7);
-
-      // Content mapping
-      doc.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-      doc.setFont('helvetica', 'normal');
-
-      // Date (dd/mm/yyyy formatting from yyyy-mm-dd)
-      let displayDate = tx.date;
-      const parts = tx.date.split('-');
-      if (parts.length === 3) {
-        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      }
-      doc.text(displayDate, colPositions.date + 2, currentY + 4.8);
-
-      // Type text
-      const isIncome = tx.type === 'income';
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(isIncome ? colors.success.r : colors.danger.r, isIncome ? colors.success.g : colors.danger.g, isIncome ? colors.success.b : colors.danger.b);
-      doc.text(tx.type.toUpperCase(), colPositions.type + 2, currentY + 4.8);
-
-      // Category
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-      const cleanCat = tx.category.length > 18 ? tx.category.slice(0, 16) + '...' : tx.category;
-      doc.text(cleanCat, colPositions.category + 2, currentY + 4.8);
-
-      // Description (Truncate if excessively long)
-      const rawDesc = tx.description || tx.category;
-      const cleanDesc = rawDesc.length > 35 ? rawDesc.slice(0, 32) + '...' : rawDesc;
-      doc.text(cleanDesc, colPositions.description + 2, currentY + 4.8);
-
-      // Amount
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(isIncome ? colors.success.r : colors.danger.r, isIncome ? colors.success.g : colors.danger.g, isIncome ? colors.success.b : colors.danger.b);
-      const amtStr = (isIncome ? '+' : '-') + formatAmount(tx.amount);
-      doc.text(amtStr, colPositions.amount + colWidths.amount - 2, currentY + 4.8, { align: 'right' });
-
-      currentY += 7;
-    });
+    pagesData.push(transactions.slice(0, PAGE_1_ROWS));
+    let startIdx = PAGE_1_ROWS;
+    while (startIdx < transactions.length) {
+      pagesData.push(transactions.slice(startIdx, startIdx + SUBSEQUENT_PAGE_ROWS));
+      startIdx += SUBSEQUENT_PAGE_ROWS;
+    }
   }
 
-  // Save the PDF locally
-  const fileDate = getLocalDateStr();
-  doc.save(`Ledger_Report_${fileDate}.pdf`);
+  const totalPages = pagesData.length;
+  const generatedDateStr = new Date().toLocaleDateString(isMy ? 'my-MM' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }) + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Create temporary off-screen container for rendering
+  const renderContainer = document.createElement('div');
+  renderContainer.id = 'pdf-render-container';
+  renderContainer.style.position = 'fixed';
+  renderContainer.style.top = '0';
+  renderContainer.style.left = '-9999px';
+  renderContainer.style.width = '794px';
+  renderContainer.style.zIndex = '-1000';
+  renderContainer.style.opacity = '1';
+  renderContainer.style.pointerEvents = 'none';
+  renderContainer.style.fontFamily = '"Plus Jakarta Sans", "Noto Sans Myanmar", "Pyidaungsu", "Padauk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  document.body.appendChild(renderContainer);
+
+  const getTranslatedCategory = (cat: string) => {
+    if (isMy) {
+      return CATEGORY_TRANSLATIONS.my[cat] || cat;
+    }
+    return CATEGORY_TRANSLATIONS.en[cat] || cat;
+  };
+
+  const netIsPositive = netBalance >= 0;
+  const formattedNet = (netIsPositive ? '+' : '') + formatAmount(netBalance);
+  const formattedIncome = formatAmount(incomeTotal);
+  const formattedExpense = formatAmount(expenseTotal);
+
+  try {
+    // Construct HTML for all pages
+    let fullHtml = '';
+
+    pagesData.forEach((pageTxList, pageIndex) => {
+      const isFirstPage = pageIndex === 0;
+      const pageNum = pageIndex + 1;
+
+      fullHtml += `
+        <div class="pdf-page" style="
+          width: 794px;
+          height: 1123px;
+          box-sizing: border-box;
+          padding: 38px 42px 36px 42px;
+          background: #ffffff;
+          color: #0f172a;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          font-family: 'Plus Jakarta Sans', 'Noto Sans Myanmar', 'Pyidaungsu', 'Padauk', -apple-system, BlinkMacSystemFont, sans-serif;
+          overflow: hidden;
+        ">
+          <!-- Top Accent Bar -->
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: #007aff;"></div>
+
+          <div style="flex: 1; display: flex; flex-direction: column;">
+            <!-- Header Section -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1.5px solid #e2e8f0;">
+              <div>
+                <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1.2;">
+                  ${isFirstPage
+                    ? (isMy ? 'ဘဏ္ဍာရေး အစီရင်ခံစာ မှတ်တမ်း' : 'FINANCIAL STATEMENT REPORT')
+                    : (isMy ? `ဘဏ္ဍာရေး အစီရင်ခံစာ (စာမျက်နှာ ${pageNum})` : `FINANCIAL STATEMENT (Page ${pageNum})`)}
+                </h1>
+                <div style="margin-top: 5px; font-size: 11px; color: #64748b; font-weight: 500;">
+                  <span>${isMy ? 'ထုတ်ယူသည့် ရက်စွဲ' : 'Generated'}: <strong>${generatedDateStr}</strong></span>
+                  <span style="margin: 0 8px; color: #cbd5e1;">•</span>
+                  <span>${isMy ? 'ကာလအပိုင်းအခြား' : 'Period'}: <strong>${sanitizeText(computedDateRange)}</strong></span>
+                </div>
+              </div>
+
+              <!-- Brand Pill Badge -->
+              <div style="
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 6px 14px;
+                text-align: right;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #007aff; display: inline-block;"></span>
+                <span style="font-size: 11px; font-weight: 800; color: #007aff; letter-spacing: 0.05em;">MONEY MANAGER</span>
+              </div>
+            </div>
+
+            ${isFirstPage ? `
+              <!-- Executive Summary Section (Page 1 Only) -->
+              <div style="margin-top: 16px;">
+                <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
+                  ${isMy ? 'ဘဏ္ဍာရေး အနှစ်ချုပ် အကျဉ်း' : 'Executive Financial Summary'}
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                  <!-- Card 1: Net Cash Flow -->
+                  <div style="
+                    background: #f8fafc;
+                    border: 1.5px solid ${netIsPositive ? '#10b981' : '#ef4444'};
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                  ">
+                    <div style="font-size: 10.5px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                      ${isMy ? 'အသားတင် စုဆောင်းငွေ' : 'Net Cash Flow'}
+                    </div>
+                    <div style="font-size: 16px; font-weight: 800; color: ${netIsPositive ? '#10b981' : '#ef4444'}; line-height: 1.2;">
+                      ${sanitizeText(formattedNet)}
+                    </div>
+                  </div>
+
+                  <!-- Card 2: Total Revenue -->
+                  <div style="
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                  ">
+                    <div style="font-size: 10.5px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                      ${isMy ? 'စုစုပေါင်း ဝင်ငွေ' : 'Total Revenue'}
+                    </div>
+                    <div style="font-size: 16px; font-weight: 800; color: #10b981; line-height: 1.2;">
+                      ${sanitizeText(formattedIncome)}
+                    </div>
+                  </div>
+
+                  <!-- Card 3: Total Expenses -->
+                  <div style="
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                  ">
+                    <div style="font-size: 10.5px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">
+                      ${isMy ? 'စုစုပေါင်း အသုံးစရိတ်' : 'Total Expenses'}
+                    </div>
+                    <div style="font-size: 16px; font-weight: 800; color: #ef4444; line-height: 1.2;">
+                      ${sanitizeText(formattedExpense)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Transaction Table Section -->
+            <div style="margin-top: ${isFirstPage ? '18px' : '14px'}; flex: 1;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em;">
+                  ${isMy
+                    ? `မှတ်တမ်း အသေးစိတ် (${transactions.length} ခု)`
+                    : `Transaction Logs (${transactions.length} ${transactions.length === 1 ? 'entry' : 'entries'})`}
+                </div>
+                ${!isFirstPage ? `
+                  <div style="font-size: 10.5px; color: #64748b; font-weight: 600;">
+                    ${isMy ? `စာမျက်နှာ ${pageNum} မှ ${totalPages}` : `Page ${pageNum} of ${totalPages}`}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Table Grid -->
+              <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                  <thead>
+                    <tr style="background: #1e293b; color: #ffffff; font-weight: 700; font-size: 10.5px;">
+                      <th style="padding: 7px 10px; width: 85px;">${isMy ? 'ရက်စွဲ' : 'DATE'}</th>
+                      <th style="padding: 7px 10px; width: 65px;">${isMy ? 'အမျိုးအစား' : 'TYPE'}</th>
+                      <th style="padding: 7px 10px; width: 140px;">${isMy ? 'ကဏ္ဍ' : 'CATEGORY'}</th>
+                      <th style="padding: 7px 10px;">${isMy ? 'အကြောင်းအရာ' : 'DESCRIPTION'}</th>
+                      <th style="padding: 7px 10px; width: 110px; text-align: right;">${isMy ? 'ပမာဏ' : 'AMOUNT'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${pageTxList.length === 0 ? `
+                      <tr>
+                        <td colspan="5" style="padding: 24px; text-align: center; color: #64748b; font-size: 12px;">
+                          ${isMy ? 'ရွေးချယ်ထားသော ကာလအတွင်း မှတ်တမ်းများ မရှိသေးပါ။' : 'No transaction records found for the selected period.'}
+                        </td>
+                      </tr>
+                    ` : pageTxList.map((tx, idx) => {
+                      const isIncome = tx.type === 'income';
+                      const formattedDate = formatPdfDate(tx.date);
+                      const displayCat = getTranslatedCategory(tx.category);
+                      const displayDesc = tx.description ? tx.description : displayCat;
+                      const amtStr = (isIncome ? '+' : '-') + formatAmount(tx.amount);
+                      const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+
+                      return `
+                        <tr style="background: ${rowBg}; border-top: 1px solid #e2e8f0;">
+                          <td style="padding: 6px 10px; color: #334155; font-weight: 600; white-space: nowrap;">
+                            ${sanitizeText(formattedDate)}
+                          </td>
+                          <td style="padding: 6px 10px;">
+                            <span style="
+                              display: inline-block;
+                              padding: 2px 6px;
+                              border-radius: 4px;
+                              font-size: 9.5px;
+                              font-weight: 700;
+                              background: ${isIncome ? '#ecfdf5' : '#fef2f2'};
+                              color: ${isIncome ? '#059669' : '#dc2626'};
+                              border: 0.5px solid ${isIncome ? '#a7f3d0' : '#fecaca'};
+                            ">
+                              ${isIncome ? (isMy ? 'ဝင်ငွေ' : 'INCOME') : (isMy ? 'ထွက်ငွေ' : 'EXPENSE')}
+                            </span>
+                          </td>
+                          <td style="padding: 6px 10px; color: #0f172a; font-weight: 600;">
+                            ${sanitizeText(displayCat)}
+                          </td>
+                          <td style="padding: 6px 10px; color: #475569; font-weight: 400; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${sanitizeText(displayDesc)}
+                          </td>
+                          <td style="padding: 6px 10px; text-align: right; font-weight: 700; color: ${isIncome ? '#059669' : '#dc2626'}; white-space: nowrap;">
+                            ${sanitizeText(amtStr)}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Section -->
+          <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-weight: 700; color: #0f172a;">Personal Money Manager</span>
+              <span>•</span>
+              <span>${isMy ? 'တရားဝင် ဘဏ္ဍာရေး အစီရင်ခံစာ မှတ်တမ်း' : 'Official Financial Statement'}</span>
+            </div>
+            <div style="font-weight: 700; color: #334155;">
+              ${isMy ? `စာမျက်နှာ ${pageNum} / ${totalPages}` : `Page ${pageNum} of ${totalPages}`}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    renderContainer.innerHTML = fullHtml;
+
+    // Initialize jsPDF (A4, portrait, mm)
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageElements = renderContainer.querySelectorAll<HTMLElement>('.pdf-page');
+
+    for (let i = 0; i < pageElements.length; i++) {
+      const pageEl = pageElements[i];
+
+      const canvas = await html2canvas(pageEl, {
+        scale: 2, // 2x high resolution for crisp rendering
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+
+      if (i > 0) {
+        doc.addPage('a4', 'portrait');
+      }
+
+      // A4 dimensions: 210mm x 297mm
+      doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    }
+
+    const fileDate = getLocalDateStr();
+    const fileName = isMy ? `Financial_Statement_${fileDate}.pdf` : `Ledger_Report_${fileDate}.pdf`;
+    doc.save(fileName);
+  } catch (error) {
+    console.error('High-fidelity PDF generation encountered an error, falling back to direct canvas renderer:', error);
+
+    // Fallback: simple jsPDF generation in case of unforeseen canvas render issue
+    const fallbackDoc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    fallbackDoc.setFont('helvetica', 'bold');
+    fallbackDoc.setFontSize(16);
+    fallbackDoc.text(isMy ? 'FINANCIAL STATEMENT (MYANMAR)' : 'FINANCIAL STATEMENT REPORT', 15, 20);
+
+    fallbackDoc.setFont('helvetica', 'normal');
+    fallbackDoc.setFontSize(10);
+    fallbackDoc.text(`Period: ${computedDateRange}`, 15, 28);
+    fallbackDoc.text(`Total Income: ${formatAmount(incomeTotal)}`, 15, 36);
+    fallbackDoc.text(`Total Expense: ${formatAmount(expenseTotal)}`, 15, 42);
+    fallbackDoc.text(`Net Cash Flow: ${formatAmount(netBalance)}`, 15, 48);
+
+    const fileDate = getLocalDateStr();
+    fallbackDoc.save(`Ledger_Report_${fileDate}.pdf`);
+  } finally {
+    // Clean up DOM node
+    if (renderContainer.parentNode) {
+      renderContainer.parentNode.removeChild(renderContainer);
+    }
+  }
 }

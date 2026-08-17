@@ -1167,7 +1167,7 @@ export default function App() {
   }, [t, customCurrency.code, dashboardFilteredTransactions, selectedYear, selectedMonth]);
 
   // PDF Report layout generator utilizing direct jsPDF document generation
-  const handleExportPDF = React.useCallback(() => {
+  const handleExportPDF = React.useCallback(async () => {
     const getMonthName = (monthValue: string) => {
       const months: Record<string, string> = {
         'all': settings.language === 'en' ? 'All Months' : 'လအားလုံး',
@@ -1241,7 +1241,7 @@ export default function App() {
     const totalExpense = dashboardFilteredTransactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const netSavings = totalIncome - totalExpense;
 
-    generateLedgerPDF({
+    await generateLedgerPDF({
       transactions: dashboardFilteredTransactions,
       incomeTotal: totalIncome,
       expenseTotal: totalExpense,

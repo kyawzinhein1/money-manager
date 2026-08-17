@@ -9,14 +9,12 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register Service Worker for PWA capabilities immediately with prompt updates
+// Register Service Worker for PWA capabilities
 if ('serviceWorker' in navigator) {
   const registerSW = () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('SW registered: ', registration);
-        // Check for updates periodically
-        registration.update().catch(() => {});
       })
       .catch((registrationError) => {
         console.warn('SW registration failed: ', registrationError);

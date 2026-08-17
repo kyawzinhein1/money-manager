@@ -14,6 +14,8 @@ import {
   Area,
   LineChart,
   Line,
+  BarChart,
+  Bar,
   ReferenceLine,
 } from 'recharts';
 import { 
@@ -27,6 +29,8 @@ import {
   Sparkles,
   Info,
   Calendar,
+  CalendarDays,
+  BarChart3,
   Layers,
   Utensils,
   Car,
@@ -162,6 +166,10 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
   
   // Toggle style for daily trend line vs area chart
   const [trendStyle, setTrendStyle] = useState<'area' | 'line'>('area');
+
+  // Toggle chart style for Weekly and Monthly analysis charts
+  const [weeklyChartMode, setWeeklyChartMode] = useState<'bars' | 'net'>('bars');
+  const [monthlyChartMode, setMonthlyChartMode] = useState<'bars' | 'net'>('bars');
   
   // Collapse/Expand state for combined Net Savings, Income & Expense summary card (default is collapsed)
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(true);
@@ -215,9 +223,200 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
     }
   }, [isCustomRange, startDate, endDate, selectedMonth, selectedYear, language, t]);
 
-  // 1. Monthly History (Income vs Expense monthly bars dynamically aligned with custom range/filters)
+  // Myanmar short month mapping
+  const MY_SHORT_MONTHS: Record<string, string> = {
+    '01': 'ဇန်',
+    '02': 'ဖေ',
+    '03': 'မတ်',
+    '04': 'ဧပြီ',
+    '05': 'မေ',
+    '06': 'ဇွန်',
+    '07': 'ဇူ',
+    '08': 'ဩ',
+    '09': 'စက်',
+    '10': 'အောက်',
+    '11': 'နို',
+    '12': 'ဒီ'
+  };
+
+  // 1. Weekly Analysis Data (Calculated dynamically for selected month or multi-week ranges)
+  const weeklyData = useMemo(() => {
+    if (filteredData.length === 0) return [];
+
+    // Case A: Single Month View (e.g. 2026-08)
+    if (!isCustomRange && selectedYear !== 'all' && selectedMonth !== 'all') {
+      const selY = parseInt(selectedYear, 10);
+      const selM = parseInt(selectedMonth, 10);
+      const daysInMonth = new Date(selY, selM, 0).getDate();
+
+      const weeks = [
+        {
+          weekKey: 'w1',
+          shortLabel: language === 'my' ? 'ပတ် ၁ (၁-၇)' : 'W1 (1-7)',
+          label: language === 'my' ? 'ပထမပတ် (၁-၇)' : 'Week 1 (1-7)',
+          startDay: 1,
+          endDay: 7,
+          income: 0,
+          expense: 0,
+          txCount: 0
+        },
+        {
+          weekKey: 'w2',
+          shortLabel: language === 'my' ? 'ပတ် ၂ (၈-၁၄)' : 'W2 (8-14)',
+          label: language === 'my' ? 'ဒုတိယပတ် (၈-၁၄)' : 'Week 2 (8-14)',
+          startDay: 8,
+          endDay: 14,
+          income: 0,
+          expense: 0,
+          txCount: 0
+        },
+        {
+          weekKey: 'w3',
+          shortLabel: language === 'my' ? 'ပတ် ၃ (၁၅-၂၁)' : 'W3 (15-21)',
+          label: language === 'my' ? 'တတိယပတ် (၁၅-၂၁)' : 'Week 3 (15-21)',
+          startDay: 15,
+          endDay: 21,
+          income: 0,
+          expense: 0,
+          txCount: 0
+        },
+        {
+          weekKey: 'w4',
+          shortLabel: language === 'my' ? 'ပတ် ၄ (၂၂-၂၈)' : 'W4 (22-28)',
+          label: language === 'my' ? 'စတုတ္ထပတ် (၂၂-၂၈)' : 'Week 4 (22-28)',
+          startDay: 22,
+          endDay: 28,
+          income: 0,
+          expense: 0,
+          txCount: 0
+        },
+        {
+          weekKey: 'w5',
+          shortLabel: language === 'my' ? `ပတ် ၅ (၂၉-${daysInMonth})` : `W5 (29-${daysInMonth})`,
+          label: language === 'my' ? `ပဉ္စမပတ် (၂၉-${daysInMonth})` : `Week 5 (29-${daysInMonth})`,
+          startDay: 29,
+          endDay: daysInMonth,
+          income: 0,
+          expense: 0,
+          txCount: 0
+        }
+      ];
+
+      filteredData.forEach((tx) => {
+        if (!tx.date) return;
+        const parts = tx.date.split('-');
+        if (parts.length === 3) {
+          const day = parseInt(parts[2], 10);
+          const w = weeks.find((wItem) => day >= wItem.startDay && day <= wItem.endDay);
+          if (w) {
+            if (tx.type === 'income') w.income += tx.amount;
+            else w.expense += tx.amount;
+            w.txCount += 1;
+          }
+        }
+      });
+
+      return weeks.map((w) => ({
+        ...w,
+        net: w.income - w.expense
+      }));
+    }
+
+    // Case B: Multi-month, Date range or All Time (7-day calendar groupings)
+    const dates = filteredData.map((t) => t.date).filter(Boolean).sort();
+    if (dates.length === 0) return [];
+
+    const minDateStr = dates[0];
+    const maxDateStr = dates[dates.length - 1];
+    const minD = new Date(minDateStr);
+    const maxD = new Date(maxDateStr);
+    const diffDays = Math.max(Math.ceil((maxD.getTime() - minD.getTime()) / (1000 * 60 * 60 * 24)) + 1, 7);
+    const numWeeks = Math.min(Math.ceil(diffDays / 7), 8);
+
+    const weekBuckets: Array<{
+      weekKey: string;
+      shortLabel: string;
+      label: string;
+      startDate: Date;
+      endDate: Date;
+      income: number;
+      expense: number;
+      txCount: number;
+    }> = [];
+
+    for (let i = 0; i < numWeeks; i++) {
+      const wStart = new Date(minD.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+      const wEnd = new Date(Math.min(minD.getTime() + ((i + 1) * 7 - 1) * 24 * 60 * 60 * 1000, maxD.getTime()));
+
+      const sM = wStart.getMonth() + 1;
+      const sD = wStart.getDate();
+      const eM = wEnd.getMonth() + 1;
+      const eD = wEnd.getDate();
+
+      const shortLabel = `${sM}/${sD}-${eD}`;
+      const label = language === 'my'
+        ? `အပတ် ${i + 1} (${sM}/${sD} - ${eM}/${eD})`
+        : `Week ${i + 1} (${sM}/${sD} - ${eM}/${eD})`;
+
+      weekBuckets.push({
+        weekKey: `w_${i + 1}`,
+        shortLabel,
+        label,
+        startDate: wStart,
+        endDate: wEnd,
+        income: 0,
+        expense: 0,
+        txCount: 0
+      });
+    }
+
+    filteredData.forEach((tx) => {
+      if (!tx.date) return;
+      const txD = new Date(tx.date);
+      const targetBucket = weekBuckets.find((b) => txD >= b.startDate && txD <= b.endDate) || weekBuckets[weekBuckets.length - 1];
+      if (targetBucket) {
+        if (tx.type === 'income') targetBucket.income += tx.amount;
+        else targetBucket.expense += tx.amount;
+        targetBucket.txCount += 1;
+      }
+    });
+
+    return weekBuckets.map((w) => ({
+      ...w,
+      net: w.income - w.expense
+    }));
+  }, [filteredData, isCustomRange, selectedYear, selectedMonth, language]);
+
+  // Weekly stats for summary badges
+  const weeklyStats = useMemo(() => {
+    if (weeklyData.length === 0) {
+      return { highestSpendingWeek: null, avgExpense: 0, highestExpenseAmount: 0 };
+    }
+    let maxExp = 0;
+    let maxWeekLabel = '';
+    let totalExp = 0;
+    let activeWeeks = 0;
+
+    weeklyData.forEach((w) => {
+      totalExp += w.expense;
+      if (w.expense > 0 || w.income > 0) activeWeeks += 1;
+      if (w.expense > maxExp) {
+        maxExp = w.expense;
+        maxWeekLabel = w.label;
+      }
+    });
+
+    const divisor = Math.max(activeWeeks, weeklyData.length, 1);
+    return {
+      highestSpendingWeek: maxExp > 0 ? maxWeekLabel : null,
+      highestExpenseAmount: maxExp,
+      avgExpense: totalExp / divisor
+    };
+  }, [weeklyData]);
+
+  // 2. Monthly History (Income vs Expense monthly bars dynamically aligned with custom range/filters)
   const monthlyData = useMemo(() => {
-    const monthlyGroups: Record<string, { month: string; rawMonth: string; income: number; expense: number }> = {};
+    const monthlyGroups: Record<string, { month: string; rawMonth: string; income: number; expense: number; net: number }> = {};
     const targetMonths: string[] = [];
 
     if (isCustomRange) {
@@ -329,16 +528,21 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       }
     }
 
-    // Populate targetMonths in monthlyGroups
+    // Populate targetMonths in monthlyGroups with localization
     targetMonths.forEach((mStr) => {
       const [y, m] = mStr.split('-');
       const d = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
-      const formatMonth = d.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+      const shortYear = y.slice(2);
+      const formatMonth = language === 'my'
+        ? `${MY_SHORT_MONTHS[m] || m} '${shortYear}`
+        : d.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+
       monthlyGroups[mStr] = {
         month: formatMonth,
         rawMonth: mStr,
         income: 0,
         expense: 0,
+        net: 0,
       };
     });
 
@@ -362,8 +566,44 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       }
     });
 
-    return Object.values(monthlyGroups).sort((a, b) => a.rawMonth.localeCompare(b.rawMonth));
-  }, [transactions, allTransactions, isCustomRange, startDate, endDate, selectedMonth, selectedYear]);
+    return Object.values(monthlyGroups)
+      .map((item) => ({
+        ...item,
+        net: item.income - item.expense
+      }))
+      .sort((a, b) => a.rawMonth.localeCompare(b.rawMonth));
+  }, [transactions, allTransactions, isCustomRange, startDate, endDate, selectedMonth, selectedYear, language]);
+
+  // Monthly stats for summary badges
+  const monthlyStats = useMemo(() => {
+    if (monthlyData.length === 0) {
+      return { topSavingsMonth: null, avgMonthlyIncome: 0, avgMonthlyExpense: 0 };
+    }
+
+    let maxNet = -Infinity;
+    let topMonthLabel = '';
+    let totalInc = 0;
+    let totalExp = 0;
+    let activeMonths = 0;
+
+    monthlyData.forEach((m) => {
+      totalInc += m.income;
+      totalExp += m.expense;
+      if (m.income > 0 || m.expense > 0) activeMonths += 1;
+      if (m.net > maxNet) {
+        maxNet = m.net;
+        topMonthLabel = m.month;
+      }
+    });
+
+    const divisor = Math.max(activeMonths, 1);
+    return {
+      topSavingsMonth: maxNet > 0 ? topMonthLabel : null,
+      topNetSavings: maxNet,
+      avgMonthlyIncome: totalInc / divisor,
+      avgMonthlyExpense: totalExp / divisor
+    };
+  }, [monthlyData]);
 
   // 2. Day-by-Day Trend (Daily Line)
   const dailyData = useMemo(() => {
@@ -665,7 +905,177 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = React.memo(({
       {/* Charts Display Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" id="charts-container">
         
-        {/* Interactive Day-by-Day Trend Chart */}
+        {/* 1. Weekly Analysis Chart */}
+        <div className="p-5 ios-glass rounded-[2rem] space-y-4 flex flex-col justify-between" id="weekly-analysis-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-[#007aff]" />
+                {t('weeklyAnalysis')}
+              </h3>
+              {weeklyStats.highestSpendingWeek && (
+                <p className="text-[11px] text-[#8e8e93] font-medium mt-0.5">
+                  {t('highestSpendingWeek')}: <span className="font-semibold text-rose-500">{weeklyStats.highestSpendingWeek}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Grouped Bars vs Net Flow switch */}
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setWeeklyChartMode('bars')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  weeklyChartMode === 'bars'
+                    ? 'bg-white dark:bg-[#1c1c1e] text-[#1c1c1e] dark:text-white shadow-xs'
+                    : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                }`}
+              >
+                {language === 'en' ? 'Income vs Exp' : 'ဝင်/ထွက်'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setWeeklyChartMode('net')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  weeklyChartMode === 'net'
+                    ? 'bg-white dark:bg-[#1c1c1e] text-[#1c1c1e] dark:text-white shadow-xs'
+                    : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                }`}
+              >
+                {t('netFlow')}
+              </button>
+            </div>
+          </div>
+
+          <div className="h-64 w-full pt-2 gpu-layer" id="weekly-bar-chart">
+            {weeklyData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-[#8e8e93] text-xs">
+                {t('noTransactions')}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {weeklyChartMode === 'bars' ? (
+                  <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
+                    <XAxis dataKey="shortLabel" stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
+                    <Legend verticalAlign="top" height={36} iconType="circle" />
+                    <Bar name={t('expense')} dataKey="expense" fill="#ff3b30" radius={[4, 4, 0, 0]} maxBarSize={32} style={{ outline: 'none' }} isAnimationActive={false} />
+                    <Bar name={t('income')} dataKey="income" fill="#34c759" radius={[4, 4, 0, 0]} maxBarSize={32} style={{ outline: 'none' }} isAnimationActive={false} />
+                  </BarChart>
+                ) : (
+                  <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
+                    <XAxis dataKey="shortLabel" stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
+                    <ReferenceLine y={0} stroke="#8e8e93" strokeDasharray="2 2" />
+                    <Bar
+                      name={t('netFlow')}
+                      dataKey="net"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={36}
+                      style={{ outline: 'none' }}
+                      isAnimationActive={false}
+                    >
+                      {weeklyData.map((entry, idx) => (
+                        <Cell key={`cell-net-w-${idx}`} fill={entry.net >= 0 ? '#34c759' : '#ff3b30'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Monthly Analysis Chart */}
+        <div className="p-5 ios-glass rounded-[2rem] space-y-4 flex flex-col justify-between" id="monthly-analysis-card">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#34c759]" />
+                {t('monthlyAnalysis')}
+              </h3>
+              {monthlyStats.topSavingsMonth && (
+                <p className="text-[11px] text-[#8e8e93] font-medium mt-0.5">
+                  {t('bestSavingsMonth')}: <span className="font-semibold text-emerald-500">{monthlyStats.topSavingsMonth}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Grouped Bars vs Net Flow switch */}
+            <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setMonthlyChartMode('bars')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  monthlyChartMode === 'bars'
+                    ? 'bg-white dark:bg-[#1c1c1e] text-[#1c1c1e] dark:text-white shadow-xs'
+                    : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                }`}
+              >
+                {language === 'en' ? 'Income vs Exp' : 'ဝင်/ထွက်'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMonthlyChartMode('net')}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  monthlyChartMode === 'net'
+                    ? 'bg-white dark:bg-[#1c1c1e] text-[#1c1c1e] dark:text-white shadow-xs'
+                    : 'text-[#8e8e93] hover:text-[#1c1c1e] dark:hover:text-white'
+                }`}
+              >
+                {t('netFlow')}
+              </button>
+            </div>
+          </div>
+
+          <div className="h-64 w-full pt-2 gpu-layer" id="monthly-bar-chart">
+            {monthlyData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-[#8e8e93] text-xs">
+                {t('noTransactions')}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {monthlyChartMode === 'bars' ? (
+                  <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
+                    <XAxis dataKey="month" stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
+                    <Legend verticalAlign="top" height={36} iconType="circle" />
+                    <Bar name={t('expense')} dataKey="expense" fill="#ff3b30" radius={[4, 4, 0, 0]} maxBarSize={32} style={{ outline: 'none' }} isAnimationActive={false} />
+                    <Bar name={t('income')} dataKey="income" fill="#34c759" radius={[4, 4, 0, 0]} maxBarSize={32} style={{ outline: 'none' }} isAnimationActive={false} />
+                  </BarChart>
+                ) : (
+                  <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5ea" opacity={0.1} />
+                    <XAxis dataKey="month" stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#8e8e93" fontSize={11} tickLine={false} />
+                    <Tooltip content={<CustomChartTooltip formatAmount={formatAmount} />} />
+                    <ReferenceLine y={0} stroke="#8e8e93" strokeDasharray="2 2" />
+                    <Bar
+                      name={t('netFlow')}
+                      dataKey="net"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={36}
+                      style={{ outline: 'none' }}
+                      isAnimationActive={false}
+                    >
+                      {monthlyData.map((entry, idx) => (
+                        <Cell key={`cell-net-m-${idx}`} fill={entry.net >= 0 ? '#34c759' : '#ff3b30'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+        
+        {/* 3. Interactive Day-by-Day Trend Chart */}
         <div className="p-5 ios-glass rounded-[2rem] space-y-4 flex flex-col justify-between">
           <div className="flex items-center justify-between gap-4">
             <h3 className="text-sm font-bold text-[#1c1c1e] dark:text-white flex items-center gap-2">

@@ -395,7 +395,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
   };
 
   // PDF Export action
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (filteredTransactions.length === 0) return;
     setShowExportMenu(false);
 
@@ -413,7 +413,7 @@ export const TransactionsSection: React.FC<TransactionsSectionProps> = React.mem
       rangeText = language === 'my' ? 'အချိန်တိုင်း' : 'All Time';
     }
 
-    generateLedgerPDF({
+    await generateLedgerPDF({
       transactions: filteredTransactions,
       incomeTotal: filteredIncomeTotal,
       expenseTotal: filteredExpenseTotal,

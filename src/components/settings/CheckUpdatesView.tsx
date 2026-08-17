@@ -81,14 +81,6 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
     setChecking(true);
     setStatusMessage(language === 'my' ? 'ဆာဗာရှိ အပ်ဒိတ်အသစ်များအား စစ်ဆေးနေပါသည်...' : 'Checking server for latest build...');
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (let reg of registrations) {
-          reg.update();
-        }
-      });
-    }
-
     const serverData = await fetchServerVersionInfo();
     const now = new Date().toLocaleString();
     setLastChecked(now);
@@ -192,7 +184,7 @@ export const CheckUpdatesView: React.FC<CheckUpdatesViewProps> = ({
             </div>
 
             <button
-              onClick={() => forceApplyAppUpdate()}
+              onClick={handleApplyUpdate}
               className="px-5 py-2.5 bg-white text-[#007aff] hover:bg-white/95 rounded-full text-xs font-black transition-all shadow-md active:scale-95 cursor-pointer border-0 shrink-0 flex items-center gap-1.5"
             >
               <DownloadCloud className="w-4 h-4" />

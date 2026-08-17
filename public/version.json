@@ -1,20 +1,36 @@
 {
-  "version": "v2.1.8",
-  "buildHash": "v2.1.8-20260812",
-  "buildTime": "2026-08-12 20:30:00",
-  "titleEn": "Release v2.1.8: Dedicated Budget Edit View & Clean Plus Jakarta Sans Typography",
-  "titleMy": "ဗားရှင်းအသစ် v2.1.8: ဘတ်ဂျက် ပြင်ဆင်မှု စခရင်သီးသန့်နှင့် ရှင်းလင်းသော ဖောင့်စနစ် မွမ်းမံချက်",
+  "version": "v2.1.9",
+  "buildHash": "v2.1.9-20260817",
+  "buildTime": "2026-08-17 14:00:00",
+  "titleEn": "Release v2.1.9: Weekly & Monthly Analysis Charts and Myanmar Language PDF Statement Export",
+  "titleMy": "ဗားရှင်းအသစ် v2.1.9: အပတ်စဉ်နှင့် လစဉ် သုံးသပ်ချက် ဇယားများနှင့် မြန်မာဘာသာ PDF အစီရင်ခံစာ ထုတ်ယူမှု မွမ်းမံချက်",
   "changelogEn": [
-    "Created dedicated full-page Budget Edit section with responsive monthly and custom date range controls",
-    "Substituted all monospace typography across the application with clean Plus Jakarta Sans display font",
-    "Streamlined input design and overall aesthetic consistency"
+    "Added interactive Weekly Analysis chart with Income vs Expense and Net Cash Flow toggle views",
+    "Added Month-over-Month comparative Analysis chart with localized date headers and top savings statistics",
+    "Implemented high-resolution Myanmar language PDF financial report exports with full Unicode font support and localized summaries"
   ],
   "changelogMy": [
-    "ဘတ်ဂျက် ကန့်သတ်ချက် ပြင်ဆင်ရန် စခရင်ကို သီးသန့် စာမျက်နှာအဖြစ် ပြန်လည်မွမ်းမံ ပြင်ဆင်ခဲ့ပါသည်",
-    "အက်ပ်တစ်ခုလုံးရှိ ကိန်းဂဏန်းနှင့် စာလုံးဒီဇိုင်းများအားလုံးကို သန့်ရှင်းသော Plus Jakarta Sans ဖောင့်သို့ ပြောင်းလဲခဲ့ပါသည်",
-    "အသုံးစရိတ်နှင့် ဘတ်ဂျက် ဖြည့်သွင်းမှုပုံစံများကို ပိုမိုပြေပြစ်သပ်ရပ်အောင် မြှင့်တင်ပေးခဲ့ပါသည်"
+    "အပတ်စဉ် ဝင်ငွေ/ထွက်ငွေနှင့် အသားတင် စုဆောင်းငွေ စီးဆင်းမှုတို့ကို ပြသပေးသော အပတ်စဉ် သုံးသပ်ချက်ဇယား ထည့်သွင်းပေးခဲ့ပါသည်",
+    "လအလိုက် ငွေကြေးသုံးစွဲမှု နှိုင်းယှဉ်ချက်နှင့် ထိပ်တန်းစုဆောင်းနိုင်သောလများကို ဖော်ပြပေးသည့် လစဉ် သုံးသပ်ချက်ဇယား ထည့်သွင်းပေးခဲ့ပါသည်",
+    "အက်ပ်ဘာသာစကား မြန်မာဖြစ်ပါက မြန်မာယူနီကုဒ်ဖြင့် တိကျသပ်ရပ်စွာ ထုတ်ယူနိုင်သော PDF အစီရင်ခံစာစနစ်ကို အဆင့်မြှင့်တင်ပေးခဲ့ပါသည်"
   ],
   "releaseHistory": [
+    {
+      "version": "v2.1.9",
+      "date": "2026-08-17",
+      "titleEn": "Release v2.1.9: Weekly & Monthly Analysis Charts and Myanmar Language PDF Statement Export",
+      "titleMy": "ဗားရှင်းအသစ် v2.1.9: အပတ်စဉ်နှင့် လစဉ် သုံးသပ်ချက် ဇယားများနှင့် မြန်မာဘာသာ PDF အစီရင်ခံစာ ထုတ်ယူမှု မွမ်းမံချက်",
+      "itemsEn": [
+        "Added interactive Weekly Analysis chart with Income vs Expense and Net Cash Flow toggle views",
+        "Added Month-over-Month comparative Analysis chart with localized date headers and top savings statistics",
+        "Implemented high-resolution Myanmar language PDF financial report exports with full Unicode font support and localized summaries"
+      ],
+      "itemsMy": [
+        "အပတ်စဉ် ဝင်ငွေ/ထွက်ငွေနှင့် အသားတင် စုဆောင်းငွေ စီးဆင်းမှုတို့ကို ပြသပေးသော အပတ်စဉ် သုံးသပ်ချက်ဇယား ထည့်သွင်းပေးခဲ့ပါသည်",
+        "လအလိုက် ငွေကြေးသုံးစွဲမှု နှိုင်းယှဉ်ချက်နှင့် ထိပ်တန်းစုဆောင်းနိုင်သောလများကို ဖော်ပြပေးသည့် လစဉ် သုံးသပ်ချက်ဇယား ထည့်သွင်းပေးခဲ့ပါသည်",
+        "အက်ပ်ဘာသာစကား မြန်မာဖြစ်ပါက မြန်မာယူနီကုဒ်ဖြင့် တိကျသပ်ရပ်စွာ ထုတ်ယူနိုင်သော PDF အစီရင်ခံစာစနစ်ကို အဆင့်မြှင့်တင်ပေးခဲ့ပါသည်"
+      ]
+    },
     {
       "version": "v2.1.8",
       "date": "2026-08-12",
