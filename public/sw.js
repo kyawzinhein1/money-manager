@@ -1,4 +1,4 @@
-const CACHE_NAME = 'money-manager-v9';
+const CACHE_NAME = 'money-manager-v2-2-0';
 
 // Core shell assets to pre-cache immediately
 const CORE_ASSETS = [
@@ -28,8 +28,8 @@ self.addEventListener('message', (event) => {
 });
 
 // Install event - Pre-cache core shell assets & auto-discover bundled assets from index.html
-// Note: DO NOT call skipWaiting() here so updates only take effect when the user explicitly accepts.
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       // 1. Add core static assets
@@ -39,7 +39,7 @@ self.addEventListener('install', (event) => {
 
       // 2. Fetch /index.html and pre-cache any referenced JS/CSS assets
       try {
-        const indexResponse = await fetch('/index.html');
+        const indexResponse = await fetch('/index.html', { cache: 'no-cache' });
         if (indexResponse && indexResponse.ok) {
           const htmlText = await indexResponse.text();
           // Extract script src and link href URLs

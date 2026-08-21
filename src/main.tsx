@@ -14,12 +14,20 @@ if ('serviceWorker' in navigator) {
   const registerSW = () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        registration.update();
       })
       .catch((registrationError) => {
         console.warn('SW registration failed: ', registrationError);
       });
   };
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
 
   if (document.readyState === 'complete') {
     registerSW();
